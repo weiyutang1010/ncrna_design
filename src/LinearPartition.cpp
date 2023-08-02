@@ -23,6 +23,7 @@
 #include "LinearPartition.h"
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
+#include "Utils/network.h"
 #include "bpp.cpp"
 
 #define SPECIAL_HP
@@ -582,6 +583,8 @@ static inline void rtrim(std::string &s) {
 
 int main(int argc, char** argv){
 
+    auto dfa = LinearDesign::get_dfa<LinearDesign::IndexType>(4);
+
     struct timeval total_starttime, total_endtime;
     gettimeofday(&total_starttime, NULL);
 
@@ -633,11 +636,6 @@ int main(int argc, char** argv){
     unsigned long long total_states = 0;
     double total_score = .0;
     double total_time = .0;
-
-    int seq_index = 0;
-    string bpp_file_index = "";
-    string ThreshKnot_file_index = "";
-    string MEA_file_index = "";
 
     string rna_seq;
     vector<string> rna_seq_list, rna_name_list;
