@@ -23,7 +23,7 @@
 #include "LinearPartition.h"
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
-#include "Utils/network.h"
+
 #include "bpp.cpp"
 
 #define SPECIAL_HP
@@ -73,15 +73,40 @@ pf_type BeamCKYParser::beam_prune(std::unordered_map<int, State> &beamstep) {
 void BeamCKYParser::prepare(unsigned len) {
     seq_length = len;
 
-    nucs = new int[seq_length];
-    bestC = new State[seq_length];
-    bestH = new unordered_map<int, State>[seq_length];
-    bestP = new unordered_map<int, State>[seq_length];
-    bestM = new unordered_map<int, State>[seq_length];
-    bestM2 = new unordered_map<int, State>[seq_length];
-    bestMulti = new unordered_map<int, State>[seq_length];
+    bestC = new State[seq_length+1];
+    bestH = new unordered_map<NodeType, State>[seq_length+1];
+    bestP = new unordered_map<NodeType, State>[seq_length+1];
+    bestM = new unordered_map<NodeType, State>[seq_length+1];
+    bestM2 = new unordered_map<NodeType, State>[seq_length+1];
+    bestMulti = new unordered_map<NodeType, State>[seq_length+1];
     
-    scores.reserve(seq_length);
+    scores.reserve(seq_length+1);
+
+    stacking_score.resize(6, vector<int>(6));
+    bulge_score.resize(6, vector<vector<int>>(6, vector<int>(SINGLE_MAX_LEN+1)));
+
+    // stacking energy computation
+    int newscore;
+    for(int8_t outer_pair=1; outer_pair<=6; outer_pair++){
+        auto nuci_1 = PAIR_TO_LEFT_NUC(outer_pair);
+        auto nucq = PAIR_TO_RIGHT_NUC(outer_pair);
+        for(int8_t inner_pair=1; inner_pair<=6; inner_pair++){
+            auto nuci = PAIR_TO_LEFT_NUC(inner_pair);
+            auto nucj_1 = PAIR_TO_RIGHT_NUC(inner_pair);
+            newscore = - v_score_single(0, 1, 1, 0,
+                                nuci_1, nuci, nucj_1, nucq,
+                                nuci_1, nuci, nucj_1, nucq);
+            stacking_score[outer_pair-1][inner_pair-1] = newscore;
+
+            for (IndexType l=0; l<=SINGLE_MAX_LEN; l++){
+                newscore = - v_score_single(0, l+2, 1, 0,
+                              nuci_1, nuci, nucj_1, nucq,
+                              nuci_1, nuci, nucj_1, nucq); 
+
+                bulge_score[outer_pair-1][inner_pair-1][l] = newscore;
+            }
+        }   
+    }
 }
 
 void BeamCKYParser::postprocess() {
@@ -96,36 +121,326 @@ void BeamCKYParser::postprocess() {
     delete[] nucs;  
 }
 
-void BeamCKYParser::parse(string& seq) {
-      
-    struct timeval parse_starttime, parse_endtime;
+void print_map(string st, int seq_length, unordered_map<int, State> *best) {
+    printf("%s\n", st.c_str());
+    for(int j = 0; j <= seq_length; ++j) {
+        printf("%d: ", j);
+        for (auto& best_Hj: best[j]) {
+            printf("(%d, %.2f), ", best_Hj.first, best_Hj.second.alpha);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
 
-    gettimeofday(&parse_starttime, NULL);
+void BeamCKYParser::hairpin_beam(IndexType j_node, DFA_t& dfa) {
+    value_type newscore;
 
-    prepare(static_cast<unsigned>(seq.length()));
+    // if (beam > 0 && beamstepH.size() > beam) beam_prune(beamstepH);
 
-    for (int i = 0; i < seq_length; ++i)
-        nucs[i] = GET_ACGU_NUM(seq[i]);
+    // for nucj put H(j, j_next) into H[j_next]
+    for (auto &j1_node_nucj : dfa.right_edges[j_node]) {
+        auto j1_node = std::get<0>(j1_node_nucj);
+        auto nucj = std::get<1>(j1_node_nucj);
+        auto weight_nucj = std::get<2>(j1_node_nucj);
 
-    vector<int> next_pair[NOTON];
-    {
-        for (int nuci = 0; nuci < NOTON; ++nuci) {
-            // next_pair
-            next_pair[nuci].resize(seq_length, -1);
-            int next = -1;
-            for (int j = seq_length-1; j >=0; --j) {
-                next_pair[nuci][j] = next;
-                if (_allowed_pairs[nuci][nucs[j]]) next = j;
+        IndexType jnext_node = (no_sharp_turn ? j_node + 4 : j_node + 1);
+        if (jnext_node >= seq_length) continue;
+
+        for (auto &jnext_node_nucjnext : dfa.right_edges[jnext_node]) {
+            auto jnext1_node = std::get<0>(jnext_node_nucjnext);
+            auto nucjnext = std::get<1>(jnext_node_nucjnext);
+            auto weight_nucjnext = std::get<2>(jnext_node_nucjnext);
+
+            if (!_allowed_pairs[nucj][nucjnext]) continue;
+
+            // TODO: handle special hairpin case
+            // IndexType hairpin_length = jnext + 1 - j;
+
+            for (auto &j2_node_nucj1 : dfa.right_edges[j1_node]) {
+                auto j2_node = std::get<0>(j2_node_nucj1);
+                auto nucj1 = std::get<1>(j2_node_nucj1);
+                auto weight_nucj1 = std::get<2>(j2_node_nucj1);
+
+                for (auto& jnext_1_node_list : dfa.left_edges[jnext_node]){
+                    auto jnext_1_node = std::get<0>(jnext_1_node_list);
+                    auto nucjnext_1 = std::get<1>(jnext_1_node_list);
+                    auto weight_nucjnext_1 = std::get<2>(jnext_1_node_list);
+
+                    double log_probability = log(weight_nucj + SMALL_NUM) + log(weight_nucjnext + SMALL_NUM) + log(weight_nucj1 + SMALL_NUM) + log(weight_nucjnext_1 + SMALL_NUM);
+#ifdef lpv
+                    int tetra_hex_tri = -1;
+
+// #ifdef SPECIAL_HP
+//                         if (jnext_node-j_node-1 == 4) // 6:tetra
+//                             tetra_hex_tri = if_tetraloops[j_node];
+//                         else if (jnext_node-j_node-1 == 6) // 8:hexa
+//                             tetra_hex_tri = if_hexaloops[j_node];
+//                         else if (jnext_node-j_node-1 == 3) // 5:tri
+//                             tetra_hex_tri = if_triloops[j_node];
+// #endif
+                newscore = - v_score_hairpin(j_node, jnext_node, nucj, nucj1, nucjnext_1, nucjnext, tetra_hex_tri);
+                Fast_LogPlusEquals(bestH[jnext1_node][j_node].alpha, log_probability + newscore/kT);
+#else
+                newscore = score_hairpin(j_node, jnext_node, nucj, nucj1, nucjnext_1, nucjnext);
+                Fast_LogPlusEquals(bestH[jnext1_node][j_node].alpha, log_probability + newscore);
+#endif
+
+                }
             }
         }
     }
 
-#ifdef SPECIAL_HP
-#ifdef lpv
-    v_init_tetra_hex_tri(seq, seq_length, if_tetraloops, if_hexaloops, if_triloops);
-#endif
-#endif
+    // for every state h in H[j]
+    //   1. generate p(i, j)
+    //   2. extend h(i, j) to h(i, jnext)
 
+    for (auto &item : bestH[j_node]) {
+        IndexType i_node = item.first;
+        State &state = item.second;
+
+        // 1. generate p(i, j)
+        Fast_LogPlusEquals(bestP[j_node][i_node].alpha, state.alpha);
+        
+        auto jnext_node = j_node + 1;
+        if (jnext_node > seq_length) continue;
+
+        // 2. extend h(i, j) to h(i, jnext)
+        for (auto &i1_node_nuci : dfa.right_edges[i_node]) {
+            auto i1_node = std::get<0>(i1_node_nuci);
+            auto nuci= std::get<1>(i1_node_nuci);
+            auto weight_nuci = std::get<2>(i1_node_nuci);
+
+            for (auto &jnext_node_nucjnext : dfa.left_edges[jnext_node]) {
+                auto jnext_1_node = std::get<0>(jnext_node_nucjnext);
+                auto nucjnext = std::get<1>(jnext_node_nucjnext);
+                auto weight_nucjnext = std::get<2>(jnext_node_nucjnext);
+
+                if (!_allowed_pairs[nuci][nucjnext]) continue;
+
+                for (auto &i2_node_nuci1 : dfa.right_edges[i1_node]) {
+                    auto i2_node = std::get<0>(i2_node_nuci1);
+                    auto nuci1 = std::get<1>(i2_node_nuci1);
+                    auto weight_nuci1 = std::get<2>(i2_node_nuci1);
+
+                    for (auto& jnext_2_node_list : dfa.left_edges[jnext_1_node]){
+                        auto jnext_2_node = std::get<0>(jnext_2_node_list);
+                        auto nucjnext_1 = std::get<1>(jnext_2_node_list);
+                        auto weight_nucjnext_1 = std::get<2>(jnext_2_node_list);
+
+                        double log_probability = log(weight_nuci + SMALL_NUM) + log(weight_nucjnext + SMALL_NUM) + log(weight_nuci1 + SMALL_NUM) + log(weight_nucjnext_1 + SMALL_NUM);
+                        
+#ifdef lpv
+                        int tetra_hex_tri = -1;
+// #ifdef SPECIAL_HP
+//                         if (jnext_node-i_node-1 == 4) // 6:tetra
+//                             tetra_hex_tri = if_tetraloops[i_node];
+//                         else if (jnext_node-i_node-1 == 6) // 8:hexa
+//                             tetra_hex_tri = if_hexaloops[i_node];
+//                         else if (jnext_node-i_node-1 == 3) // 5:tri
+//                             tetra_hex_tri = if_triloops[i_node];
+// #endif
+                        newscore = - v_score_hairpin(i_node, jnext_1_node, nuci, nuci1, nucjnext_1, nucjnext, tetra_hex_tri);
+                        Fast_LogPlusEquals(bestH[jnext_node][i_node].alpha, log_probability + newscore/kT);
+#else
+                        newscore = score_hairpin(i_node, jnext_1_node, nuci, nuci1, nucjnext_1, nucjnext);
+                        Fast_LogPlusEquals(bestH[jnext_node][i_node].alpha, log_probability + newscore);
+#endif
+                    }
+                }
+            }
+        }
+    }
+}
+
+void BeamCKYParser::Multi_beam(IndexType j_node, DFA_t& dfa) {
+    // if (beam > 0 && bestMulti[j_node].size() > beam) beam_prune(bestMulti[j_node]);
+
+    value_type newscore;
+    for(auto& item : bestMulti[j_node]) {
+        IndexType i_node = item.first;
+        State &state = item.second;
+        auto jnext_node = j_node + 1;
+
+        // 1. extend (i, j) to (i, jnext)
+        {
+            for (auto &i1_node_nuci : dfa.right_edges[i_node]) {
+            auto i1_node = std::get<0>(i1_node_nuci);
+            auto nuci= std::get<1>(i1_node_nuci);
+            auto weight_nuci = std::get<2>(i1_node_nuci);
+
+                for (auto &jnext_node_nucjnext : dfa.right_edges[jnext_node]) {
+                    auto jnext1_node = std::get<0>(jnext_node_nucjnext);
+                    auto nucjnext = std::get<1>(jnext_node_nucjnext);
+                    auto weight_nucjnext = std::get<2>(jnext_node_nucjnext);
+
+                    if (!_allowed_pairs[nuci][nucjnext]) continue;
+                    double log_probability = log(weight_nuci + SMALL_NUM) + log(weight_nucjnext + SMALL_NUM);
+
+#ifdef lpv
+                    Fast_LogPlusEquals(bestMulti[jnext_node][i_node].alpha, log_probability + state.alpha);
+#else
+                    // Check newscore here (probability)
+                    newscore = score_multi_unpaired(j_node, jnext_node - 1);
+                    Fast_LogPlusEquals(bestMulti[jnext_node][i_node].alpha, log_probability + state.alpha + newscore);
+#endif
+                }
+            }
+        }
+
+        // 2. generate P (i, j)
+        {
+            for (auto &i1_node_nuci : dfa.right_edges[i_node]) {
+                auto i1_node = std::get<0>(i1_node_nuci);
+                auto nuci= std::get<1>(i1_node_nuci);
+                auto weight_nuci = std::get<2>(i1_node_nuci);
+
+                for (auto &j_node_nucj : dfa.right_edges[j_node]) {
+                    auto j1_node = std::get<0>(j_node_nucj);
+                    auto nucj = std::get<1>(j_node_nucj);
+                    auto weight_nucj = std::get<2>(j_node_nucj);
+
+                    if (!_allowed_pairs[nuci][nucj]) continue;
+
+                    for (auto &i2_node_nuci1 : dfa.right_edges[i1_node]) {
+                        auto i2_node = std::get<0>(i2_node_nuci1);
+                        auto nuci1 = std::get<1>(i2_node_nuci1);
+                        auto weight_nuci1 = std::get<2>(i2_node_nuci1);
+
+                        for (auto& j_1_node_list : dfa.left_edges[j_node]){
+                            auto j_1_node = std::get<0>(j_1_node_list);
+                            auto nucj_1 = std::get<1>(j_1_node_list);
+                            auto weight_nucj_1 = std::get<2>(j_1_node_list);
+
+                            double log_probability = log(weight_nuci + SMALL_NUM) + log(weight_nucj + SMALL_NUM) + log(weight_nuci1 + SMALL_NUM) + log(weight_nucj_1 + SMALL_NUM);
+#ifdef lpv
+                            newscore = - v_score_multi(i_node, j_node, nuci, nuci1, nucj_1, nucj, dfa.length);
+                            Fast_LogPlusEquals(bestP[j_node][i_node].alpha, log_probability + state.alpha + newscore/kT);
+#else
+                            newscore = score_multi(i_node, j_node, nuci, nuci1, nucj_1, nucj, dfa.length);
+                            Fast_LogPlusEquals(bestP[j_node][i_node].alpha, log_probability + state.alpha + newscore);
+#endif
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void BeamCKYParser::P_beam(IndexType j_node, DFA_t& dfa) {
+    // TODO: Double check indexing with P_beam
+
+    // if (beam > 0 && beamstepP.size() > beam) beam_prune(beamstepP);
+
+    value_type newscore;
+
+    for(auto& item : bestP[j_node]) {
+        IndexType i_node = item.first;
+        State &state = item.second;
+
+        for (auto &i1_node_nuci : dfa.right_edges[i_node]) {
+            auto i1_node = std::get<0>(i1_node_nuci);
+            auto nuci= std::get<1>(i1_node_nuci);
+            auto weight_nuci = std::get<2>(i1_node_nuci);
+
+            for (auto &j_1_node_nucj : dfa.left_edges[j_node]){
+                auto j_1_node = std::get<0>(j_1_node_nucj);
+                auto nucj_1 = std::get<1>(j_1_node_nucj);
+                auto weight_nucj_1 = std::get<2>(j_1_node_nucj);
+
+                if (!_allowed_pairs[nuci][nucj_1]) continue;
+                auto pair_nuc = NUM_TO_PAIR(nuci, nucj_1);
+
+                // stacking
+                for (auto &j1_node_nucj : dfa.right_edges[j_node]){
+                    auto j1_node = std::get<0>(j1_node_nucj);
+                    auto nucj = std::get<1>(j1_node_nucj);
+                    auto weight_nucj = std::get<2>(j1_node_nucj);
+
+                    for (auto &i_1_node_nuci : dfa.left_edges[i_node]) {
+                        auto i_1_node = std::get<0>(i_1_node_nuci);
+                        auto nuci_1= std::get<1>(i_1_node_nuci);
+                        auto weight_nuci_1 = std::get<2>(i_1_node_nuci);
+
+                        if (!_allowed_pairs[nuci_1][nucj]) continue;
+                        auto outer_pair = NUM_TO_PAIR(nuci_1, nucj);
+                        double log_probability = log(weight_nuci + SMALL_NUM) + log(weight_nuci_1 + SMALL_NUM) + log(weight_nucj + SMALL_NUM) + log(weight_nucj_1 + SMALL_NUM);
+
+#ifdef lpv
+                        newscore = stacking_score[outer_pair-1][pair_nuc-1];
+                        Fast_LogPlusEquals(bestP[j1_node][i_1_node].alpha, log_probability + state.alpha + newscore/kT);
+#endif
+                    }
+                }
+
+                // right bulge: ((...)..) 
+                for (auto &i_1_node_nuci_1 : dfa.left_edges[i_node]){
+                    auto i_1_node = std::get<0>(i_1_node_nuci_1);
+                    auto nuci_1 = std::get<1>(i_1_node_nuci_1);
+                    auto weight_nuci_1 = std::get<2>(i_1_node_nuci_1);
+
+                    for (IndexType q_node = j_node + 2; q_node < std::min((unsigned)(j_node + SINGLE_MAX_LEN), seq_length); ++q_node) {
+                        for (auto& q_node_nucq : dfa.right_edges[q_node]){
+                            auto q1_node = std::get<0>(q_node_nucq);
+                            auto nucq = std::get<1>(q_node_nucq);
+                            auto weight_nucq = std::get<2>(q_node_nucq);
+
+                            if (!_allowed_pairs[nuci_1][nucq]) continue;
+
+                            auto outer_pair = NUM_TO_PAIR(nuci_1, nucq);
+                            double log_probability = log(weight_nuci + SMALL_NUM) + log(weight_nuci_1 + SMALL_NUM) + log(weight_nucj_1 + SMALL_NUM) + log(weight_nucq + SMALL_NUM);
+
+                            auto newscore = bulge_score[outer_pair-1][pair_nuc-1][q_node-j_node-1];
+
+                            Fast_LogPlusEquals(bestP[q1_node][i_1_node].alpha, log_probability + state.alpha + newscore/kT);
+                        }
+                    }
+                }
+
+                // left bulge: (..(...))
+                for (auto &j1_node_nucj : dfa.right_edges[j_node]){
+                    auto j1_node = std::get<0>(j1_node_nucj);
+                    auto nucj = std::get<1>(j1_node_nucj);
+                    auto weight_nucj = std::get<2>(j1_node_nucj);
+
+                    for (IndexType p_node = i_node - 2; p_node >= std::max(0, i_node - SINGLE_MAX_LEN + 1); --p_node) {
+                        for (auto& p_node_nucp : dfa.right_edges[p_node]){
+                            auto p1_node = std::get<0>(p_node_nucp);
+                            auto nucp = std::get<1>(p_node_nucp);
+                            auto weight_nucp = std::get<2>(p_node_nucp);
+
+                            if (!_allowed_pairs[nucj][nucp]) continue;
+                            auto outer_pair = NUM_TO_PAIR(nucp, nucj);
+                            double log_probability = log(weight_nuci + SMALL_NUM) + log(weight_nucj_1 + SMALL_NUM) + log(weight_nucj + SMALL_NUM) + log(weight_nucp + SMALL_NUM);
+
+                            auto newscore = bulge_score[outer_pair-1][pair_nuc-1][i_node-p_node-1];
+
+                            Fast_LogPlusEquals(bestP[j1_node][p_node-1].alpha, log_probability + state.alpha + newscore/kT);
+                        }
+                    }
+                }
+
+                // TODO: internal loop
+
+            }
+        }
+    }
+}
+
+void BeamCKYParser::parse (DFA_t& dfa, IndexType n) {
+    struct timeval parse_starttime, parse_endtime;
+
+    gettimeofday(&parse_starttime, NULL);
+
+    prepare(static_cast<unsigned>(n));
+
+// TODO: Extend init for special hairpin
+// #ifdef SPECIAL_HP
+// #ifdef lpv
+//     v_init_tetra_hex_tri(seq, seq_length, if_tetraloops, if_hexaloops, if_triloops);
+// #endif
+// #endif
 #ifdef lpv
         if(seq_length > 0) bestC[0].alpha = 0.0;
         if(seq_length > 1) bestC[1].alpha = 0.0;
@@ -133,341 +448,37 @@ void BeamCKYParser::parse(string& seq) {
         if(seq_length > 0) Fast_LogPlusEquals(bestC[0].alpha, score_external_unpaired(0, 0));
         if(seq_length > 1) Fast_LogPlusEquals(bestC[1].alpha, score_external_unpaired(0, 1));
 #endif
-
+        
     value_type newscore;
-    for(int j = 0; j < seq_length; ++j) {
-        int nucj = nucs[j];
-        int nucj1 = (j+1) < seq_length ? nucs[j+1] : -1;
 
-        unordered_map<int, State>& beamstepH = bestH[j];
-        unordered_map<int, State>& beamstepMulti = bestMulti[j];
-        unordered_map<int, State>& beamstepP = bestP[j];
-        unordered_map<int, State>& beamstepM2 = bestM2[j];
-        unordered_map<int, State>& beamstepM = bestM[j];
-        State& beamstepC = bestC[j];
+    // TODO: Implement Contrafold Energy Model
+    for (IndexType j_node = 0; j_node <= seq_length; ++j_node) {
 
-        // beam of H
-        {
-            if (beam > 0 && beamstepH.size() > beam) beam_prune(beamstepH);
+        // unordered_map<IndexType, State>& beamstepH = bestH[j_node];
+        // unordered_map<IndexType, State>& beamstepMulti = bestMulti[j_node];
+        // unordered_map<IndexType, State>& beamstepP = bestP[j_node];
+        // unordered_map<IndexType, State>& beamstepM2 = bestM2[j_node];
+        // unordered_map<IndexType, State>& beamstepM = bestM[j_node];
+        // State& beamstepC = bestC[j_node];
 
-            {
-                // for nucj put H(j, j_next) into H[j_next]
-                int jnext = next_pair[nucj][j];
-                if (no_sharp_turn) while (jnext - j < 4 && jnext != -1) jnext = next_pair[nucj][jnext];
-                if (jnext != -1) {
-                    int nucjnext = nucs[jnext];
-                    int nucjnext_1 = (jnext - 1) > -1 ? nucs[jnext - 1] : -1;
-#ifdef lpv
-                        int tetra_hex_tri = -1;
-#ifdef SPECIAL_HP
-                        if (jnext-j-1 == 4) // 6:tetra
-                            tetra_hex_tri = if_tetraloops[j];
-                        else if (jnext-j-1 == 6) // 8:hexa
-                            tetra_hex_tri = if_hexaloops[j];
-                        else if (jnext-j-1 == 3) // 5:tri
-                            tetra_hex_tri = if_triloops[j];
-#endif
-                        newscore = - v_score_hairpin(j, jnext, nucj, nucj1, nucjnext_1, nucjnext, tetra_hex_tri);
-                        Fast_LogPlusEquals(bestH[jnext][j].alpha, newscore/kT);
-#else
-                        newscore = score_hairpin(j, jnext, nucj, nucj1, nucjnext_1, nucjnext);
-                        Fast_LogPlusEquals(bestH[jnext][j].alpha, newscore);
-#endif
-                }
-            }
+        hairpin_beam(j_node, dfa);
+        if (j_node == 0) continue;
 
-            {
-                // for every state h in H[j]
-                //   1. extend h(i, j) to h(i, jnext)
-                //   2. generate p(i, j)
-                for (auto &item : beamstepH) {
-                    int i = item.first;
-                    State &state = item.second;
-                    int nuci = nucs[i];
-                    int jnext = next_pair[nuci][j];
+        Multi_beam(j_node, dfa);
+        P_beam(j_node, dfa);
+        // M2_beam
+        // M_beam
+        // C_beam
+    }
 
-                    if (jnext != -1) {
-                        int nuci1 = (i + 1) < seq_length ? nucs[i + 1] : -1;
-                        int nucjnext = nucs[jnext];
-                        int nucjnext_1 = (jnext - 1) > -1 ? nucs[jnext - 1] : -1;
-
-                        // 1. extend h(i, j) to h(i, jnext)=
-#ifdef lpv
-                        int tetra_hex_tri = -1;
-#ifdef SPECIAL_HP
-                        if (jnext-i-1 == 4) // 6:tetra
-                            tetra_hex_tri = if_tetraloops[i];
-                        else if (jnext-i-1 == 6) // 8:hexa
-                            tetra_hex_tri = if_hexaloops[i];
-                        else if (jnext-i-1 == 3) // 5:tri
-                            tetra_hex_tri = if_triloops[i];
-#endif
-                        newscore = - v_score_hairpin(i, jnext, nuci, nuci1, nucjnext_1, nucjnext, tetra_hex_tri);
-                        Fast_LogPlusEquals(bestH[jnext][i].alpha, newscore/kT);
-#else
-                        newscore = score_hairpin(i, jnext, nuci, nuci1, nucjnext_1, nucjnext);
-                        Fast_LogPlusEquals(bestH[jnext][i].alpha, newscore);
-#endif
-                    }
-
-                    // 2. generate p(i, j)
-                    Fast_LogPlusEquals(beamstepP[i].alpha, state.alpha);
-                }
-            }
-        }
-        if (j == 0) continue;
-
-        // beam of Multi
-        {
-            if (beam > 0 && beamstepMulti.size() > beam) beam_prune(beamstepMulti);
-
-            for(auto& item : beamstepMulti) {
-                int i = item.first;
-                State& state = item.second;
-
-                int nuci = nucs[i];
-                int nuci1 = nucs[i+1];
-                int jnext = next_pair[nuci][j];
-
-                // 1. extend (i, j) to (i, jnext)
-                {
-                    if (jnext != -1) {
-#ifdef lpv
-                        Fast_LogPlusEquals(bestMulti[jnext][i].alpha, state.alpha);
-#else
-                        newscore = score_multi_unpaired(j, jnext - 1);
-                        Fast_LogPlusEquals(bestMulti[jnext][i].alpha, state.alpha + newscore);
-#endif
-                    }
-                }
-
-                // 2. generate P (i, j)
-                {
-#ifdef lpv
-                    newscore = - v_score_multi(i, j, nuci, nuci1, nucs[j-1], nucj, seq_length);
-                    Fast_LogPlusEquals(beamstepP[i].alpha, state.alpha + newscore/kT);
-#else
-                    newscore = score_multi(i, j, nuci, nuci1, nucs[j-1], nucj, seq_length);
-                    Fast_LogPlusEquals(beamstepP[i].alpha, state.alpha + newscore);
-#endif
-                }
-            }
-        }
-
-        // beam of P
-        {   
-            if (beam > 0 && beamstepP.size() > beam) beam_prune(beamstepP);
-
-            // for every state in P[j]
-            //   1. generate new helix/bulge
-            //   2. M = P
-            //   3. M2 = M + P
-            //   4. C = C + P
-            for(auto& item : beamstepP) {
-                int i = item.first;
-                State& state = item.second;
-                int nuci = nucs[i];
-                int nuci_1 = (i-1>-1) ? nucs[i-1] : -1;
-
-                // 1. generate new helix / single_branch
-                // new state is of shape p..i..j..q
-                if (i >0 && j<seq_length-1) {
-#ifndef lpv
-                    value_type precomputed = score_junction_B(j, i, nucj, nucj1, nuci_1, nuci);
-#endif
-                    for (int p = i - 1; p >= std::max(i - SINGLE_MAX_LEN, 0); --p) {
-                        int nucp = nucs[p];
-                        int nucp1 = nucs[p + 1]; 
-                        int q = next_pair[nucp][j];
-                        while (q != -1 && ((i - p) + (q - j) - 2 <= SINGLE_MAX_LEN)) {
-                            int nucq = nucs[q];
-                            int nucq_1 = nucs[q - 1];
-
-                            if (p == i - 1 && q == j + 1) {
-                                // helix
-#ifdef lpv
-                                newscore = -v_score_single(p,q,i,j, nucp, nucp1, nucq_1, nucq,
-                                                             nuci_1, nuci, nucj, nucj1);
-
-                                // SHAPE for Vienna only
-                                if (use_shape)
-                                    newscore += -(pseudo_energy_stack[p] + pseudo_energy_stack[i] + pseudo_energy_stack[j] + pseudo_energy_stack[q]);
-                                Fast_LogPlusEquals(bestP[q][p].alpha, state.alpha + newscore/kT);
-#else
-                                newscore = score_helix(nucp, nucp1, nucq_1, nucq);
-                                Fast_LogPlusEquals(bestP[q][p].alpha, state.alpha + newscore);
-#endif
-                            } else {
-                                // single branch
-#ifdef lpv
-                                newscore = - v_score_single(p,q,i,j, nucp, nucp1, nucq_1, nucq,
-                                                   nuci_1, nuci, nucj, nucj1);
-                                Fast_LogPlusEquals(bestP[q][p].alpha, state.alpha + newscore/kT);
-#else
-                                newscore = score_junction_B(p, q, nucp, nucp1, nucq_1, nucq) +
-                                        precomputed +
-                                        score_single_without_junctionB(p, q, i, j,
-                                                                       nuci_1, nuci, nucj, nucj1);
-                                Fast_LogPlusEquals(bestP[q][p].alpha, state.alpha + newscore);
-#endif
-                            }
-                            q = next_pair[nucp][q];
-                        }
-                    }
-                }
-
-                // 2. M = P
-                if(i > 0 && j < seq_length-1){
-#ifdef lpv
-                        newscore = - v_score_M1(i, j, j, nuci_1, nuci, nucj, nucj1, seq_length);
-                        Fast_LogPlusEquals(beamstepM[i].alpha, state.alpha + newscore/kT);
-#else
-                        newscore = score_M1(i, j, j, nuci_1, nuci, nucj, nucj1, seq_length);
-                        Fast_LogPlusEquals(beamstepM[i].alpha, state.alpha + newscore);
-#endif
-                }
-
-                // 3. M2 = M + P
-                int k = i - 1;
-                if ( k > 0 && !bestM[k].empty()) {
-#ifdef lpv
-                    newscore = - v_score_M1(i, j, j, nuci_1, nuci, nucj, nucj1, seq_length);
-                    pf_type m1_alpha = state.alpha + newscore/kT;
-#else
-                    newscore = score_M1(i, j, j, nuci_1, nuci, nucj, nucj1, seq_length);
-                    pf_type m1_alpha = state.alpha + newscore;
-#endif
-                    for (auto &m : bestM[k]) {
-                        int newi = m.first;
-                        State& m_state = m.second;
-                        Fast_LogPlusEquals(beamstepM2[newi].alpha, m_state.alpha + m1_alpha);
-                    }
-                }
-
-                // 4. C = C + P
-                {
-                    int k = i - 1;
-                    if (k >= 0) {
-                        State& prefix_C = bestC[k];
-                        int nuck = nuci_1;
-                        int nuck1 = nuci;
-#ifdef lpv
-                        newscore = - v_score_external_paired(k+1, j, nuck, nuck1,
-                                                             nucj, nucj1, seq_length);
-                        Fast_LogPlusEquals(beamstepC.alpha, prefix_C.alpha + state.alpha + newscore/kT);      
-#else
-                        newscore = score_external_paired(k+1, j, nuck, nuck1,
-                                                             nucj, nucj1, seq_length);
-                        Fast_LogPlusEquals(beamstepC.alpha, prefix_C.alpha + state.alpha + newscore);
-#endif
-                    } else {
-#ifdef lpv
-                        newscore = - v_score_external_paired(0, j, -1, nucs[0],
-                                                                 nucj, nucj1, seq_length);
-                        Fast_LogPlusEquals(beamstepC.alpha, state.alpha + newscore/kT);       
-#else
-                        newscore = score_external_paired(0, j, -1, nucs[0],
-                                                             nucj, nucj1, seq_length);
-                        Fast_LogPlusEquals(beamstepC.alpha, state.alpha + newscore);
-#endif
-                    }
-                }
-            }
-        }
-
-        // beam of M2
-        {
-            if (beam > 0 && beamstepM2.size() > beam) beam_prune(beamstepM2);
-
-            for(auto& item : beamstepM2) {
-                int i = item.first;
-                State& state = item.second;
-
-                // 1. multi-loop
-                for (int p = i-1; p >= std::max(i - SINGLE_MAX_LEN, 0); --p) {
-                    int nucp = nucs[p];
-                    int q = next_pair[nucp][j];
-                    if (q != -1 && ((i - p - 1) <= SINGLE_MAX_LEN)) {
-#ifdef lpv
-                    Fast_LogPlusEquals(bestMulti[q][p].alpha, state.alpha);      
-
-#else
-                    newscore = score_multi_unpaired(p+1, i-1) +
-                                    score_multi_unpaired(j+1, q-1);
-                    Fast_LogPlusEquals(bestMulti[q][p].alpha, state.alpha + newscore);      
-#endif
-                    }
-                }
-
-                // 2. M = M2
-                Fast_LogPlusEquals(beamstepM[i].alpha, state.alpha);  
-            }
-        }
-
-        // beam of M
-        {
-            if (beam > 0 && beamstepM.size() > beam) beam_prune(beamstepM);
-
-            for(auto& item : beamstepM) {
-                int i = item.first;
-                State& state = item.second;
-                if (j < seq_length-1) {
-#ifdef lpv
-                    Fast_LogPlusEquals(bestM[j+1][i].alpha, state.alpha); 
-#else
-                    newscore = score_multi_unpaired(j + 1, j + 1);
-                    Fast_LogPlusEquals(bestM[j+1][i].alpha, state.alpha + newscore); 
-#endif
-                }
-            }
-        }
-
-        // beam of C
-        {
-            // C = C + U
-            if (j < seq_length-1) {
-#ifdef lpv
-                Fast_LogPlusEquals(bestC[j+1].alpha, beamstepC.alpha); 
-                    
-#else
-                newscore = score_external_unpaired(j+1, j+1);
-                Fast_LogPlusEquals(bestC[j+1].alpha, beamstepC.alpha + newscore); 
-#endif
-            }
-        }
-    }  // end of for-loo j
-
-    State& viterbi = bestC[seq_length-1];
-
-    gettimeofday(&parse_endtime, NULL);
-    double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-
-#ifdef lpv
-    fprintf(stderr,"Free Energy of Ensemble: %.2f kcal/mol\n", -kT * viterbi.alpha / 100.0);
-#else
-    fprintf(stderr,"Log Partition Coefficient: %.5f\n", viterbi.alpha);
-#endif
-
-    if(is_verbose) fprintf(stderr,"Partition Function Calculation Time: %.2f seconds.\n", parse_elapsed_time);
-
+    print_map("bestH", seq_length, bestH);
+    print_map("bestMulti", seq_length, bestMulti);
+    print_map("bestP", seq_length, bestP);
     fflush(stdout);
 
-    // lhuang
-    if(pf_only && !forest_file.empty()) dump_forest(seq, true); // inside-only forest
-
-    if(!pf_only){
-        outside(next_pair);
-    	if (!forest_file.empty())
-    	  dump_forest(seq, false); // inside-outside forest
-            cal_PairProb(viterbi);
-
-        if (mea_) PairProb_MEA(seq);
-
-        if (threshknot_) ThreshKnot(seq);
-    }
-    postprocess();
     return;
 }
+
 
 void BeamCKYParser::print_states(FILE *fptr, unordered_map<int, State>& states, int j, string label, bool inside_only, double threshold) {    
     for (auto & item : states) {
@@ -581,9 +592,11 @@ static inline void rtrim(std::string &s) {
     }).base(), s.end());
 }
 
+
+
 int main(int argc, char** argv){
 
-    auto dfa = LinearDesign::get_dfa<LinearDesign::IndexType>(4);
+    
 
     struct timeval total_starttime, total_endtime;
     gettimeofday(&total_starttime, NULL);
@@ -637,70 +650,41 @@ int main(int argc, char** argv){
     double total_score = .0;
     double total_time = .0;
 
-    string rna_seq;
-    vector<string> rna_seq_list, rna_name_list;
-    if (fasta){
-        for (string seq; getline(cin, seq);){
-            if (seq.empty()) continue;
-            else if (seq[0] == '>' or seq[0] == ';'){
-                rna_name_list.push_back(seq); // sequence name
-                if (!rna_seq.empty())
-                    rna_seq_list.push_back(rna_seq);
-                rna_seq.clear();
-                continue;
-            }else{
-                rtrim(seq);
-                rna_seq += seq;
-            }
-        }
-        if (!rna_seq.empty())
-            rna_seq_list.push_back(rna_seq);
-    }else{
-        for (string seq; getline(cin, seq);){
-            if (seq.empty()) continue;
-            if (seq[0] == '>' or seq[0] == ';') continue;
-            if (!isalpha(seq[0])){
-                printf("Unrecognized sequence: %s\n", seq.c_str());
-                continue;
-            }
-            rna_seq_list.push_back(seq);
-        }
+    int seq_index = 0;
+    string bpp_file_index = "";
+    string ThreshKnot_file_index = "";
+    string MEA_file_index = "";
+
+    string rna_struct;
+    vector<string> rna_struct_list, rna_name_list;
+    for (string structure; getline(cin, structure);){
+        if (structure.empty()) continue;
+        // if (seq[0] == '>' or seq[0] == ';') continue;
+        // if (!isalpha(seq[0])){
+        //     printf("Unrecognized sequence: %s\n", seq.c_str());
+        //     continue;
+        // }
+        rna_struct_list.push_back(structure);
     }
 
-    for(int i = 0; i < rna_seq_list.size(); i++){
+    for(int i = 0; i < rna_struct_list.size(); i++){
         if (rna_name_list.size() > i)
             printf("%s\n", rna_name_list[i].c_str());
-        rna_seq = rna_seq_list[i];
+        rna_struct = rna_struct_list[i];
 
-        printf("%s\n", rna_seq.c_str());
-        if (!bpp_file.empty()) {
-            FILE *fptr = fopen(bpp_file.c_str(), "a"); 
-            if (fptr == NULL) { 
-                printf("Could not open file!\n"); 
-                return 0; 
-            }
-            if (rna_name_list.size() > i)
-                fprintf(fptr, "%s\n", rna_name_list[i].c_str());
-            fclose(fptr); 
-        }
+        printf("%s\n", rna_struct.c_str());
 
-        seq_index ++;
-        if (!bpp_prefix.empty()) bpp_file_index = bpp_prefix + to_string(seq_index);
-
-        if (!ThresKnot_prefix.empty()) ThreshKnot_file_index = ThresKnot_prefix + to_string(seq_index);
-
-        if (!MEA_prefix.empty()) MEA_file_index = MEA_prefix + to_string(seq_index);
-        
-        // convert to uppercase
-        transform(rna_seq.begin(), rna_seq.end(), rna_seq.begin(), ::toupper);
-
-        // convert T to U
-        replace(rna_seq.begin(), rna_seq.end(), 'T', 'U');
 
         // lhuang: moved inside loop, fixing an obscure but crucial bug in initialization
         BeamCKYParser parser(beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
 
-        parser.parse(rna_seq);
+        DFA_t dfa = LinearDesign::get_dfa<LinearDesign::IndexType>(rna_struct.size());
+        parser.parse(dfa, rna_struct.size());
+
+        // Wei Yu: Test with one hot encoding
+        // string seq = "CCAAAGG";
+        // DFA_t dfa = LinearDesign::get_dfa<LinearDesign::IndexType>(seq);
+        // parser.parse(dfa, seq.size());
     }
 
     gettimeofday(&total_endtime, NULL);

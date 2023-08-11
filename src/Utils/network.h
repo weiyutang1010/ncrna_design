@@ -15,15 +15,13 @@
 #include <unordered_map>
 #include <algorithm>
 #include <array>
+#include "utility.h"
 #include "utility_v.h"
 #include "common.h"
 
 using namespace std;
 
-// Wei Yu:
-//  1. NodeType to int instead of pair
-//  2. get_dfa() to return sausage lattice
-//  3. Remove get<>() and hash_pair
+// Wei Yu: NodeType is now an integer instead of a pair
 
 // #define is_verbose
 
@@ -58,6 +56,8 @@ template <typename IndexType,
           typename NodeNucWType = tuple<NodeType, NucType, double>>
 class DFA {
 public:
+    IndexType length;
+
     unordered_map<IndexType, vector<NodeType>> nodes;
     unordered_map<NodeType, vector<NodeNucWType>> left_edges;
     unordered_map<NodeType, vector<NodeNucWType>> right_edges;
@@ -67,7 +67,6 @@ public:
 
     DFA(): nodes(), left_edges(), right_edges(), auxiliary_left_edges(), auxiliary_right_edges() {};
 
-    // Wei Yu: Changed type of nuc
     void add_edge(NodeType n1, NodeType n2, NucType nuc, double weight = 0.0f){
         right_edges[n1].push_back(make_tuple(n2, nuc, weight));
         left_edges[n2].push_back(make_tuple(n1, nuc, weight));
@@ -87,16 +86,18 @@ template <typename IndexType,
           typename LatticeType = Lattice<IndexType>,
           typename DFAType = DFA<IndexType>>
 DFAType get_dfa(IndexType n) {
-    // Wei Yu: Make a sausage lattice of length n
+    // Wei Yu: Sausage lattice with n + 1 nodes
     DFAType dfa = DFAType();
+    dfa.length = n;
 
     NodeType first_node = 0;
     dfa.add_node(first_node);
 
-    for (NodeType new_node = 1; new_node < n; new_node++) {
+    for (NodeType new_node = 1; new_node < n + 1; new_node++) {
         NodeType prev_node = new_node - 1;
         dfa.add_node(new_node);
 
+        // nucleotides: CONTRAfold: 0:A 1:C 2:G 3:U 4:N ; Vienna: 0:N 1:A 2:C 3:G 4:U
         for (NucType nuc = 0; nuc < 4; nuc++) {
             dfa.add_edge(prev_node, new_node, nuc, 0.25f);
         }
@@ -126,4 +127,53 @@ DFAType get_dfa(IndexType n) {
     return dfa;
 }
 
+template <typename IndexType,
+          typename NodeType = IndexType,
+          typename LatticeType = Lattice<IndexType>,
+          typename DFAType = DFA<IndexType>>
+DFAType get_dfa(string seq) {
+    // Wei Yu: One Hot Encoding DFA
+    IndexType n = seq.size();
+    DFAType dfa = DFAType();
+    dfa.length = n;
+
+    NodeType first_node = 0;
+    dfa.add_node(first_node);
+
+    for (NodeType new_node = 1; new_node < n + 1; new_node++) {
+        NodeType prev_node = new_node - 1;
+        dfa.add_node(new_node);
+        
+        // nucleotides: CONTRAfold: 0:A 1:C 2:G 3:U 4:N ; Vienna: 0:N 1:A 2:C 3:G 4:U
+        for (NucType nuc = 0; nuc < 4; nuc++) {
+            if (nuc == GET_ACGU_NUM(seq[prev_node]))
+                dfa.add_edge(prev_node, new_node, nuc, 1.0f);
+            else
+                dfa.add_edge(prev_node, new_node, nuc, 0.0f);
+        }
+    }
+
+#ifdef is_verbose
+    printf("-----------------DFA------------------------\n");
+    for(IndexType pos = 0; pos < n; pos++){
+        for(auto& node : dfa.nodes[pos]) {
+            IndexType num = node;
+            printf("node, (%d)\n", num);
+            for(auto &n2 : dfa.auxiliary_right_edges[node]){
+                IndexType num2 = n2.first;
+                for(auto nuc : n2.second){
+                    printf("              (%d) -(%d,%lf)-> (%d)\n", num, get<0>(nuc),get<1>(nuc), num2);
+                }
+            }
+            for(auto &n1 : dfa.auxiliary_left_edges[node]){
+                IndexType num1 = n1.first;
+                for(auto nuc : n1.second){
+                    printf("  (%d) <-(%d,%lf)- (%d)\n", num1, get<0>(nuc),get<1>(nuc), num);
+                }
+            }
+        }
+    }
+#endif
+    return dfa;
+}
 }
