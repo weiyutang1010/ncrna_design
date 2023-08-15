@@ -76,11 +76,18 @@ inline void v_init_tetra_hex_tri(std::string& seq, int seq_length, std::vector<i
     return;
 }
 
-inline int v_score_hairpin(int i, int j, int nuci, int nuci1, int nucj_1, int nucj, int tetra_hex_tri_index = -1) {
-    int size = j-i-1;
+inline int mismatch_hairpin(int nuci, int nuci1, int nucj_1, int nucj) {
     int type = NUM_TO_PAIR(nuci, nucj);
     int si1 = NUM_TO_NUC(nuci1);
     int sj1 = NUM_TO_NUC(nucj_1);
+    return mismatchH37[type][si1][sj1];
+}
+
+inline int v_score_hairpin(int i, int j, int nuci, int nuci1, int nucj_1, int nucj, int tetra_hex_tri_index = -1) {
+    int size = j-i-1;
+    // int type = NUM_TO_PAIR(nuci, nucj);
+    // int si1 = NUM_TO_NUC(nuci1);
+    // int sj1 = NUM_TO_NUC(nucj_1);
 
     int energy;
 
@@ -90,21 +97,21 @@ inline int v_score_hairpin(int i, int j, int nuci, int nuci1, int nucj_1, int nu
         energy = hairpin37[30] + (int)(lxc37*log((size)/30.));
 
     if(size < 3) return energy; /* should only be the case when folding alignments */
-#ifdef SPECIAL_HP
-    // if(special_hp){
-        if (size == 4 && tetra_hex_tri_index > -1)
-            return Tetraloop37[tetra_hex_tri_index];
-        else if (size == 6 && tetra_hex_tri_index > -1)
-            return Hexaloop37[tetra_hex_tri_index];
-        else if (size == 3) {
-            if (tetra_hex_tri_index > -1)
-                return Triloop37[tetra_hex_tri_index];
-            return (energy + (type>2 ? TerminalAU37 : 0));
-        }
-    // }
-#endif
+// #ifdef SPECIAL_HP
+//     // if(special_hp){
+//         if (size == 4 && tetra_hex_tri_index > -1)
+//             return Tetraloop37[tetra_hex_tri_index];
+//         else if (size == 6 && tetra_hex_tri_index > -1)
+//             return Hexaloop37[tetra_hex_tri_index];
+//         else if (size == 3) {
+//             if (tetra_hex_tri_index > -1)
+//                 return Triloop37[tetra_hex_tri_index];
+//             return (energy + (type>2 ? TerminalAU37 : 0));
+//         }
+//     // }
+// #endif
 
-    energy += mismatchH37[type][si1][sj1];
+    // energy += mismatchH37[type][si1][sj1];
 
     return energy;
 }

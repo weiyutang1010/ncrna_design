@@ -16,14 +16,9 @@
 #include <math.h> 
 #include <set>
 
-
-#include "Utils/network.h"
-using DFA_t = LinearDesign::DFA<LinearDesign::IndexType>;
-using IndexType = LinearDesign::IndexType;
-using NodeType = LinearDesign::NodeType;
-
 // #define MIN_CUBE_PRUNING_SIZE 20
 #define kT 61.63207755
+#define SMALL_NUM 1e-18
 
 #define NEG_INF -2e20 
 // #define testtime
@@ -45,7 +40,6 @@ using namespace std;
   #define VALUE_MIN numeric_limits<double>::lowest()
 #endif
 
-#define SMALL_NUM 1e-16
 
 // A hash function used to hash a pair of any kind 
 struct hash_pair { 
@@ -125,22 +119,23 @@ public:
                   bool is_fasta=false);
 
     // DecoderResult parse(string& seq);
-    void parse(string& seq);
-    void parse(DFA_t& dfa, IndexType n);
 
-    void hairpin_beam(IndexType j_node, DFA_t& dfa);
-    void Multi_beam(IndexType j_node, DFA_t& dfa);
-    void P_beam(IndexType j_node, DFA_t& dfa);
+    void parse(vector<array<double, 4>>& dist);
+
+    void hairpin_beam(int j, vector<array<double, 4>>& dist);
+    // void Multi_beam(IndexType j_node, DFA_t& dfa);
+    // void P_beam(IndexType j_node, DFA_t& dfa);
 
 private:
     void get_parentheses(char* result, string& seq);
 
     unsigned seq_length;
 
-    unordered_map<NodeType, State> *bestH, *bestP, *bestM2, *bestMulti, *bestM;
+    unordered_map<pair<int, int>, State, hash_pair> *bestP;
+    unordered_map<int, State> *bestH, *bestM2, *bestMulti, *bestM;
 
-    vector<vector<vector<int>>> bulge_score;
-    vector<vector<int>> stacking_score;
+    // vector<vector<vector<int>>> bulge_score;
+    // vector<vector<int>> stacking_score;
 
     vector<int> if_tetraloops;
     vector<int> if_hexaloops;
