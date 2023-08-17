@@ -241,6 +241,9 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
         int i = index_nucpair.first;
         int8_t pair_nuc = index_nucpair.second;
 
+        int nuci = PAIR_TO_LEFT_NUC(pair_nuc);
+        int nucj = PAIR_TO_RIGHT_NUC(pair_nuc);
+
         State& state = item.second;
 
         if (i <= 0 || j >= seq_length-1) continue;
@@ -303,6 +306,48 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
                     newscore = bulge_score[outer_pair-1][pair_nuc-1][i-p-2];
                     pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucj1)};
                     Fast_LogPlusEquals(bestP[j+1][index_nucpair].alpha, log_probability + state.alpha + newscore/kT);
+                }
+            }
+        }
+
+        // interior loop
+        // p p+1 .. i-1 i .. j j+1 .. q-1 q
+        for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
+            for (int q = j+2; (i - p) + (q - j) -2 <= SINGLE_MAX_LEN && q < seq_length; ++q) {
+                
+                for (int nucp = 0; nucp < 4; ++nucp) {
+                    for (int nucq = 0; nucq < 4; ++nucq) {
+
+                        if (!_allowed_pairs[nucp][nucq]) continue;
+                        double prob_nucp = dist[p][nucp];
+                        double prob_nucq = dist[q][nucq];
+
+                        for (int nucp1 = 0; nucp1 < 4; ++nucp1) {
+                            double prob_nucp1 = dist[p+1][nucp1];
+                            for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
+                                double prob_nuci_1 = dist[i-1][nuci_1];
+                                for (int nucj1 = 0; nucj1 < 4; ++nucj1) {
+                                    double prob_nucj1 = dist[j+1][nucj1];
+                                    for (int nucq_1 = 0; nucq_1 < 4; ++nucq_1) {
+                                        double prob_nucq_1 = dist[q-1][nucq_1];
+
+                                        double log_probability = log(prob_nucp + SMALL_NUM) +
+                                                                 log(prob_nucp1 + SMALL_NUM) +
+                                                                 log(prob_nuci_1 + SMALL_NUM) +
+                                                                 log(prob_nucj1 + SMALL_NUM) +
+                                                                 log(prob_nucq_1 + SMALL_NUM) +
+                                                                 log(prob_nucq + SMALL_NUM);
+#ifdef lpv
+                                        newscore = - v_score_single(p,q,i,j, nucp, nucp1, nucq_1, nucq,
+                                                        nuci_1, nuci, nucj, nucj1);
+                                        pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucj1)};
+                                        Fast_LogPlusEquals(bestP[q][index_nucpair].alpha, state.alpha + log_probability + newscore/kT);
+#endif
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -492,6 +537,20 @@ static inline void rtrim(std::string &s) {
     }).base(), s.end());
 }
 
+vector<array<double, 4>> get_one_hot(string& seq) {
+    int n = seq.size();
+    vector<array<double, 4>> dist(n);
+
+    for (int i = 0; i < n; i++) {
+        for (int nuci = 0; nuci < 4; nuci++) {
+            if (nuci == GET_ACGU_NUM(seq[i])) dist[i][nuci] = 1.00;
+            else dist[i][nuci] = 0.00;
+        }
+    }
+
+    return dist;
+}
+
 
 
 int main(int argc, char** argv){
@@ -579,26 +638,26 @@ int main(int argc, char** argv){
         BeamCKYParser parser(beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
 
         vector<array<double, 4>> dist {{0., .5, .5, 0.},
-                                       {0., .5, .5, 0.},
                                        {1., 0., 0., 0.},
                                        {1., 0., 0., 0.},
                                        {1., 0., 0., 0.},
-                                       {0., .5, .5, 0.},
                                        {0., .5, .5, 0.}};
         parser.parse(dist);
 
-        printf("\nOne Hot Encoding: CCAAAGAG\n");
 
         // Wei Yu: Test with one hot encoding
-        // string seq = "CCAAAGAG";
-        vector<array<double, 4>> dist2 {{0., 1., 0., 0.},
-                                       {1., 0., 0., 0.},
-                                       {0., 1., 0., 0.},
-                                       {1., 0., 0., 0.},
-                                       {1., 0., 0., 0.},
-                                       {1., 0., 0., 0.},
-                                       {0., 0., 1., 0.},
-                                       {0., 0., 1., 0.}};
+        string seq = "CACAAAGAG";
+        printf("\nOne Hot Encoding: %s\n", seq.c_str());
+        auto dist2 = get_one_hot(seq);
+
+        // vector<array<double, 4>> dist2 {{0., 1., 0., 0.},
+        //                                 {1., 0., 0., 0.},
+        //                                 {0., 1., 0., 0.},
+        //                                 {1., 0., 0., 0.},
+        //                                 {1., 0., 0., 0.},
+        //                                 {1., 0., 0., 0.},
+        //                                 {0., 0., 1., 0.},
+        //                                 {0., 0., 1., 0.}};
         parser.parse(dist2);
     }
 
