@@ -123,8 +123,7 @@ public:
     void parse(vector<array<double, 4>>& dist);
 
     void hairpin_beam(int j, vector<array<double, 4>>& dist);
-    // void Multi_beam(IndexType j_node, DFA_t& dfa);
-    // void P_beam(IndexType j_node, DFA_t& dfa);
+    void P_beam(int j, vector<array<double, 4>>& dist);
 
 private:
     void get_parentheses(char* result, string& seq);
@@ -134,8 +133,8 @@ private:
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
     unordered_map<int, State> *bestH, *bestM2, *bestMulti, *bestM;
 
-    // vector<vector<vector<int>>> bulge_score;
-    // vector<vector<int>> stacking_score;
+    vector<vector<vector<int>>> bulge_score;
+    vector<vector<int>> stacking_score;
 
     vector<int> if_tetraloops;
     vector<int> if_hexaloops;

@@ -82,31 +82,31 @@ void BeamCKYParser::prepare(unsigned len) {
     
     scores.reserve(seq_length);
 
-    // stacking_score.resize(6, vector<int>(6));
-    // bulge_score.resize(6, vector<vector<int>>(6, vector<int>(SINGLE_MAX_LEN+1)));
+    stacking_score.resize(6, vector<int>(6));
+    bulge_score.resize(6, vector<vector<int>>(6, vector<int>(SINGLE_MAX_LEN+1)));
 
-    // // stacking energy computation
-    // int newscore;
-    // for(int8_t outer_pair=1; outer_pair<=6; outer_pair++){
-    //     auto nuci_1 = PAIR_TO_LEFT_NUC(outer_pair);
-    //     auto nucq = PAIR_TO_RIGHT_NUC(outer_pair);
-    //     for(int8_t inner_pair=1; inner_pair<=6; inner_pair++){
-    //         auto nuci = PAIR_TO_LEFT_NUC(inner_pair);
-    //         auto nucj_1 = PAIR_TO_RIGHT_NUC(inner_pair);
-    //         newscore = - v_score_single(0, 1, 1, 0,
-    //                             nuci_1, nuci, nucj_1, nucq,
-    //                             nuci_1, nuci, nucj_1, nucq);
-    //         stacking_score[outer_pair-1][inner_pair-1] = newscore;
+    // stacking energy computation
+    int newscore;
+    for(int8_t outer_pair=1; outer_pair<=6; outer_pair++){
+        auto nuci_1 = PAIR_TO_LEFT_NUC(outer_pair);
+        auto nucq = PAIR_TO_RIGHT_NUC(outer_pair);
+        for(int8_t inner_pair=1; inner_pair<=6; inner_pair++){
+            auto nuci = PAIR_TO_LEFT_NUC(inner_pair);
+            auto nucj_1 = PAIR_TO_RIGHT_NUC(inner_pair);
+            newscore = - v_score_single(0, 1, 1, 0,
+                                nuci_1, nuci, nucj_1, nucq,
+                                nuci_1, nuci, nucj_1, nucq);
+            stacking_score[outer_pair-1][inner_pair-1] = newscore;
 
-    //         for (IndexType l=0; l<=SINGLE_MAX_LEN; l++){
-    //             newscore = - v_score_single(0, l+2, 1, 0,
-    //                           nuci_1, nuci, nucj_1, nucq,
-    //                           nuci_1, nuci, nucj_1, nucq); 
+            for (int32_t l=0; l<=SINGLE_MAX_LEN; l++){
+                newscore = - v_score_single(0, l+2, 1, 0,
+                              nuci_1, nuci, nucj_1, nucq,
+                              nuci_1, nuci, nucj_1, nucq); 
 
-    //             bulge_score[outer_pair-1][inner_pair-1][l] = newscore;
-    //         }
-    //     }   
-    // }
+                bulge_score[outer_pair-1][inner_pair-1][l] = newscore;
+            }
+        }   
+    }
 }
 
 void BeamCKYParser::postprocess() {
@@ -191,7 +191,6 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
 
 #ifdef lpv
                         newscore = - mismatch_hairpin(nuci, nuci1, nucj_1, nucj);
-                        // printf("prob: %f, state: %f, newscore: %d\n", log_probability, state.alpha, newscore);
                         Fast_LogPlusEquals(score, state.alpha + log_probability + newscore/kT);
 #endif
                     }
@@ -223,6 +222,90 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
         Fast_LogPlusEquals(bestH[jnext][i].alpha, newscore);
 #endif    
 
+    }
+}
+
+void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
+    value_type newscore;
+    unordered_map<pair<int, int>, State, hash_pair>& beamstepP = bestP[j];
+
+    // if (beam > 0 && beamstepP.size() > beam) beam_prune(beamstepP);
+
+    // for every state in P[j]
+    //   1. generate new helix/bulge
+    //   2. M = P
+    //   3. M2 = M + P
+    //   4. C = C + P
+    for(auto& item : beamstepP) {
+        pair<int, int> index_nucpair = item.first;
+        int i = index_nucpair.first;
+        int8_t pair_nuc = index_nucpair.second;
+
+        State& state = item.second;
+
+        if (i <= 0 || j >= seq_length-1) continue;
+
+        // stacking
+        for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
+            for (int nucj1 = 0; nucj1 < 4; ++nucj1) {       
+
+                if (!_allowed_pairs[nuci_1][nucj1]) continue;
+
+                double prob_nuci_1 = dist[i-1][nuci_1];
+                double prob_nucj1 = dist[j+1][nucj1];
+                int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucj1);
+
+                double log_probability = log(prob_nuci_1 + SMALL_NUM) +
+                                         log(prob_nucj1 + SMALL_NUM);
+
+                newscore = stacking_score[outer_pair-1][pair_nuc-1];
+                pair<int, int> index_nucpair {i-1, NUM_TO_PAIR(nuci_1, nucj1)};
+                Fast_LogPlusEquals(bestP[j+1][index_nucpair].alpha, log_probability + state.alpha + newscore/kT);
+            }
+        }
+
+        // right bulge: ((...)..) 
+        for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
+            for (int q = j+2; q < std::min((int)seq_length, j + SINGLE_MAX_LEN); ++q) {
+                for (int nucq = 0; nucq < 4; ++nucq) {
+
+                    if (!_allowed_pairs[nuci_1][nucq]) continue;
+
+                    double prob_nuci_1 = dist[i-1][nuci_1];
+                    double prob_nucq = dist[q][nucq];
+                    int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucq);
+
+                    double log_probability = log(prob_nuci_1 + SMALL_NUM) +
+                                             log(prob_nucq + SMALL_NUM);
+
+                    newscore = bulge_score[outer_pair-1][pair_nuc-1][q-j-2];
+                    pair<int, int> index_nucpair {i-1, NUM_TO_PAIR(nuci_1, nucq)};
+                    Fast_LogPlusEquals(bestP[q][index_nucpair].alpha, log_probability + state.alpha + newscore/kT);
+                }
+            }
+        }
+
+        // TODO: check special case
+        // left bulge: (..(...)) 
+        for (int nucj1 = 0; nucj1 < 4; ++nucj1) {
+            for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
+                for (int nucp = 0; nucp < 4; ++nucp) {
+
+                    if (!_allowed_pairs[nucp][nucj1]) continue;
+
+                    double prob_nucj1 = dist[j+1][nucj1];
+                    double prob_nucp = dist[p][nucp];
+                    int8_t outer_pair = NUM_TO_PAIR(nucj1, nucp);
+
+                    double log_probability = log(prob_nucp + SMALL_NUM) +
+                                             log(prob_nucj1 + SMALL_NUM);
+
+                    newscore = bulge_score[outer_pair-1][pair_nuc-1][i-p-2];
+                    pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucj1)};
+                    Fast_LogPlusEquals(bestP[j+1][index_nucpair].alpha, log_probability + state.alpha + newscore/kT);
+                }
+            }
+        }
     }
 }
 
@@ -264,7 +347,7 @@ void BeamCKYParser::parse (vector<array<double, 4>>& dist) {
         if (j == 0) continue;
 
         // Multi_beam(j_node, dfa);
-        // P_beam(j_node, dfa);
+        P_beam(j, dist);
         // M2_beam
         // M_beam
         // C_beam
@@ -504,11 +587,12 @@ int main(int argc, char** argv){
                                        {0., .5, .5, 0.}};
         parser.parse(dist);
 
-        printf("\nOne Hot Encoding: CCAAAGG\n");
+        printf("\nOne Hot Encoding: CCAAAGAG\n");
 
         // Wei Yu: Test with one hot encoding
-        // string seq = "CCAAAGG";
+        // string seq = "CCAAAGAG";
         vector<array<double, 4>> dist2 {{0., 1., 0., 0.},
+                                       {1., 0., 0., 0.},
                                        {0., 1., 0., 0.},
                                        {1., 0., 0., 0.},
                                        {1., 0., 0., 0.},

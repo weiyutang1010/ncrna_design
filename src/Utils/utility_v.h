@@ -13,8 +13,8 @@
 #define NUM_TO_PAIR(x,y) (x==0? (y==3?5:0) : (x==1? (y==2?1:0) : (x==2 ? (y==1?2:(y==3?3:0)) : (x==3 ? (y==2?4:(y==0?6:0)) : 0))))
 #define NUC_TO_PAIR(x,y) (x==1? (y==4?5:0) : (x==2? (y==3?1:0) : (x==3 ? (y==2?2:(y==4?3:0)) : (x==4 ? (y==3?4:(y==1?6:0)) : 0))))
 
-#define PAIR_TO_LEFT_NUC(x) (x==1? 2:((x==2 || x==3)? 3:(x==5)? 1:4))
-#define PAIR_TO_RIGHT_NUC(x) (x==2? 2:((x==1 || x==4)? 3:(x==6)? 1:4))
+#define PAIR_TO_LEFT_NUC(x) (x==1? 1:((x==2 || x==3)? 2:(x==5)? 0:3))
+#define PAIR_TO_RIGHT_NUC(x) (x==2? 1:((x==1 || x==4)? 2:(x==6)? 0:3))
 
 // bool _allowed_pairs[NOTON][NOTON];
 

@@ -293,3 +293,17 @@
 //         }
 //     }
 // }
+
+        // // interior loop
+        // for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
+        //     for (int q = j+2; q < std::min((int)seq_length, j + SINGLE_MAX_LEN); ++q) {
+        //         for (int nucp = 0; nucp < 4; ++nucp) {
+        //             for (int nucq = 0; nucq < 4; ++nucq) {
+
+        //                 if (!_allowed_pairs[nucp][nucq]) continue;
+
+                        
+        //             }
+        //         }
+        //     }
+        // }
