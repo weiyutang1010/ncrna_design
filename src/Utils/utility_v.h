@@ -147,33 +147,33 @@ inline int v_score_single(int i, int j, int p, int q,
     return energy;
   }
   else {                            /* interior loop */
-    if (ns==1) {
-      if (nl==1)                    /* 1x1 loop */
-        return int11_37[type][type_2][si1][sj1];
-      if (nl==2) {                  /* 2x1 loop */
-        if (n1==1)
-          energy = int21_37[type][type_2][si1][sq1][sj1];
-        else
-          energy = int21_37[type_2][type][sq1][si1][sp1];
-        return energy;
-      }
-      else {  /* 1xn loop */
-        energy = (nl+1<=MAXLOOP)?(internal_loop37[nl+1]) : (internal_loop37[30]+(int)(lxc37*log((nl+1)/30.)));
-        energy += MIN2(MAX_NINIO, (nl-ns)*ninio37);
-        energy += mismatch1nI37[type][si1][sj1] + mismatch1nI37[type_2][sq1][sp1];
-        return energy;
-      }
-    }
-    else if (ns==2) {
-      if(nl==2)      {              /* 2x2 loop */
-        return int22_37[type][type_2][si1][sp1][sq1][sj1];}
-      else if (nl==3){              /* 2x3 loop */
-        energy = internal_loop37[5]+ninio37;
-        energy += mismatch23I37[type][si1][sj1] + mismatch23I37[type_2][sq1][sp1];
-        return energy;
-      }
+    // if (ns==1) {
+    //   if (nl==1)                    /* 1x1 loop */
+    //     return int11_37[type][type_2][si1][sj1];
+    //   if (nl==2) {                  /* 2x1 loop */
+    //     if (n1==1)
+    //       energy = int21_37[type][type_2][si1][sq1][sj1];
+    //     else
+    //       energy = int21_37[type_2][type][sq1][si1][sp1];
+    //     return energy;
+    //   }
+    //   else {  /* 1xn loop */
+    //     energy = (nl+1<=MAXLOOP)?(internal_loop37[nl+1]) : (internal_loop37[30]+(int)(lxc37*log((nl+1)/30.)));
+    //     energy += MIN2(MAX_NINIO, (nl-ns)*ninio37);
+    //     energy += mismatch1nI37[type][si1][sj1] + mismatch1nI37[type_2][sq1][sp1];
+    //     return energy;
+    //   }
+    // }
+    // else if (ns==2) {
+    //   if(nl==2)      {              /* 2x2 loop */
+    //     return int22_37[type][type_2][si1][sp1][sq1][sj1];}
+    //   else if (nl==3){              /* 2x3 loop */
+    //     energy = internal_loop37[5]+ninio37;
+    //     energy += mismatch23I37[type][si1][sj1] + mismatch23I37[type_2][sq1][sp1];
+    //     return energy;
+    //   }
 
-    }
+    // }
     { /* generic interior loop (no else here!)*/
       u = nl + ns;
       energy = (u <= MAXLOOP) ? (internal_loop37[u]) : (internal_loop37[30]+(int)(lxc37*log((u)/30.)));
@@ -209,6 +209,19 @@ inline int E_MLstem(int type, int si1, int sj1) {
     return energy;
 }
 
+// hzhang: added for mRNA design
+inline int E_MLstem_without_Dangle(int type, int si1, int sj1) {
+    int energy = 0;
+
+    if(type > 2) {
+        energy += TerminalAU37;
+    }
+
+    energy += ML_intern37;
+
+    return energy;
+}
+
 inline int v_score_M1(int i, int j, int k, int nuci_1, int nuci, int nuck, int nuck1, int len) {
     int p = i;
     int q = k;
@@ -217,6 +230,17 @@ inline int v_score_M1(int i, int j, int k, int nuci_1, int nuci, int nuck, int n
     int sq1 = NUM_TO_NUC(nuck1);
 
     return E_MLstem(tt, sp1, sq1);
+}
+
+inline int v_score_M1_without_dangle(int i, int j, int k, int nuci_1, int nuci, int nuck, int nuck1, int len) {
+    // int p = i;
+    // int q = k;
+    int tt = NUM_TO_PAIR(nuci, nuck);
+    // int tt = NUC_TO_PAIR(nuci, nuck);
+    // int sp1 = NUM_TO_NUC(nuci_1);
+    // int sq1 = NUM_TO_NUC(nuck1);
+
+    return E_MLstem_without_Dangle(tt, -1, -1);
 
 }
 
@@ -230,6 +254,15 @@ inline int v_score_multi(int i, int j, int nuci, int nuci1, int nucj_1, int nucj
     int sj1 = NUM_TO_NUC(nucj_1);
 
     return E_MLstem(tt, sj1, si1) + ML_closing37;
+}
+
+inline int v_score_multi_without_dangle(int i, int j, int nuci, int nuci1, int nucj_1, int nucj, int len) {
+    int tt = NUM_TO_PAIR(nucj, nuci);
+    // int tt = NUC_TO_PAIR(nucj, nuci);
+    // int si1 = NUM_TO_NUC(nuci1);
+    // int sj1 = NUM_TO_NUC(nucj_1);
+
+    return E_MLstem_without_Dangle(tt, -1, -1) + ML_closing37;
 }
 
 // exterior_loop
@@ -248,6 +281,28 @@ inline int v_score_external_paired(int i, int j, int nuci_1, int nuci, int nucj,
     else if (sj1 >= 0){
         energy += dangle3_37[type][sj1];
     }
+
+    if(type > 2)
+        energy += TerminalAU37;
+  return energy;
+}
+
+inline int v_score_external_paired_without_dangle(int i, int j, int nuci, int nucj, int len) {
+    int type = NUM_TO_PAIR(nuci, nucj);
+    // int type = NUC_TO_PAIR(nuci, nucj);
+    // int si1 = NUM_TO_NUC(nuci_1);
+    // int sj1 = NUM_TO_NUC(nucj1);
+    int energy = 0;
+
+    // if(si1 >= 0 && sj1 >= 0){
+    //     energy += mismatchExt37[type][si1][sj1];
+    // }
+    // else if (si1 >= 0){
+    //     energy += dangle5_37[type][si1];
+    // }
+    // else if (sj1 >= 0){
+    //     energy += dangle3_37[type][sj1];
+    // }
 
     if(type > 2)
         energy += TerminalAU37;

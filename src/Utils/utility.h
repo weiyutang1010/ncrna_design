@@ -34,6 +34,7 @@
 #define ASYMMETRY_MAX_LEN 28
 
 #define GET_ACGU_NUM(x) ((x=='A'? 0 : (x=='C'? 1 : (x=='G'? 2 : (x=='U'?3: 4)))))
+#define GET_ACGU(x) ((x==0? 'A' : (x==1? 'C' : (x==2? 'G' : (x==3?'U': 'N')))))
 #define HELIX_STACKING_OLD(x, y, z, w) (_helix_stacking[GET_ACGU_NUM(x)][GET_ACGU_NUM(y)][GET_ACGU_NUM(z)][GET_ACGU_NUM(w)])
 
 bool _allowed_pairs[NOTON][NOTON];
