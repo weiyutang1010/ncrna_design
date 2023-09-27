@@ -12,6 +12,7 @@
 #define NUM_TO_NUC(x) (x==-1?-1:((x==4?0:(x+1))))
 #define NUM_TO_PAIR(x,y) (x==0? (y==3?5:0) : (x==1? (y==2?1:0) : (x==2 ? (y==1?2:(y==3?3:0)) : (x==3 ? (y==2?4:(y==0?6:0)) : 0))))
 #define NUC_TO_PAIR(x,y) (x==1? (y==4?5:0) : (x==2? (y==3?1:0) : (x==3 ? (y==2?2:(y==4?3:0)) : (x==4 ? (y==3?4:(y==1?6:0)) : 0))))
+#define NUC_TO_PAIR16(x, y) x * 4 + y;
 
 #define PAIR_TO_LEFT_NUC(x) (x==1? 1:((x==2 || x==3)? 2:(x==5)? 0:3))
 #define PAIR_TO_RIGHT_NUC(x) (x==2? 1:((x==1 || x==4)? 2:(x==6)? 0:3))
@@ -76,14 +77,15 @@ inline void v_init_tetra_hex_tri(std::string& seq, int seq_length, std::vector<i
     return;
 }
 
-inline int mismatch_hairpin(int nuci, int nuci1, int nucj_1, int nucj) {
+inline int v_score_hairpin_mismatch(int nuci, int nuci1, int nucj_1, int nucj) {
     int type = NUM_TO_PAIR(nuci, nucj);
     int si1 = NUM_TO_NUC(nuci1);
     int sj1 = NUM_TO_NUC(nucj_1);
+
     return mismatchH37[type][si1][sj1];
 }
 
-inline int v_score_hairpin(int i, int j, int nuci, int nuci1, int nucj_1, int nucj, int tetra_hex_tri_index = -1) {
+inline int v_score_hairpin(int i, int j, int tetra_hex_tri_index = -1) {
     int size = j-i-1;
     // int type = NUM_TO_PAIR(nuci, nucj);
     // int si1 = NUM_TO_NUC(nuci1);
@@ -97,6 +99,7 @@ inline int v_score_hairpin(int i, int j, int nuci, int nuci1, int nucj_1, int nu
         energy = hairpin37[30] + (int)(lxc37*log((size)/30.));
 
     if(size < 3) return energy; /* should only be the case when folding alignments */
+
 // #ifdef SPECIAL_HP
 //     // if(special_hp){
 //         if (size == 4 && tetra_hex_tri_index > -1)

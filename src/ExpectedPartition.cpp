@@ -1,11 +1,11 @@
 /*
- *LinearPartition.cpp*
+ *ExpectedPartition.cpp*
  The main code for LinearPartition: Linear-Time Approximation of 
                                     RNA Folding Partition Function 
                                     and Base Pairing Probabilities
 
- author: He Zhang
- created by: 03/2019
+ author: Wei Yu Tang (Based on He Zhang's LinearPartition Code)
+ created by: 09/2023
 */
 
 #include <fstream>
@@ -20,11 +20,11 @@
 #include <map>
 #include <stdio.h> 
 
-#include "LinearPartition.h"
+#include "ExpectedPartition.h"
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
 
-#include "bpp.cpp"
+#include "Outside.cpp"
 
 #define SPECIAL_HP
 
@@ -79,6 +79,7 @@ void BeamCKYParser::prepare(unsigned len) {
     bestM = new unordered_map<int, State>[seq_length];
     bestM2 = new unordered_map<int, State>[seq_length];
     bestMulti = new unordered_map<int, State>[seq_length];
+    outside = new array<double, 4>[seq_length];
     scores.reserve(seq_length);
 
     stacking_score.resize(6, vector<int>(6));
@@ -110,14 +111,14 @@ void BeamCKYParser::prepare(unsigned len) {
 
 void BeamCKYParser::postprocess() {
 
-    delete[] bestC;  
-    delete[] bestH;  
-    delete[] bestP;  
-    delete[] bestM;  
-    delete[] bestM2;  
-    delete[] bestMulti;  
+    delete[] bestC;
+    delete[] bestH;
+    delete[] bestP;
+    delete[] bestM;
+    delete[] bestM2;
+    delete[] bestMulti;
+    delete[] outside;
 
-    delete[] nucs;  
 }
 
 void print_map(string st, int seq_length, unordered_map<int, State> *best) {
@@ -142,12 +143,8 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
     // for nucj put H(j, j_next) into H[j_next]
     int jnext = (no_sharp_turn ? j + 4 : j + 1);
     if (jnext < seq_length) {
-#ifdef lpv
-        int tetra_hex_tri = -1;
-
-        newscore = - v_score_hairpin(j, jnext, -1, -1, -1, -1, tetra_hex_tri);
-        Fast_LogPlusEquals(bestH[jnext][j].alpha, newscore/kT);
-#endif    
+        newscore = - v_score_hairpin(j, jnext, -1);
+        Fast_LogPlusEquals(bestH[jnext][j].alpha, newscore/kT); 
     }
 
     // for every state h in H[j]
@@ -163,7 +160,7 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
             double prob_nuci = dist[i][nuci];
 
             for (int nucj = 0; nucj < 4; ++nucj) {
-                float score = NEG_INF;
+                pf_type score = NEG_INF;
                 double prob_nucj = dist[j][nucj];
 
                 if (!_allowed_pairs[nuci][nucj]) continue;
@@ -178,10 +175,8 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
                                                  log(prob_nucj_1 + SMALL_NUM) +
                                                  log(prob_nucj + SMALL_NUM);
 
-#ifdef lpv
-                        newscore = - mismatch_hairpin(nuci, nuci1, nucj_1, nucj);
+                        newscore = - v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj);
                         Fast_LogPlusEquals(score, state.alpha + log_probability + newscore/kT);
-#endif
                     }
                 }
 
@@ -194,13 +189,8 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
         if (jnext >= seq_length) continue;
 
         // 2. extend h(i, j) to h(i, jnext)
-#ifdef lpv
-        int tetra_hex_tri = -1;
-
-        newscore = - v_score_hairpin(i, jnext, -1, -1, -1, -1, tetra_hex_tri);
+        newscore = - v_score_hairpin(i, jnext, -1);
         Fast_LogPlusEquals(bestH[jnext][i].alpha, newscore/kT);
-#endif    
-
     }
 }
 
@@ -218,9 +208,7 @@ void BeamCKYParser::Multi_beam(int j, vector<array<double, 4>>& dist) {
 
         // 1. extend (i, j) to (i, jnext)
         if (jnext < seq_length) {
-#ifdef lpv
             Fast_LogPlusEquals(bestMulti[jnext][i].alpha, state.alpha);
-#endif
         }
 
         // 2. generate P (i, j)
@@ -234,15 +222,13 @@ void BeamCKYParser::Multi_beam(int j, vector<array<double, 4>>& dist) {
                 double log_probability = log(prob_nuci + SMALL_NUM) +
                                          log(prob_nucj + SMALL_NUM);
 
-#ifdef lpv
                 newscore = - v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
-#endif
+                
                 pair<int, int> index_nucpair {i, NUM_TO_PAIR(nuci, nucj)};
                 Fast_LogPlusEquals(beamstepP[index_nucpair].alpha, state.alpha + log_probability + newscore/kT);
             }
         }
     }
-
 }
 
 void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
@@ -269,8 +255,8 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
 
         State& state = item.second;
 
-        // stacking
         if (i > 0 && j < seq_length-1) {
+            // stacking
             for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
                 for (int nucj1 = 0; nucj1 < 4; ++nucj1) {       
 
@@ -310,7 +296,6 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
                 }
             }
 
-            // TODO: check special case
             // left bulge: (..(...)) 
             for (int nucj1 = 0; nucj1 < 4; ++nucj1) {
                 for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
@@ -360,12 +345,11 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
                                                                     log(prob_nucj1 + SMALL_NUM) +
                                                                     log(prob_nucq_1 + SMALL_NUM) +
                                                                     log(prob_nucq + SMALL_NUM);
-    #ifdef lpv
+                                            
                                             newscore = - v_score_single(p,q,i,j, nucp, nucp1, nucq_1, nucq,
                                                             nuci_1, nuci, nucj, nucj1);
                                             pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucq)};
                                             Fast_LogPlusEquals(bestP[q][index_nucpair].alpha, state.alpha + log_probability + newscore/kT);
-    #endif
                                         }
                                     }
                                 }
@@ -398,13 +382,11 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
         if (k >= 0) {
             State& prefix_C = bestC[k];
 
-            // newscore = - v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
-            newscore = 0.;
+            newscore = - v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
             Fast_LogPlusEquals(beamstepC.alpha, prefix_C.alpha + state.alpha + newscore/kT);
         } else {
-            // newscore = - v_score_external_paired_without_dangle(0, j, nuci, nucj, seq_length);
-            newscore = 0.;
-            Fast_LogPlusEquals(beamstepC.alpha, state.alpha + newscore/kT);  
+            newscore = - v_score_external_paired_without_dangle(0, j, nuci, nucj, seq_length);
+            Fast_LogPlusEquals(beamstepC.alpha, state.alpha + newscore/kT); 
         }
     }
 }
@@ -431,9 +413,8 @@ void BeamCKYParser::M2_beam(int j, vector<array<double, 4>>& dist) {
 
                         double log_probability = log(prob_nucp + SMALL_NUM) +
                                                  log(prob_nucq + SMALL_NUM);
-#ifdef lpv
+                        
                         Fast_LogPlusEquals(bestMulti[q][p].alpha, log_probability + state.alpha);
-#endif
                     }
                 }
             }
@@ -454,50 +435,253 @@ void BeamCKYParser::M_beam(int j, vector<array<double, 4>>& dist) {
             int i = item.first;
             State& state = item.second;
 
-#ifdef lpv
             Fast_LogPlusEquals(bestM[j+1][i].alpha, state.alpha); 
-#endif
         }
     }
 }
 
 void BeamCKYParser::C_beam(int j, vector<array<double, 4>>& dist) {
     State& beamstepC = bestC[j];
+
+    // C = C + U
     if (j < seq_length-1) {
-#ifdef lpv
         Fast_LogPlusEquals(bestC[j+1].alpha, beamstepC.alpha); 
-#endif
     }
 }
 
-void BeamCKYParser::parse (vector<array<double, 4>>& dist) {
+
+double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_struct) {
+
+    int penalty = 100000;
+    int seq_length = rna_struct.length();
+
+    double total_energy = 0;
+    double external_energy = 0;
+    vector<pair<int, int>> M1_indices[seq_length];
+    double multi_number_unpaired[seq_length];
+
+    stack<pair<int, int>> stk; // tuple of (index, page)
+    tuple<int, int> inner_loop;
+
+    for (int j=0; j<seq_length; j++) {
+        multi_number_unpaired[j] = 0;
+
+        if (rna_struct[j] == '.') {
+            if (!stk.empty())
+                multi_number_unpaired[stk.top().first] += 1;
+        }
+
+        else if (rna_struct[j] == '(') {
+            if (!stk.empty()) { // +1 for outer loop page
+                stk.top().second ++;
+            }
+            stk.push(make_pair(j, 0)); // init page=0
+        }
+
+        else if (rna_struct[j] == ')') {
+            assert(!stk.empty());
+            tuple<int, int> top = stk.top();
+            int i = get<0>(top), page = get<1>(top);
+            stk.pop();
+
+            if (page == 0) { // hairpin
+                double hairpin_score = 0.;
+                for (int nuci = 0; nuci < 4; nuci++) {
+                    for (int nucj = 0; nucj < 4; nucj++) {
+                        double prob_ij = dist[i][nuci] *
+                                         dist[j][nucj];
+
+                        // if (!_allowed_pairs[nuci][nucj]) {
+                        //     hairpin_score += prob_ij * penalty;
+                        //     continue;
+                        // }
+
+                        for (int nuci1 = 0; nuci1 < 4; nuci1++) {
+                            for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
+                                double probability = prob_ij *
+                                                     dist[i+1][nuci1] *
+                                                     dist[j-1][nucj_1];
+
+                                int newscore = v_score_hairpin(i, j, -1) +
+                                               v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj);
+
+                                hairpin_score += probability * newscore;
+
+                                outside[i][nuci] += (probability / dist[i][nuci]) * newscore;
+                                outside[i+1][nuci1] +=  (probability / dist[i+1][nuci1]) * newscore;
+                                outside[j-1][nucj_1] += (probability / dist[j-1][nucj_1]) * newscore;
+                                outside[j][nucj] += (probability / dist[j][nucj]) * newscore;
+                            }
+                        }
+                    }
+                }
+                
+                // printf("Hairpin loop ( %d, %d) : %.2f\n", i+1, j+1, hairpin_score / 100.0);
+                total_energy += hairpin_score;
+            }
+
+            else if (page == 1) { //single
+                double single_score = 0.;
+                int p = get<0>(inner_loop), q = get<1>(inner_loop);
+
+                for (int nuci = 0; nuci < 4; nuci++) {
+                    for (int nucj = 0; nucj < 4; nucj++) {
+                        double prob_ij = dist[i][nuci] *
+                                            dist[j][nucj];
+
+                        // if (!_allowed_pairs[nuci][nucj]) {
+                        //     single_score += prob_ij * penalty;
+                        //     continue;
+                        // }
+
+                        for (int nucp = 0; nucp < 4; nucp++) {
+                            for (int nucq = 0; nucq < 4; nucq++) {
+                                double prob_pq = dist[p][nucp] *
+                                                 dist[q][nucq];
+                                double probability = prob_ij * prob_pq;
+
+                                // if (!_allowed_pairs[nucp][nucq]) {
+                                //     single_score += prob_ij * prob_pq * penalty;
+                                //     continue;
+                                // }
+
+                                if (p == i+1 || q == j-1) {
+                                    int newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1);
+                                    single_score += probability * newscore;
+
+                                    outside[p][nucp] += (probability / dist[p][nucp]) * newscore;
+                                    outside[i][nuci] += (probability / dist[i][nuci]) * newscore;
+                                    outside[j][nucj] += (probability / dist[j][nucj]) * newscore;
+                                    outside[q][nucq] += (probability / dist[q][nucq]) * newscore;
+                                } else {
+                                    for (int nuci1 = 0; nuci1 < 4; ++nuci1) {
+                                        for (int nucp_1 = 0; nucp_1 < 4; ++nucp_1) {
+                                            for (int nucq1 = 0; nucq1 < 4; ++nucq1) {
+                                                for (int nucj_1 = 0; nucj_1 < 4; ++nucj_1) {
+                                                    probability = prob_ij *
+                                                                  prob_pq *
+                                                                  dist[i+1][nuci1] *
+                                                                  dist[p-1][nucp_1] *
+                                                                  dist[q+1][nucq1] *
+                                                                  dist[j-1][nucj_1];
+
+                                                    int newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
+                                                                                        nucp_1, nucp, nucq, nucq1);
+                                                    single_score += probability * newscore;
+
+                                                    outside[p][nucp] += (probability / dist[p][nucp]) * newscore;
+                                                    outside[i][nuci] += (probability / dist[i][nuci]) * newscore;
+                                                    outside[j][nucj] += (probability / dist[j][nucj]) * newscore;
+                                                    outside[q][nucq] += (probability / dist[q][nucq]) * newscore;
+
+                                                    outside[i+1][nuci1] += (probability / dist[i+1][nuci1]) * newscore;
+                                                    outside[j-1][nucj_1] += (probability / dist[j-1][nucj_1]) * newscore;
+                                                    outside[p-1][nucp_1] += (probability / dist[p-1][nucp_1]) * newscore;
+                                                    outside[q+1][nucq1] += (probability / dist[q+1][nucq1]) * newscore;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // printf("Interior loop ( %d, %d); ( %d, %d) : %.2f\n", i+1, j+1, p+1, q+1, single_score / 100.0);
+                total_energy += single_score;
+            }
+
+            else { //multi
+                double multi_score = 0;
+                // multi_score += M1_energy[i];
+
+                for (auto& multi_inside: M1_indices[i]) {
+                    int p = multi_inside.first, q = multi_inside.second;
+
+                    for (int nucp = 0; nucp < 4; nucp++) {
+                        for (int nucq = 0; nucq < 4; nucq++) {
+                            double probability = dist[p][nucp] * dist[q][nucq];
+                            
+                            double multi_inside_score = probability * v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length);
+                            multi_score += multi_inside_score;
+
+                            outside[p][nucp] += dist[q][nucq] * multi_inside_score;
+                            outside[q][nucq] += dist[p][nucp] * multi_inside_score;
+                        }
+                    }
+                }
+
+                for (int nuci = 0; nuci < 4; nuci++) {
+                    for (int nucj = 0; nucj < 4; nucj++) {
+                        double probability = dist[i][nuci] * dist[j][nucj];
+                        
+                        // if (!_allowed_pairs[nuci][nucj]) {
+                        //     multi_score += probability * penalty;
+                        //     continue;
+                        // }
+
+                        long newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
+                        multi_score += probability * newscore;
+
+                        outside[i][nuci] += dist[j][nucj] * newscore;
+                        outside[j][nucj] += dist[i][nuci] * newscore;
+                    }
+                }
+                
+                // printf("Multi loop ( %d, %d) : %.2f\n", i+1, j+1, multi_score / 100.0);
+                total_energy += multi_score;
+            }
+
+            //update inner_loop
+            inner_loop = make_tuple(i, j);
+
+            // possible M
+            if (!stk.empty()) {
+                M1_indices[stk.top().first].push_back({i, j});
+            }
+
+            // check if adding external energy
+            if (stk.empty()) {
+                for (int nuci = 0; nuci < 4; nuci++) {
+                    for (int nucj = 0; nucj < 4; nucj++) {
+                        double probability = dist[i][nuci] *
+                                             dist[j][nucj];
+
+                        long newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
+                        external_energy += probability * newscore;
+
+                        outside[i][nuci] += (probability / dist[i][nuci]) * newscore;
+                        outside[j][nucj] += (probability / dist[j][nucj]) * newscore;
+                    }
+                }
+            }
+        }
+    }
+
+    // printf("External loop : %.2f\n", external_energy / 100.0);
+    total_energy += external_energy;
+
+    // printf("Total Energy: %.2f\n", total_energy / 100.0);
+    return total_energy;
+}
+
+double BeamCKYParser::inside_partition(vector<array<double, 4>>& dist) {
     struct timeval parse_starttime, parse_endtime;
 
     gettimeofday(&parse_starttime, NULL);
 
-    int n = dist.size();
-    prepare(static_cast<unsigned>(n));
-
-// TODO: Extend init for special hairpin
 // #ifdef SPECIAL_HP
-// #ifdef lpv
 //     v_init_tetra_hex_tri(seq, seq_length, if_tetraloops, if_hexaloops, if_triloops);
 // #endif
-// #endif
-#ifdef lpv
-        if(seq_length > 0) bestC[0].alpha = 0.0;
-        if(seq_length > 1) bestC[1].alpha = 0.0;
-#else
-        if(seq_length > 0) Fast_LogPlusEquals(bestC[0].alpha, score_external_unpaired(0, 0));
-        if(seq_length > 1) Fast_LogPlusEquals(bestC[1].alpha, score_external_unpaired(0, 1));
-#endif
-        
-    value_type newscore;
 
-    // TODO: Implement Contrafold Energy Model
+    // E[Q(x)]
+    if(seq_length > 0) bestC[0].alpha = 0.0;
+    if(seq_length > 1) bestC[1].alpha = 0.0;
+    
     for (int j = 0; j < seq_length; ++j) {
-
         hairpin_beam(j, dist);
+
         if (j == 0) continue;
 
         Multi_beam(j, dist);
@@ -507,67 +691,33 @@ void BeamCKYParser::parse (vector<array<double, 4>>& dist) {
         C_beam(j, dist);
     }
 
-    print_map("bestH", seq_length, bestH);
+    // // print state for bestP
+    // printf("BestP\n");
+    // for (int j = 0; j < seq_length; ++j) {
+    //     for (int i = 0; i < j; i++) {
+    //         bool found = false;
+    //         for (int p = 1; p < 7; ++p) {
+    //             if (bestP[j].find({i, p}) != bestP[j].end()) {
+    //                 found = true;
+    //                 printf("bestP[%d][%d][%c%c] = %f\n", i, j, GET_ACGU(PAIR_TO_LEFT_NUC(p)), GET_ACGU(PAIR_TO_RIGHT_NUC(p)), bestP[j][{i, p}].alpha);
+    //             }
+    //         }
 
-    // print state for bestP
-    printf("BestP\n");
-    for (int j = 0; j < seq_length; ++j) {
-        for (int i = 0; i < j; i++) {
-            bool found = false;
-            for (int p = 1; p < 7; ++p) {
-                if (bestP[j].find({i, p}) != bestP[j].end()) {
-                    found = true;
-                    printf("bestP[%d][%d][%c%c] = %f\n", i, j, GET_ACGU(PAIR_TO_LEFT_NUC(p)), GET_ACGU(PAIR_TO_RIGHT_NUC(p)), bestP[j][{i, p}].alpha);
-                }
-            }
+    //         if (found) printf("\n");
+    //     }
+    // }
 
-            if (found) printf("\n");
-        }
-    }
+    // print_map("bestM", seq_length, bestM);
+    // print_map("bestM2", seq_length, bestM2);
+    // print_map("bestMulti", seq_length, bestMulti);
+    // printf("\nBestC\n");
+    // for (int j = 0; j < seq_length; j++) {
+    //     printf("%d: %.8f\n", j, bestC[j].alpha);
+    // }
 
-    print_map("bestM", seq_length, bestM);
-    print_map("bestM2", seq_length, bestM2);
-    print_map("bestMulti", seq_length, bestMulti);
-    printf("BestC\n");
-    for (int j = 0; j < seq_length; j++) {
-        printf("%d: %f\n", j, bestC[j].alpha);
-    }
-
-    fflush(stdout);
-
-    return;
+    return bestC[seq_length-1].alpha;
 }
 
-
-void BeamCKYParser::print_states(FILE *fptr, unordered_map<int, State>& states, int j, string label, bool inside_only, double threshold) {    
-    for (auto & item : states) {
-        int i = item.first;
-        State & state = item.second;
-        if (inside_only) fprintf(fptr, "%s %d %d %.5lf\n", label.c_str(), i+1, j+1, state.alpha);
-        else if (state.alpha + state.beta > threshold) // lhuang : alpha + beta - totalZ < ...
-            fprintf(fptr, "%s %d %d %.5lf %.5lf\n", label.c_str(), i+1, j+1, state.alpha, state.beta);
-    }
-}
-
-void BeamCKYParser::dump_forest(string seq, bool inside_only) {  
-    printf("Dumping (%s) Forest to %s...\n", (inside_only ? "Inside-Only" : "Inside-Outside"), forest_file.c_str());
-    FILE *fptr = fopen(forest_file.c_str(), "w");  // lhuang: should be fout >>
-    fprintf(fptr, "%s\n", seq.c_str());
-    int n = seq.length(), j;
-    for (j = 0; j < n; j++) {
-        if (inside_only) fprintf(fptr, "E %d %.5lf\n", j+1, bestC[j].alpha);
-        else fprintf(fptr, "E %d %.5lf %.5lf\n", j+1, bestC[j].alpha, bestC[j].beta);
-    }
-    double threshold = bestC[n-1].alpha - 9.91152; // lhuang -9.xxx or ?
-    // for (j = 0; j < n; j++) 
-    //     print_states(fptr, bestP[j], j, "P", inside_only, threshold);
-    for (j = 0; j < n; j++) 
-        print_states(fptr, bestM[j], j, "M", inside_only, threshold);
-    for (j = 0; j < n; j++) 
-        print_states(fptr, bestM2[j], j, "M2", inside_only, threshold);
-    // for (j = 0; j < n; j++) 
-    //     print_states(fptr, bestMulti[j], j, "Multi", inside_only, threshold);
-}
 
 BeamCKYParser::BeamCKYParser(int beam_size,
                              bool nosharpturn,
@@ -602,12 +752,9 @@ BeamCKYParser::BeamCKYParser(int beam_size,
       threshknot_threshold(ThreshKnot_threshold),
       threshknot_file_index(ThreshKnot_file_index),
       is_fasta(fasta){
-#ifdef lpv
-        initialize();
-#else
-        initialize();
-        initialize_cachesingle();
-#endif
+
+    initialize();
+
 
     if (shape_file_path != "" ){
         use_shape = true;
@@ -651,26 +798,103 @@ static inline void rtrim(std::string &s) {
     }).base(), s.end());
 }
 
-vector<array<double, 4>> get_one_hot(string& seq) {
-    int n = seq.size();
-    vector<array<double, 4>> dist(n);
+void BeamCKYParser::projection(vector<array<double, 4>> &dist) {
+    int n = dist.size(), z = 1;
 
+    vector<array<double, 4>> sorted_dist (dist);
     for (int i = 0; i < n; i++) {
-        for (int nuci = 0; nuci < 4; nuci++) {
-            if (nuci == GET_ACGU_NUM(seq[i])) dist[i][nuci] = 1.00;
-            else dist[i][nuci] = 0.00;
+        sort(sorted_dist[i].begin(), sorted_dist[i].end(), [&] (const double& a, const double& b) {
+            return a > b;
+        });
+    }
+
+    vector<array<double, 4>> cumsum (sorted_dist);
+    for (int i = 0; i < n; i++) {
+        for (int j = 1; j < 4; j++) {
+            cumsum[i][j] = sorted_dist[i][j] + cumsum[i][j-1];
         }
     }
 
-    return dist;
+    vector<array<double, 4>> theta (cumsum);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < 4; j++) {
+            theta[i][j] = (theta[i][j] - z) / (j+1);
+        }
+    }
+
+    vector<int> indices (n);
+    for (int i = 0; i < n; i++) {
+        int index = 0;
+        for (int j = 0; j < 4; j++) {
+            index += sorted_dist[i][j] > theta[i][j];
+        }
+        indices[i] = index - 1;
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < 4; j++) {
+            dist[i][j] = max(dist[i][j] - theta[i][indices[i]], 0.);
+        }
+    }
 }
 
+void BeamCKYParser::update(vector<array<double, 4>> &dist) {
+    int n = dist.size();
 
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < 4; j++) {
+            dist[i][j] = dist[i][j] - outside[i][j] * learning_rate;
+        }
+    }
+
+    projection(dist);
+}
+
+void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna_struct) {
+    learning_rate = 0.01;
+    epoch = 1;
+
+    assert(dist.size() == rna_struct.size());
+    int n = dist.size();
+
+    vector<double> log (epoch);
+
+    for (int i = 0; i < epoch; i++) {
+        prepare(static_cast<unsigned>(n));
+
+        double Q = inside_partition(dist);
+        outside_partition(dist);
+
+        double deltaG = free_energy(dist, rna_struct);
+
+        double objective_value = Q + deltaG;
+        // double objective_value = Q;
+        log[i] = objective_value;
+
+        // update distribution
+        update(dist);
+
+        printf("Step %d\n", i);
+        printf("Outside\n");
+        for (int i = 0; i < seq_length; i++) {
+            printf("%12.3f, %12.3f, %12.3f, %12.3f\n", outside[i][0], outside[i][1], outside[i][2], outside[i][3]);
+            // printf("%.3f, %.3f, %.3f, %.3f\n", outside[i][0], outside[i][1], outside[i][2], outside[i][3]);
+        }
+        printf("\n");
+
+        printf("\nObjective Value: %.6lf\n\n", objective_value);
+        for (int i = 0; i < n; i++) {
+            printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
+        }
+        printf("\n");
+
+        // delete arrays and set outside to all 0
+        postprocess();
+    }
+
+}
 
 int main(int argc, char** argv){
-
-    
-
     struct timeval total_starttime, total_endtime;
     gettimeofday(&total_starttime, NULL);
 
@@ -691,6 +915,9 @@ int main(int argc, char** argv){
     bool ThreshKnot = false;
     string ThresKnot_prefix;
     bool fasta = false; 
+
+    double learning_rate = 0.01;
+    double epoch;
 
     // SHAPE
     string shape_file_path = "";
@@ -728,75 +955,35 @@ int main(int argc, char** argv){
     string ThreshKnot_file_index = "";
     string MEA_file_index = "";
 
-    string rna_struct;
-    vector<string> rna_struct_list, rna_name_list;
-    for (string structure; getline(cin, structure);){
-        if (structure.empty()) continue;
-        // if (seq[0] == '>' or seq[0] == ';') continue;
-        // if (!isalpha(seq[0])){
-        //     printf("Unrecognized sequence: %s\n", seq.c_str());
-        //     continue;
-        // }
-        rna_struct_list.push_back(structure);
-    }
-
-    for(int i = 0; i < rna_struct_list.size(); i++){
-        if (rna_name_list.size() > i)
-            printf("%s\n", rna_name_list[i].c_str());
-        rna_struct = rna_struct_list[i];
-
+    for (string rna_struct; getline(cin, rna_struct);){
+        int length = rna_struct.size();
         printf("%s\n", rna_struct.c_str());
+
+        vector<array<double, 4>> dist (length); // initial distribution
+        vector<array<double, 4>> outside(length); // gradient
+
+        for (int i = 0; i < length; i++) {
+            cin >> dist[i][0] >> dist[i][1] >> dist[i][2] >> dist[i][3];
+        }
+        cin.ignore();
+
+        printf("Starting Distribution\n");
+        for (int i = 0; i < length; i++) {
+            printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
+        }
+        printf("\n");
 
 
         // lhuang: moved inside loop, fixing an obscure but crucial bug in initialization
         BeamCKYParser parser(beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
 
-        //                              A   C   G   U
-        vector<array<double, 4>> dist {{.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},
-                                       {.25, .25, .25, .25},};
+        parser.gradient_descent(dist, rna_struct);
 
-        // vector<array<double, 4>> dist {{.1, .2, .6, .1},
-        //                                {.5, .3, .1, .1},
-        //                                {.1, .3, .1, .5},
-        //                                {.2, .2, .4, .2},
-        //                                {.5, .3, .1, .1},
-        //                                {.25, .25, .25, .25},
-        //                                {.1, .2, .6, .1},
-        //                                {.25, .25, .25, .25},
-        //                                {.5, .3, .1, .1},
-        //                                {.25, .25, .25, .25},
-        //                                {.2, .2, .4, .2},
-        //                                {.25, .25, .25, .25},};
-
-        // vector<array<double, 4>> dist {{.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},
-        //                                {.25, .25, .25, .25},};
-        parser.parse(dist);
-
-
-        // Wei Yu: Test with one hot encoding
-        // string seq = "AAAAAAAA";
-        // printf("\nOne Hot Encoding: %s\n", seq.c_str());
-        // auto dist2 = get_one_hot(seq);
-        // parser.parse(dist2);
+        printf("Final Distribution\n");
+        for (int i = 0; i < length; i++) {
+            printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
+        }
+        printf("\n");
     }
 
     gettimeofday(&total_endtime, NULL);

@@ -2,8 +2,8 @@
  *LinearPartition.h*
  header file for LinearPartition.cpp.
 
- author: He Zhang
- created by: 03/2019
+ author: Wei Yu Tang (Based on He Zhang's code)
+ created by: 09/2023
 */
 
 #ifndef FASTCKY_BEAMCKYPAR_H
@@ -26,7 +26,7 @@
 using namespace std;
 
 #ifdef lpv
-  typedef float pf_type;
+  typedef double pf_type;
 #else
   typedef double pf_type;
 #endif
@@ -71,7 +71,14 @@ struct State {
     pf_type alpha;
     pf_type beta;
 
-    State(): alpha(VALUE_MIN), beta(VALUE_MIN) {};
+    State(): alpha(VALUE_MIN), beta(0.0) {};
+};
+
+struct p_info {
+    int i;
+    int p;
+    int num_brac;
+    vector<int> inside_sc;
 };
 
 
@@ -99,6 +106,7 @@ public:
     double m = 1.8;
     double b = -0.6;
 
+    
 
     BeamCKYParser(int beam_size=100,
                   bool nosharpturn=true,
@@ -118,9 +126,16 @@ public:
                   string shape_file_path="",
                   bool is_fasta=false);
 
-    // DecoderResult parse(string& seq);
+    void gradient_descent(vector<array<double, 4>>& dist, string& rna_struct);
 
-    void parse(vector<array<double, 4>>& dist);
+private:
+    void get_parentheses(char* result, string& seq);
+
+    double inside_partition(vector<array<double, 4>>& dist);
+    double free_energy(vector<array<double, 4>>& dist, string& rna_struct);
+    void outside_partition(vector<array<double, 4>>& dist);
+
+    unsigned seq_length;
 
     void hairpin_beam(int j, vector<array<double, 4>>& dist);
     void Multi_beam(int j, vector<array<double, 4>>& dist);
@@ -129,10 +144,19 @@ public:
     void M_beam(int j, vector<array<double, 4>>& dist);
     void C_beam(int j, vector<array<double, 4>>& dist);
 
-private:
-    void get_parentheses(char* result, string& seq);
+    void hairpin_outside(int j, vector<array<double, 4>>& dist);
+    void Multi_outside(int j, vector<array<double, 4>>& dist);
+    void P_outside(int j, vector<array<double, 4>>& dist);
+    void M2_outside(int j, vector<array<double, 4>>& dist);
+    void M_outside(int j, vector<array<double, 4>>& dist);
+    void C_outside(int j, vector<array<double, 4>>& dist);
 
-    unsigned seq_length;
+    void update(vector<array<double, 4>> &dist);
+    void projection(vector<array<double, 4>> &dist);
+
+    double learning_rate;
+    double epoch;
+    array<double, 4> *outside;
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
     unordered_map<int, State> *bestH, *bestM2, *bestM, *bestMulti;
@@ -151,19 +175,13 @@ private:
     void prepare(unsigned len);
     void postprocess();
 
-    void cal_PairProb(State& viterbi); 
+    // void cal_PairProb(State& viterbi); 
 
-    void PairProb_MEA(string & seq);
 
-    void ThreshKnot(string & seq);
 
     string back_trace(const int i, const int j, const vector<vector<int> >& back_pointer);
     map<int, int> get_pairs(string & structure);
 
-    void outside(vector<int> next_pair[]);
-
-    void dump_forest(string seq, bool inside_only);
-    void print_states(FILE *fptr, unordered_map<int, State>& states, int j, string label, bool inside_only, double threshold);
 
     pf_type beam_prune(unordered_map<int, State>& beamstep);
 
@@ -172,7 +190,7 @@ private:
     unordered_map<pair<int,int>, pf_type, hash_pair> Pij;
 
     void output_to_file(string file_name, const char * type);
-    void output_to_file_MEA_threshknot_bpseq(string file_name, const char * type, map<int,int> & pairs, string & seq);
+    // void output_to_file_MEA_threshknot_bpseq(string file_name, const char * type, map<int,int> & pairs, string & seq);
 
 
 
