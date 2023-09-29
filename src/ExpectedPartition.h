@@ -71,14 +71,7 @@ struct State {
     pf_type alpha;
     pf_type beta;
 
-    State(): alpha(VALUE_MIN), beta(0.0) {};
-};
-
-struct p_info {
-    int i;
-    int p;
-    int num_brac;
-    vector<int> inside_sc;
+    State(): alpha(VALUE_MIN), beta(VALUE_MIN) {};
 };
 
 
