@@ -453,8 +453,6 @@ void BeamCKYParser::C_beam(int j, vector<array<double, 4>>& dist) {
 
 
 double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_struct) {
-
-    int penalty = 100000;
     int seq_length = rna_struct.length();
 
     double total_energy = 0;
@@ -609,7 +607,6 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
 
             else { //multi
                 double multi_score = 0;
-                // multi_score += M1_energy[i];
 
                 for (auto& multi_inside: M1_indices[i]) {
                     int p = multi_inside.first, q = multi_inside.second;
@@ -673,6 +670,14 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                     for (int nucj = 0; nucj < 4; nucj++) {
                         double probability = dist[i][nuci] *
                                              dist[j][nucj];
+
+                        if (!_allowed_pairs[nuci][nucj]) {
+                            external_energy += probability * penalty;
+
+                            outside[i][nuci] += dist[j][nucj] * penalty;
+                            outside[j][nucj] += dist[i][nuci] * penalty;
+                            continue;
+                        }
 
                         long newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
                         external_energy += probability * newscore;
@@ -745,7 +750,9 @@ double BeamCKYParser::inside_partition(vector<array<double, 4>>& dist) {
 }
 
 
-BeamCKYParser::BeamCKYParser(int beam_size,
+BeamCKYParser::BeamCKYParser(double learningrate,
+                             int numsteps,
+                             int beam_size,
                              bool nosharpturn,
                              bool verbose,
                              string bppfile,
@@ -762,7 +769,9 @@ BeamCKYParser::BeamCKYParser(int beam_size,
                              string ThreshKnot_file_index,
                              string shape_file_path,
                              bool fasta)
-    : beam(beam_size), 
+    : learning_rate(learningrate),
+      num_steps(numsteps),
+      beam(beam_size), 
       no_sharp_turn(nosharpturn), 
       is_verbose(verbose),
       bpp_file(bppfile),
@@ -877,24 +886,22 @@ void BeamCKYParser::update(vector<array<double, 4>> &dist) {
 }
 
 void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna_struct) {
-    learning_rate = 0.000001;
-    epoch = 500;
-
     assert(dist.size() == rna_struct.size());
     int n = dist.size();
 
-    vector<double> log (epoch);
+    double Q, deltaG, objective_value;
+    vector<double> log (num_steps);
 
-    for (int i = 0; i < epoch; i++) {
+    for (int i = 0; i < num_steps; i++) {
         prepare(static_cast<unsigned>(n));
 
-        double Q = inside_partition(dist);
+        Q = inside_partition(dist);
         outside_partition(dist);
 
-        double deltaG = free_energy(dist, rna_struct);
+        deltaG = free_energy(dist, rna_struct);
 
         // double objective_value = Q;
-        double objective_value = Q + deltaG;
+        objective_value = Q + deltaG;
         log[i] = objective_value;
 
         // update distribution
@@ -908,7 +915,9 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         // }
         // printf("\n");
 
-        printf("\nObjective Value: %.8lf\n\n", objective_value);
+        // printf("\nObjective Value: %.2lf\n\n", objective_value);
+
+        if (i > 0 && abs(log[i] - log[i-1]) < 0.001) break;
         // for (int i = 0; i < n; i++) {
         //     printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
         // }
@@ -917,7 +926,33 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         // delete arrays and set outside to all 0
         postprocess();
     }
+    
+    printf("Target Structure\n");
+    printf("%s\n", rna_struct.c_str());
 
+    string nucs = "ACGU";
+    printf("Final Sequence\n");
+    for (int i = 0; i < n; i++) {
+        int index = max_element(dist[i].begin(), dist[i].end()) - dist[i].begin();
+        printf("%C", nucs[index]);
+    }
+    printf("\n\n");
+
+    printf("Final Distribution\n");
+    for (int i = 0; i < n; i++) {
+        printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
+    }
+    printf("\n\n");
+
+    // printf("\nE[Q(x)] = %.2lf\n", Q);
+    // printf("E[Delta_G(x, y)] = %.2lf\n", deltaG);
+    printf("start\n");
+    for (int i = 0; i < num_steps; i++) {
+        printf("%.4lf\n", log[i]);
+    }
+    printf("end\n");
+    // printf("Objective Value: %.2lf\n", log[num_steps-1]);
+    printf("\n");
 }
 
 int main(int argc, char** argv){
@@ -942,30 +977,17 @@ int main(int argc, char** argv){
     string ThresKnot_prefix;
     bool fasta = false; 
 
+    int initial = 0;
     double learning_rate = 0.01;
-    double epoch;
+    double num_steps = 1;
 
     // SHAPE
     string shape_file_path = "";
 
     if (argc > 1) {
-        beamsize = atoi(argv[1]);
-        sharpturn = atoi(argv[2]) == 1;
-        is_verbose = atoi(argv[3]) == 1;
-        bpp_file = argv[4];
-        bpp_prefix = argv[5];
-        pf_only = atoi(argv[6]) == 1;
-        bpp_cutoff = atof(argv[7]);
-    	forest_file = argv[8];
-        mea = atoi(argv[9]) == 1;
-        MEA_gamma = atof(argv[10]);
-        ThreshKnot = atoi(argv[11]) == 1;
-        ThreshKnot_threshold = atof(argv[12]);
-        ThresKnot_prefix = argv[13];
-        MEA_prefix = argv[14];
-        MEA_bpseq = atoi(argv[15]) == 1;
-        shape_file_path = argv[16];
-        fasta = atoi(argv[17]) == 1;
+        initial = atoi(argv[1]);
+        learning_rate = atof(argv[2]);
+        num_steps = atoi(argv[3]);
     }
 
     if (is_verbose) printf("beam size: %d\n", beamsize);
@@ -986,12 +1008,24 @@ int main(int argc, char** argv){
         printf("%s\n", rna_struct.c_str());
 
         vector<array<double, 4>> dist (length); // initial distribution
-        vector<array<double, 4>> outside(length); // gradient
 
-        for (int i = 0; i < length; i++) {
-            cin >> dist[i][0] >> dist[i][1] >> dist[i][2] >> dist[i][3];
+        if (initial == 0) {
+            for (int i = 0; i < length; i++) {
+                cin >> dist[i][0] >> dist[i][1] >> dist[i][2] >> dist[i][3];
+            }
+            cin.ignore();
+        } else if (initial == 1) { // uniform initialization
+            for (int i = 0; i < length; i++) {
+                dist[i] = {.25, .25, .25, .25};
+            }
+        } else { // target initialization
+            for (int i = 0; i < length; i++) {
+                if (rna_struct[i] == '(' or rna_struct[i] == ')')
+                    dist[i] = {.0, .5, .5, .0};
+                else
+                    dist[i] = {.1, .0, .0, .0};
+            }
         }
-        cin.ignore();
 
         printf("Starting Distribution\n");
         for (int i = 0; i < length; i++) {
@@ -1001,26 +1035,11 @@ int main(int argc, char** argv){
 
 
         // lhuang: moved inside loop, fixing an obscure but crucial bug in initialization
-        BeamCKYParser parser(beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
+        BeamCKYParser parser(learning_rate, num_steps, beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
+
 
         parser.gradient_descent(dist, rna_struct);
-
-        printf("Final Distribution\n");
-        for (int i = 0; i < length; i++) {
-            printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
-        }
-        printf("\n");
-
-        printf("Target Structure\n");
-        printf("%s\n\n", rna_struct.c_str());
-
-        string nucs = "ACGU";
-        printf("Final Sequence\n");
-        for (int i = 0; i < length; i++) {
-            int index = max_element(dist[i].begin(), dist[i].end()) - dist[i].begin();
-            printf("%C", nucs[index]);
-        }
-        printf("\n");
+        
     }
 
     gettimeofday(&total_endtime, NULL);
