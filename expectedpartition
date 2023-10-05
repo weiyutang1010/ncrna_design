@@ -11,17 +11,19 @@ def setgflags():
     flags.DEFINE_integer('initial', 0, "initialization: 0 - default, 1 - uniform, 2 - target", short_name='init')
     flags.DEFINE_float('learning_rate', 0.01, "set learning rate", short_name='lr')
     flags.DEFINE_integer('num_steps', 1, "set number of iterations", short_name='step')
+    flags.DEFINE_boolean('eval', False, "evaluate -log p(y|x) given the seq and struct", short_name='eval')
     argv = FLAGS(sys.argv)
 
 def main():
     initial = str(FLAGS.init)
     learning_rate = str(FLAGS.lr)
     num_steps = str(FLAGS.step)
+    eval_seq = '1' if FLAGS.eval else '0'
 
     # TODO: error handling
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, 'bin/expectedpartition'), initial, learning_rate, num_steps]
+    cmd = ["%s/%s" % (path, 'bin/expectedpartition'), initial, learning_rate, num_steps, eval_seq]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

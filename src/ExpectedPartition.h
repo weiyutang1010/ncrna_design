@@ -124,12 +124,13 @@ public:
                   bool is_fasta=false);
 
     void gradient_descent(vector<array<double, 4>>& dist, string& rna_struct);
+    double eval(string& rna_seq, string& rna_struct, bool verbose);
 
 private:
     void get_parentheses(char* result, string& seq);
 
     double inside_partition(vector<array<double, 4>>& dist);
-    double free_energy(vector<array<double, 4>>& dist, string& rna_struct);
+    double free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose);
     void outside_partition(vector<array<double, 4>>& dist);
 
     unsigned seq_length;

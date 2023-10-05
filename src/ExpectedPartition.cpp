@@ -82,7 +82,8 @@ void BeamCKYParser::prepare(unsigned len) {
     scores.reserve(seq_length);
 
     outside = new array<double, 4> [seq_length];
-    for (int j = 0; j < seq_length; j++) outside[j] = {VALUE_MIN, VALUE_MIN, VALUE_MIN, VALUE_MIN};
+    // for (int j = 0; j < seq_length; j++) outside[j] = {VALUE_MIN, VALUE_MIN, VALUE_MIN, VALUE_MIN};
+    for (int j = 0; j < seq_length; j++) outside[j] = {0., 0., 0., 0.};
 
     stacking_score.resize(6, vector<int>(6));
     bulge_score.resize(6, vector<vector<int>>(6, vector<int>(SINGLE_MAX_LEN+1)));
@@ -452,7 +453,8 @@ void BeamCKYParser::C_beam(int j, vector<array<double, 4>>& dist) {
 }
 
 
-double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_struct) {
+double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose) {
+    double RT = kT;
     int seq_length = rna_struct.length();
 
     double total_energy = 0;
@@ -505,8 +507,10 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                                      dist[i+1][nuci1] *
                                                      dist[j-1][nucj_1];
 
-                                int newscore = v_score_hairpin(i, j, -1) +
-                                               v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj);
+                                double newscore = (v_score_hairpin(i, j, -1) +
+                                                   v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj)) / RT;
+                                // double newscore = (v_score_hairpin(i, j, -1) +
+                                //                    v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj));
 
                                 hairpin_score += probability * newscore;
 
@@ -519,7 +523,9 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                     }
                 }
                 
-                // printf("Hairpin loop ( %d, %d) : %.2f\n", i+1, j+1, hairpin_score / 100.0);
+                if (is_verbose) {
+                    fprintf(stderr, "Hairpin loop ( %d, %d) : %.2f\n", i+1, j+1, hairpin_score * kT);
+                }
                 total_energy += hairpin_score;
             }
 
@@ -558,7 +564,8 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                 if (p == i+1 || q == j-1) {
                                     double probability = prob_ij * prob_pq;
 
-                                    int newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1);
+                                    double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / RT;
+                                    // double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1);
                                     single_score += probability * newscore;
 
                                     outside[i][nuci] += prob_pq * dist[j][nucj] * newscore;
@@ -577,8 +584,10 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                                                          dist[q+1][nucq1] *
                                                                          dist[j-1][nucj_1];
 
-                                                    int newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
-                                                                                        nucp_1, nucp, nucq, nucq1);
+                                                    double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
+                                                                                        nucp_1, nucp, nucq, nucq1) / RT;
+                                                    // double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
+                                                    //                                     nucp_1, nucp, nucq, nucq1);
                                                     single_score += probability * newscore;
 
                                                     double prob_tm = dist[i+1][nuci1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * dist[j-1][nucj_1];
@@ -600,8 +609,9 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                         }
                     }
                 }
-
-                // printf("Interior loop ( %d, %d); ( %d, %d) : %.2f\n", i+1, j+1, p+1, q+1, single_score / 100.0);
+                if (is_verbose) {
+                    fprintf(stderr, "Interior loop ( %d, %d); ( %d, %d) : %.2f\n", i+1, j+1, p+1, q+1, single_score * kT);
+                }
                 total_energy += single_score;
             }
 
@@ -623,7 +633,8 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                 continue;
                             }
                             
-                            long newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length);
+                            long double newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length) / RT;
+                            // long double newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length);
                             multi_score += probability * newscore;
 
                             outside[p][nucp] += dist[q][nucq] * newscore;
@@ -644,7 +655,8 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                             continue;
                         }
 
-                        long newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
+                        long double newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length) / RT;
+                        // long double newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
                         multi_score += probability * newscore;
 
                         outside[i][nuci] += dist[j][nucj] * newscore;
@@ -652,7 +664,9 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                     }
                 }
                 
-                // printf("Multi loop ( %d, %d) : %.2f\n", i+1, j+1, multi_score / 100.0);
+                if (is_verbose) {
+                    fprintf(stderr, "Multi loop ( %d, %d) : %.2f\n", i+1, j+1, multi_score * kT);
+                }
                 total_energy += multi_score;
             }
 
@@ -679,7 +693,8 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                             continue;
                         }
 
-                        long newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
+                        long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length) / RT;
+                        // long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
                         external_energy += probability * newscore;
 
                         outside[i][nuci] += dist[j][nucj] * newscore;
@@ -690,10 +705,14 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
         }
     }
 
-    // printf("External loop : %.2f\n", external_energy / 100.0);
+    if (is_verbose) {
+        fprintf(stderr, "External loop : %.2f\n", external_energy * kT);
+    }
     total_energy += external_energy;
 
-    // printf("Total Energy: %.2f\n", total_energy / 100.0);
+    if (is_verbose) {
+        fprintf(stderr, "Total Energy: %.2f\n\n", total_energy * kT);
+    }
     return total_energy;
 }
 
@@ -721,30 +740,6 @@ double BeamCKYParser::inside_partition(vector<array<double, 4>>& dist) {
         M_beam(j, dist);
         C_beam(j, dist);
     }
-
-    // // print state for bestP
-    // printf("BestP\n");
-    // for (int j = 0; j < seq_length; ++j) {
-    //     for (int i = 0; i < j; i++) {
-    //         bool found = false;
-    //         for (int p = 1; p < 7; ++p) {
-    //             if (bestP[j].find({i, p}) != bestP[j].end()) {
-    //                 found = true;
-    //                 printf("bestP[%d][%d][%c%c] = %f\n", i, j, GET_ACGU(PAIR_TO_LEFT_NUC(p)), GET_ACGU(PAIR_TO_RIGHT_NUC(p)), bestP[j][{i, p}].alpha);
-    //             }
-    //         }
-
-    //         if (found) printf("\n");
-    //     }
-    // }
-
-    // print_map("bestM", seq_length, bestM);
-    // print_map("bestM2", seq_length, bestM2);
-    // print_map("bestMulti", seq_length, bestMulti);
-    // printf("\nBestC\n");
-    // for (int j = 0; j < seq_length; j++) {
-    //     printf("%d: %.8f\n", j, bestC[j].alpha);
-    // }
 
     return bestC[seq_length-1].alpha;
 }
@@ -885,79 +880,161 @@ void BeamCKYParser::update(vector<array<double, 4>> &dist) {
     projection(dist);
 }
 
-void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna_struct) {
-    assert(dist.size() == rna_struct.size());
+vector<array<double, 4>> get_one_hot(string& seq) {
+    int n = seq.size();
+    vector<array<double, 4>> dist(n);
+
+    for (int i = 0; i < n; i++) {
+        for (int nuci = 0; nuci < 4; nuci++) {
+            if (nuci == GET_ACGU_NUM(seq[i])) dist[i][nuci] = 1.00;
+            else dist[i][nuci] = 0.00;
+        }
+    }
+
+    return dist;
+}
+
+string best_rna_seq(vector<array<double, 4>>& dist, string& rna_struct) {
     int n = dist.size();
+    stack<int> st;
+    string nucs = "ACGU";
+    string best_seq (n, 'A');
+
+    for (int j = 0; j < n; j++) {
+        if (rna_struct[j] == '.') {
+            int index = max_element(dist[j].begin(), dist[j].end()) - dist[j].begin();
+            best_seq[j] = nucs[index];
+        } else if (rna_struct[j] == '(') {
+            st.push(j);
+        } else {
+            int i = st.top(); st.pop();
+
+            double best_prob = 0.;
+            pair<int, int> best_pair_nucs;
+            for (int nuci = 0; nuci < 4; nuci++) {
+                for (int nucj = 0; nucj < 4; nucj++ ) {
+                    if (!_allowed_pairs[nuci][nucj]) continue;
+
+                    double prob = dist[i][nuci] * dist[j][nucj];
+                    if (prob > best_prob) {
+                        best_prob = prob;
+                        best_pair_nucs = {nuci, nucj};
+                    }
+                }
+            }
+
+            best_seq[i] = nucs[best_pair_nucs.first];
+            best_seq[j] = nucs[best_pair_nucs.second];
+        }
+    }
+
+    return best_seq;
+}
+
+double BeamCKYParser::eval(string& rna_seq, string& rna_struct, bool verbose) {
+    int n = rna_seq.size();
+    prepare(static_cast<unsigned>(n));
+    vector<array<double, 4>> dist = get_one_hot(rna_seq);
 
     double Q, deltaG, objective_value;
-    vector<double> log (num_steps);
+
+    Q = inside_partition(dist); // log Q(x)
+    deltaG = free_energy(dist, rna_struct, verbose); // deltaG / kT
+    objective_value = Q + deltaG;
+
+    if (verbose) {
+        fprintf(stderr, "Q(x): %6.4f, deltaG: %8.4f\n", exp(Q), deltaG * kT / 100.0);
+        fprintf(stderr, "log Q(x): %6.4f, deltaG / kT: %8.4f, -log p(y|x): %8.4f\n", Q, deltaG, objective_value);
+        printf("p(y|x) = %8.4f\n\n", exp(-1. * objective_value));
+
+        for (int i = 0; i < n; i++) {
+            printf("bestC[%d] = %.4f\n", i, bestC[i].alpha);
+        }
+        printf("\n");
+    }
+
+    postprocess();
+    return objective_value;
+}
+
+void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna_struct) {
+    assert(dist.size() == rna_struct.size());
+    string nucs = "ACGU";
+    int n = dist.size();
+    bool verbose = false;
+
+    struct timeval parse_starttime, parse_endtime;
+    struct timeval total_starttime, total_endtime;
+    gettimeofday(&total_starttime, NULL);
+
+    double Q, deltaG, objective_value;
+    vector<double> log;
+    vector<tuple<int, string, double>> log_string;
 
     for (int i = 0; i < num_steps; i++) {
+        gettimeofday(&parse_starttime, NULL);
         prepare(static_cast<unsigned>(n));
 
-        Q = inside_partition(dist);
-        outside_partition(dist);
+        // Q = inside_partition(dist);
+        // outside_partition(dist);
 
-        deltaG = free_energy(dist, rna_struct);
+        deltaG = free_energy(dist, rna_struct, verbose);
 
-        // double objective_value = Q;
-        objective_value = Q + deltaG;
-        log[i] = objective_value;
+        objective_value = deltaG;
+        // objective_value = Q + deltaG;
+        log.push_back(objective_value);
 
         // update distribution
         update(dist);
 
-        // printf("Step %d\n", i);
-        // printf("Outside\n");
-        // for (int i = 0; i < seq_length; i++) {
-        //     printf("%12.3f, %12.3f, %12.3f, %12.3f\n", outside[i][0], outside[i][1], outside[i][2], outside[i][3]);
-        //     // printf("%.3f, %.3f, %.3f, %.3f\n", outside[i][0], outside[i][1], outside[i][2], outside[i][3]);
-        // }
-        // printf("\n");
-
-        // printf("\nObjective Value: %.2lf\n\n", objective_value);
-
-        if (i > 0 && abs(log[i] - log[i-1]) < 0.001) break;
-        // for (int i = 0; i < n; i++) {
-        //     printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
-        // }
-        // printf("\n");
-
-        // delete arrays and set outside to all 0
         postprocess();
+        
+        gettimeofday(&parse_endtime, NULL);
+        double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
+        fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
+        
+        if (i > 0 && abs(log[i] - log[i-1]) < 1e-6) break;
+        string rna_seq = best_rna_seq(dist, rna_struct);
+
+        int k = log_string.size();
+        if (k == 0 || get<1>(log_string[k-1]) != rna_seq)
+            log_string.push_back({i, rna_seq, eval(rna_seq, rna_struct, verbose)});
     }
-    
+
     printf("Target Structure\n");
     printf("%s\n", rna_struct.c_str());
 
-    string nucs = "ACGU";
     printf("Final Sequence\n");
-    for (int i = 0; i < n; i++) {
-        int index = max_element(dist[i].begin(), dist[i].end()) - dist[i].begin();
-        printf("%C", nucs[index]);
-    }
-    printf("\n\n");
+    printf("%s\n\n", best_rna_seq(dist, rna_struct).c_str());
 
     printf("Final Distribution\n");
     for (int i = 0; i < n; i++) {
-        printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
+        printf("%2d: %.2f, %.2f, %.2f, %.2f\n", i+1, dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
     }
-    printf("\n\n");
+    printf("\n");
 
-    // printf("\nE[Q(x)] = %.2lf\n", Q);
-    // printf("E[Delta_G(x, y)] = %.2lf\n", deltaG);
+    printf("Step, Sequence, -log p(y|x), p(y|x)\n");
+    for (int i = 0; i < log_string.size(); i++) {
+        printf("%5d, %s, %10.4f, %10.4f\n", get<0>(log_string[i]) + 1, get<1>(log_string[i]).c_str(), get<2>(log_string[i]), exp(-get<2>(log_string[i])));
+    }
+    printf("\n");
+
     printf("start\n");
-    for (int i = 0; i < num_steps; i++) {
+    for (int i = 0; i < log.size(); i++) {
         printf("%.4lf\n", log[i]);
     }
     printf("end\n");
-    // printf("Objective Value: %.2lf\n", log[num_steps-1]);
     printf("\n");
+
+    gettimeofday(&total_endtime, NULL);
+    double total_elapsed_time = total_endtime.tv_sec - total_starttime.tv_sec + (total_endtime.tv_usec-total_starttime.tv_usec)/1000000.0;
+
+    fprintf(stderr,"Total Time: %.2f seconds.\n", total_elapsed_time);
+    fprintf(stderr,"Average Time: %.4f seconds.\n", total_elapsed_time / num_steps);
 }
 
 int main(int argc, char** argv){
-    struct timeval total_starttime, total_endtime;
-    gettimeofday(&total_starttime, NULL);
+    
 
     int beamsize = 100;
     bool sharpturn = false;
@@ -979,7 +1056,8 @@ int main(int argc, char** argv){
 
     int initial = 0;
     double learning_rate = 0.01;
-    double num_steps = 1;
+    int num_steps = 1;
+    bool seq_eval = false;
 
     // SHAPE
     string shape_file_path = "";
@@ -988,6 +1066,7 @@ int main(int argc, char** argv){
         initial = atoi(argv[1]);
         learning_rate = atof(argv[2]);
         num_steps = atoi(argv[3]);
+        seq_eval = atoi(argv[4]);
     }
 
     if (is_verbose) printf("beam size: %d\n", beamsize);
@@ -1002,6 +1081,20 @@ int main(int argc, char** argv){
     string bpp_file_index = "";
     string ThreshKnot_file_index = "";
     string MEA_file_index = "";
+
+    if (seq_eval) {
+        for (string rna_seq; getline(cin, rna_seq);){
+            string rna_struct;
+            getline(cin, rna_struct);
+            printf("%s\n%s\n\n", rna_seq.c_str(), rna_struct.c_str());
+            BeamCKYParser parser(learning_rate, num_steps, beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
+            
+            bool verbose = true;
+            double obj = parser.eval(rna_seq, rna_struct, verbose);
+            // printf("-log p(y | x) = %10.4f\n\n", obj);
+        }
+        return 0;
+    }
 
     for (string rna_struct; getline(cin, rna_struct);){
         int length = rna_struct.size();
@@ -1020,12 +1113,16 @@ int main(int argc, char** argv){
             }
         } else { // target initialization
             for (int i = 0; i < length; i++) {
-                if (rna_struct[i] == '(' or rna_struct[i] == ')')
-                    dist[i] = {.0, .5, .5, .0};
-                else
-                    dist[i] = {.1, .0, .0, .0};
+                if (rna_struct[i] == '(' or rna_struct[i] == ')') {
+                    if (rand() % 2) dist[i] = {.0, .49, .51, .0}; 
+                    else dist[i] = {.0, .51, .49, .0}; 
+                } else {
+                    dist[i] = {1., .0, .0, .0};
+                }
             }
         }
+
+        printf("Num Steps: %6d, Learning Rate: %7.6f\n", num_steps, learning_rate);
 
         printf("Starting Distribution\n");
         for (int i = 0; i < length; i++) {
@@ -1042,10 +1139,7 @@ int main(int argc, char** argv){
         
     }
 
-    gettimeofday(&total_endtime, NULL);
-    double total_elapsed_time = total_endtime.tv_sec - total_starttime.tv_sec + (total_endtime.tv_usec-total_starttime.tv_usec)/1000000.0;
-
-    if(is_verbose) fprintf(stderr,"Total Time: %.2f seconds.\n", total_elapsed_time);
+    
 
     return 0;
 }
