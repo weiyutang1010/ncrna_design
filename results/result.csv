@@ -1,0 +1,5 @@
+id,rna_struct,rna_seq,p(y|x)
+1,(((((......))))),UUUAAGAGGGUUUAAA,0.0757
+8,((((...)))).,UAGAAUAUUUAA,0.0123
+23,((....)).((....)),UUGUAAGAUCUGUUGGG,0.0000
+

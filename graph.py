@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 import plotext as plt
 
 i = 0
@@ -14,7 +15,7 @@ for line in sys.stdin:
         break
 
     if is_value:
-        log.append(float(line))
+        log.append(np.exp(-1 * float(line)))
 
     if line == 'start\n':
         is_value = True
@@ -33,7 +34,7 @@ plt.plot_size(60, 20)
 plt.xlabel('step')
 plt.xlim(11)
 
-plt.ylabel('- log p(y|x)')
+plt.ylabel('p(y|x)')
 plt.title(f'gradient descent')
 
 plt.show()

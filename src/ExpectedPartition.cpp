@@ -342,13 +342,13 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         gettimeofday(&parse_endtime, NULL);
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
         
-        if (i % 10 == 0)
+        if (i % 20 == 0)
             fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
         
         if (i > 0 && abs(log[i] - log[i-1]) < 1e-8) break;
 
 
-        if (is_verbose) {
+        if (is_verbose && i % 20 == 0) {
             string rna_seq = best_rna_seq(dist, rna_struct);
             int k = log_string.size();
             if (k == 0 || get<1>(log_string[k-1]) != rna_seq)
@@ -427,7 +427,7 @@ int main(int argc, char** argv){
         seq_eval = atoi(argv[4]);
     }
 
-    if (is_verbose) printf("beam size: %d\n", beamsize);
+    // if (is_verbose) printf("beam size: %d\n", beamsize);
 
     // variables for decoding
     int num=0, total_len = 0;
