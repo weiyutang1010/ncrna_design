@@ -152,7 +152,7 @@ private:
     void update(vector<array<double, 4>> &dist);
     void projection(vector<array<double, 4>> &dist);
 
-    int penalty = 10000;
+    int penalty = 1000;
     array<double, 4> *outside;
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;

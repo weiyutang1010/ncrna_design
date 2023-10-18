@@ -24,7 +24,9 @@
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
 
+#include "Inside.cpp"
 #include "Outside.cpp"
+#include "Eval.cpp"
 
 #define SPECIAL_HP
 
@@ -134,614 +136,6 @@ void print_map(string st, int seq_length, unordered_map<int, State> *best) {
         printf("\n");
     }
     printf("\n");
-}
-
-void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
-    value_type newscore;
-    unordered_map<int, State>& beamstepH = bestH[j];
-    unordered_map<pair<int, int>, State, hash_pair>& beamstepP = bestP[j];
-
-    // if (beam > 0 && beamstepH.size() > beam) beam_prune(beamstepH);
-
-    // for nucj put H(j, j_next) into H[j_next]
-    int jnext = (no_sharp_turn ? j + 4 : j + 1);
-    if (jnext < seq_length) {
-        newscore = - v_score_hairpin(j, jnext, -1);
-        Fast_LogPlusEquals(bestH[jnext][j].alpha, newscore/kT); 
-    }
-
-    // for every state h in H[j]
-    //   1. generate p(i, j)
-    //   2. extend h(i, j) to h(i, jnext)
-
-    for (auto &item : beamstepH) {
-        int i = item.first;
-        State state = item.second;
-
-        // 1. generate p(i, j)
-        for (int nuci = 0; nuci < 4; ++nuci) {
-            double prob_nuci = dist[i][nuci];
-
-            for (int nucj = 0; nucj < 4; ++nucj) {
-                pf_type score = NEG_INF;
-                double prob_nucj = dist[j][nucj];
-
-                if (!_allowed_pairs[nuci][nucj]) continue;
-
-                for (int nuci1 = 0; nuci1 < 4; ++nuci1) {
-                    double prob_nuci1 = dist[i+1][nuci1];
-
-                    for (int nucj_1 = 0; nucj_1 < 4; ++nucj_1) {
-                        double prob_nucj_1 = dist[j-1][nucj_1];
-                        double log_probability = log(prob_nuci + SMALL_NUM) +
-                                                 log(prob_nuci1 + SMALL_NUM) +
-                                                 log(prob_nucj_1 + SMALL_NUM) +
-                                                 log(prob_nucj + SMALL_NUM);
-
-                        newscore = - v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj);
-                        Fast_LogPlusEquals(score, state.alpha + log_probability + newscore/kT);
-                    }
-                }
-
-                pair<int, int> index_nucpair {i, NUM_TO_PAIR(nuci, nucj)};
-                Fast_LogPlusEquals(beamstepP[index_nucpair].alpha, score);
-            }
-        }
-        
-        int jnext = j+1;
-        if (jnext >= seq_length) continue;
-
-        // 2. extend h(i, j) to h(i, jnext)
-        newscore = - v_score_hairpin(i, jnext, -1);
-        Fast_LogPlusEquals(bestH[jnext][i].alpha, newscore/kT);
-    }
-}
-
-void BeamCKYParser::Multi_beam(int j, vector<array<double, 4>>& dist) {
-    value_type newscore;
-    unordered_map<pair<int, int>, State, hash_pair>& beamstepP = bestP[j];
-    unordered_map<int, State>& beamstepMulti = bestMulti[j];
-
-    // if (beam > 0 && beamstepMulti.size() > beam) beam_prune(beamstepMulti);
-
-    for (auto& item: beamstepMulti) {
-        int i = item.first;
-        State& state = item.second;
-        int jnext = j + 1;
-
-        // 1. extend (i, j) to (i, jnext)
-        if (jnext < seq_length) {
-            Fast_LogPlusEquals(bestMulti[jnext][i].alpha, state.alpha);
-        }
-
-        // 2. generate P (i, j)
-        for (int nuci = 0; nuci < 4; ++nuci) {
-            for (int nucj = 0; nucj < 4; ++nucj) {
-
-                if (!_allowed_pairs[nuci][nucj]) continue;
-                double prob_nuci = dist[i][nuci];
-                double prob_nucj = dist[j][nucj];
-
-                double log_probability = log(prob_nuci + SMALL_NUM) +
-                                         log(prob_nucj + SMALL_NUM);
-
-                newscore = - v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
-                
-                pair<int, int> index_nucpair {i, NUM_TO_PAIR(nuci, nucj)};
-                Fast_LogPlusEquals(beamstepP[index_nucpair].alpha, state.alpha + log_probability + newscore/kT);
-            }
-        }
-    }
-}
-
-void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
-    value_type newscore;
-    unordered_map<pair<int, int>, State, hash_pair>& beamstepP = bestP[j];
-    unordered_map<int, State>& beamstepM = bestM[j];
-    unordered_map<int, State>& beamstepM2 = bestM2[j];
-    State& beamstepC = bestC[j];
-
-    // if (beam > 0 && beamstepP.size() > beam) beam_prune(beamstepP);
-
-    // for every state in P[j]
-    //   1. generate new helix/bulge
-    //   2. M = P
-    //   3. M2 = M + P
-    //   4. C = C + P
-    for(auto& item : beamstepP) {
-        pair<int, int> index_nucpair = item.first;
-        int i = index_nucpair.first;
-        int8_t pair_nuc = index_nucpair.second;
-
-        int nuci = PAIR_TO_LEFT_NUC(pair_nuc);
-        int nucj = PAIR_TO_RIGHT_NUC(pair_nuc);
-
-        State& state = item.second;
-
-        if (i > 0 && j < seq_length-1) {
-            // stacking
-            for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
-                for (int nucj1 = 0; nucj1 < 4; ++nucj1) {       
-
-                    if (!_allowed_pairs[nuci_1][nucj1]) continue;
-
-                    double prob_nuci_1 = dist[i-1][nuci_1];
-                    double prob_nucj1 = dist[j+1][nucj1];
-                    int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucj1);
-
-                    double log_probability = log(prob_nuci_1 + SMALL_NUM) +
-                                            log(prob_nucj1 + SMALL_NUM);
-
-                    newscore = stacking_score[outer_pair-1][pair_nuc-1];
-                    pair<int, int> index_nucpair {i-1, NUM_TO_PAIR(nuci_1, nucj1)};
-                    Fast_LogPlusEquals(bestP[j+1][index_nucpair].alpha, log_probability + state.alpha + newscore/kT);
-                }
-            }
-
-            // right bulge: ((...)..) 
-            for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
-                for (int q = j+2; q < std::min((int)seq_length, j + SINGLE_MAX_LEN); ++q) {
-                    for (int nucq = 0; nucq < 4; ++nucq) {
-
-                        if (!_allowed_pairs[nuci_1][nucq]) continue;
-
-                        double prob_nuci_1 = dist[i-1][nuci_1];
-                        double prob_nucq = dist[q][nucq];
-                        int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucq);
-
-                        double log_probability = log(prob_nuci_1 + SMALL_NUM) +
-                                                log(prob_nucq + SMALL_NUM);
-
-                        newscore = bulge_score[outer_pair-1][pair_nuc-1][q-j-2];
-                        pair<int, int> index_nucpair {i-1, NUM_TO_PAIR(nuci_1, nucq)};
-                        Fast_LogPlusEquals(bestP[q][index_nucpair].alpha, log_probability + state.alpha + newscore/kT);
-                    }
-                }
-            }
-
-            // left bulge: (..(...)) 
-            for (int nucj1 = 0; nucj1 < 4; ++nucj1) {
-                for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
-                    for (int nucp = 0; nucp < 4; ++nucp) {
-
-                        if (!_allowed_pairs[nucp][nucj1]) continue;
-
-                        double prob_nucj1 = dist[j+1][nucj1];
-                        double prob_nucp = dist[p][nucp];
-                        int8_t outer_pair = NUM_TO_PAIR(nucp, nucj1);
-
-                        double log_probability = log(prob_nucp + SMALL_NUM) +
-                                                log(prob_nucj1 + SMALL_NUM);
-
-                        newscore = bulge_score[outer_pair-1][pair_nuc-1][i-p-2];
-
-                        pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucj1)};
-                        Fast_LogPlusEquals(bestP[j+1][index_nucpair].alpha, log_probability + state.alpha + newscore/kT);
-                    }
-                }
-            }
-
-            // interior loop
-            // p p+1 .. i-1 i .. j j+1 .. q-1 q
-            for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
-                for (int q = j+2; (i - p) + (q - j) - 2 <= SINGLE_MAX_LEN && q < seq_length; ++q) {
-                    
-                    for (int nucp = 0; nucp < 4; ++nucp) {
-                        for (int nucq = 0; nucq < 4; ++nucq) {
-
-                            if (!_allowed_pairs[nucp][nucq]) continue;
-                            double prob_nucp = dist[p][nucp];
-                            double prob_nucq = dist[q][nucq];
-
-                            for (int nucp1 = 0; nucp1 < 4; ++nucp1) {
-                                double prob_nucp1 = dist[p+1][nucp1];
-                                for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
-                                    double prob_nuci_1 = dist[i-1][nuci_1];
-                                    for (int nucj1 = 0; nucj1 < 4; ++nucj1) {
-                                        double prob_nucj1 = dist[j+1][nucj1];
-                                        for (int nucq_1 = 0; nucq_1 < 4; ++nucq_1) {
-                                            double prob_nucq_1 = dist[q-1][nucq_1];
-
-                                            double log_probability = log(prob_nucp + SMALL_NUM) +
-                                                                    log(prob_nucp1 + SMALL_NUM) +
-                                                                    log(prob_nuci_1 + SMALL_NUM) +
-                                                                    log(prob_nucj1 + SMALL_NUM) +
-                                                                    log(prob_nucq_1 + SMALL_NUM) +
-                                                                    log(prob_nucq + SMALL_NUM);
-                                            
-                                            newscore = - v_score_single(p,q,i,j, nucp, nucp1, nucq_1, nucq,
-                                                            nuci_1, nuci, nucj, nucj1);
-                                            pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucq)};
-                                            Fast_LogPlusEquals(bestP[q][index_nucpair].alpha, state.alpha + log_probability + newscore/kT);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // 2. M = P
-        if (i > 0 and j < seq_length-1){
-            newscore = - v_score_M1_without_dangle(i, j, j, -1, nuci, nucj, -1, seq_length);
-            Fast_LogPlusEquals(beamstepM[i].alpha, state.alpha + newscore/kT);
-        }
-
-        // 3. M2 = M + P
-        int k = i - 1;
-        if ( k > 0 && !bestM[k].empty()) {
-            newscore = - v_score_M1_without_dangle(i, j, j, -1, nuci, nucj, -1, seq_length);
-            
-            for (auto &m : bestM[k]) {
-                int newi = m.first;
-                State& m_state = m.second;
-                Fast_LogPlusEquals(beamstepM2[newi].alpha, m_state.alpha + state.alpha + newscore/kT);
-            }
-        }
-
-        // 4. C = C + P
-        if (k >= 0) {
-            State& prefix_C = bestC[k];
-
-            newscore = - v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
-            Fast_LogPlusEquals(beamstepC.alpha, prefix_C.alpha + state.alpha + newscore/kT);
-        } else {
-            newscore = - v_score_external_paired_without_dangle(0, j, nuci, nucj, seq_length);
-            Fast_LogPlusEquals(beamstepC.alpha, state.alpha + newscore/kT); 
-        }
-    }
-}
-
-void BeamCKYParser::M2_beam(int j, vector<array<double, 4>>& dist) {
-    value_type newscore;
-    unordered_map<int, State>& beamstepM2 = bestM2[j];
-    unordered_map<int, State>& beamstepM = bestM[j];
-
-    // if (beam > 0 && beamstepM2.size() > beam) beam_prune(beamstepM2);
-
-    for(auto& item : beamstepM2) {
-        int i = item.first;
-        State& state = item.second;
-
-        // 1. multi-loop
-        for (int p = i-1; p >= std::max(i - SINGLE_MAX_LEN, 0); --p) {
-            for (int q = j+1; q < seq_length; ++q) {
-                for (int nucp = 0; nucp < 4; ++nucp) {
-                    for (int nucq = 0; nucq < 4; ++nucq) {
-                        if (!_allowed_pairs[nucp][nucq]) continue;
-                        double prob_nucp = dist[p][nucp];
-                        double prob_nucq = dist[q][nucq];
-
-                        double log_probability = log(prob_nucp + SMALL_NUM) +
-                                                 log(prob_nucq + SMALL_NUM);
-                        
-                        Fast_LogPlusEquals(bestMulti[q][p].alpha, log_probability + state.alpha);
-                    }
-                }
-            }
-        }
-
-        // 2. M = M2
-        Fast_LogPlusEquals(beamstepM[i].alpha, state.alpha);  
-    }
-}
-
-void BeamCKYParser::M_beam(int j, vector<array<double, 4>>& dist) {
-    unordered_map<int, State>& beamstepM = bestM[j];
-    
-    // if (beam > 0 && beamstepM.size() > beam) beam_prune(beamstepM);
-
-    if (j < seq_length-1) {
-        for(auto& item : beamstepM) {
-            int i = item.first;
-            State& state = item.second;
-
-            Fast_LogPlusEquals(bestM[j+1][i].alpha, state.alpha); 
-        }
-    }
-}
-
-void BeamCKYParser::C_beam(int j, vector<array<double, 4>>& dist) {
-    State& beamstepC = bestC[j];
-
-    // C = C + U
-    if (j < seq_length-1) {
-        Fast_LogPlusEquals(bestC[j+1].alpha, beamstepC.alpha); 
-    }
-}
-
-
-double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose) {
-    double RT = kT;
-    int seq_length = rna_struct.length();
-
-    double total_energy = 0;
-    double external_energy = 0;
-    vector<pair<int, int>> M1_indices[seq_length];
-    double multi_number_unpaired[seq_length];
-
-    stack<pair<int, int>> stk; // tuple of (index, page)
-    tuple<int, int> inner_loop;
-
-    for (int j=0; j<seq_length; j++) {
-        multi_number_unpaired[j] = 0;
-
-        if (rna_struct[j] == '.') {
-            if (!stk.empty())
-                multi_number_unpaired[stk.top().first] += 1;
-        }
-
-        else if (rna_struct[j] == '(') {
-            if (!stk.empty()) { // +1 for outer loop page
-                stk.top().second ++;
-            }
-            stk.push(make_pair(j, 0)); // init page=0
-        }
-
-        else if (rna_struct[j] == ')') {
-            assert(!stk.empty());
-            tuple<int, int> top = stk.top();
-            int i = get<0>(top), page = get<1>(top);
-            stk.pop();
-
-            if (page == 0) { // hairpin
-                double hairpin_score = 0.;
-                for (int nuci = 0; nuci < 4; nuci++) {
-                    for (int nucj = 0; nucj < 4; nucj++) {
-                        double prob_ij = dist[i][nuci] *
-                                         dist[j][nucj];
-
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            hairpin_score += prob_ij * penalty;
-
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
-                        }
-
-                        for (int nuci1 = 0; nuci1 < 4; nuci1++) {
-                            for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
-                                double probability = prob_ij *
-                                                     dist[i+1][nuci1] *
-                                                     dist[j-1][nucj_1];
-
-                                double newscore = (v_score_hairpin(i, j, -1) +
-                                                   v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj)) / RT;
-                                // double newscore = (v_score_hairpin(i, j, -1) +
-                                //                    v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj));
-
-                                hairpin_score += probability * newscore;
-
-                                outside[i][nuci] += dist[j][nucj] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
-                                outside[i+1][nuci1] +=  prob_ij * dist[j-1][nucj_1] * newscore;
-                                outside[j-1][nucj_1] += prob_ij * dist[i+1][nuci1] * newscore;
-                                outside[j][nucj] += dist[i][nuci] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
-                            }
-                        }
-                    }
-                }
-                
-                if (is_verbose) {
-                    fprintf(stderr, "Hairpin loop ( %d, %d) : %.2f\n", i+1, j+1, hairpin_score * kT);
-                }
-                total_energy += hairpin_score;
-            }
-
-            else if (page == 1) { //single
-                double single_score = 0.;
-                int p = get<0>(inner_loop), q = get<1>(inner_loop);
-
-                for (int nuci = 0; nuci < 4; nuci++) {
-                    for (int nucj = 0; nucj < 4; nucj++) {
-                        double prob_ij = dist[i][nuci] *
-                                            dist[j][nucj];
-
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            single_score += prob_ij * penalty;
-
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
-                        }
-
-                        for (int nucp = 0; nucp < 4; nucp++) {
-                            for (int nucq = 0; nucq < 4; nucq++) {
-                                double prob_pq = dist[p][nucp] *
-                                                 dist[q][nucq];
-
-                                if (!_allowed_pairs[nucp][nucq]) {
-                                    single_score += prob_ij * prob_pq * penalty;
-
-                                    outside[i][nuci] += dist[j][nucj] * prob_pq * penalty;
-                                    outside[j][nucj] += dist[i][nuci] * prob_pq * penalty;
-                                    outside[p][nucp] += dist[q][nucq] * prob_ij * penalty;
-                                    outside[q][nucq] += dist[p][nucp] * prob_ij * penalty;
-                                    continue;
-                                }
-
-                                if (p == i+1 || q == j-1) {
-                                    double probability = prob_ij * prob_pq;
-
-                                    double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / RT;
-                                    // double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1);
-                                    single_score += probability * newscore;
-
-                                    outside[i][nuci] += prob_pq * dist[j][nucj] * newscore;
-                                    outside[j][nucj] += prob_pq * dist[i][nuci] * newscore;
-                                    outside[p][nucp] += prob_ij * dist[q][nucq] * newscore;
-                                    outside[q][nucq] += prob_ij * dist[p][nucp] * newscore;
-                                } else {
-                                    for (int nuci1 = 0; nuci1 < 4; ++nuci1) {
-                                        for (int nucp_1 = 0; nucp_1 < 4; ++nucp_1) {
-                                            for (int nucq1 = 0; nucq1 < 4; ++nucq1) {
-                                                for (int nucj_1 = 0; nucj_1 < 4; ++nucj_1) {
-                                                    double probability = prob_ij *
-                                                                         prob_pq *
-                                                                         dist[i+1][nuci1] *
-                                                                         dist[p-1][nucp_1] *
-                                                                         dist[q+1][nucq1] *
-                                                                         dist[j-1][nucj_1];
-
-                                                    double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
-                                                                                        nucp_1, nucp, nucq, nucq1) / RT;
-                                                    // double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
-                                                    //                                     nucp_1, nucp, nucq, nucq1);
-                                                    single_score += probability * newscore;
-
-                                                    double prob_tm = dist[i+1][nuci1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * dist[j-1][nucj_1];
-                                                    outside[i][nuci] += dist[j][nucj] * prob_pq * prob_tm * newscore;
-                                                    outside[j][nucj] += dist[i][nuci] * prob_pq * prob_tm * newscore;
-                                                    outside[p][nucp] += dist[q][nucq] * prob_ij * prob_tm * newscore;
-                                                    outside[q][nucq] += dist[p][nucp] * prob_ij * prob_tm * newscore;
-
-                                                    outside[i+1][nuci1] += prob_ij * prob_pq * dist[j-1][nucj_1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * newscore;
-                                                    outside[j-1][nucj_1] += prob_ij * prob_pq * dist[i+1][nuci1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * newscore;
-                                                    outside[p-1][nucp_1] += prob_ij * prob_pq * dist[j-1][nucj_1] * dist[i+1][nuci1] * dist[q+1][nucq1] * newscore;
-                                                    outside[q+1][nucq1] += prob_ij * prob_pq * dist[j-1][nucj_1] * dist[p-1][nucp_1] * dist[i+1][nuci1] * newscore;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                if (is_verbose) {
-                    fprintf(stderr, "Interior loop ( %d, %d); ( %d, %d) : %.2f\n", i+1, j+1, p+1, q+1, single_score * kT);
-                }
-                total_energy += single_score;
-            }
-
-            else { //multi
-                double multi_score = 0;
-
-                for (auto& multi_inside: M1_indices[i]) {
-                    int p = multi_inside.first, q = multi_inside.second;
-
-                    for (int nucp = 0; nucp < 4; nucp++) {
-                        for (int nucq = 0; nucq < 4; nucq++) {
-                            double probability = dist[p][nucp] * dist[q][nucq];
-
-                            if (!_allowed_pairs[nucp][nucq]) {
-                                multi_score += probability * penalty;
-
-                                outside[p][nucp] += dist[q][nucq] * penalty;
-                                outside[q][nucq] += dist[p][nucp] * penalty;
-                                continue;
-                            }
-                            
-                            long double newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length) / RT;
-                            // long double newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length);
-                            multi_score += probability * newscore;
-
-                            outside[p][nucp] += dist[q][nucq] * newscore;
-                            outside[q][nucq] += dist[p][nucp] * newscore;
-                        }
-                    }
-                }
-
-                for (int nuci = 0; nuci < 4; nuci++) {
-                    for (int nucj = 0; nucj < 4; nucj++) {
-                        double probability = dist[i][nuci] * dist[j][nucj];
-                        
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            multi_score += probability * penalty;
-
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
-                        }
-
-                        long double newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length) / RT;
-                        // long double newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
-                        multi_score += probability * newscore;
-
-                        outside[i][nuci] += dist[j][nucj] * newscore;
-                        outside[j][nucj] += dist[i][nuci] * newscore;
-                    }
-                }
-                
-                if (is_verbose) {
-                    fprintf(stderr, "Multi loop ( %d, %d) : %.2f\n", i+1, j+1, multi_score * kT);
-                }
-                total_energy += multi_score;
-            }
-
-            //update inner_loop
-            inner_loop = make_tuple(i, j);
-
-            // possible M
-            if (!stk.empty()) {
-                M1_indices[stk.top().first].push_back({i, j});
-            }
-
-            // check if adding external energy
-            if (stk.empty()) {
-                for (int nuci = 0; nuci < 4; nuci++) {
-                    for (int nucj = 0; nucj < 4; nucj++) {
-                        double probability = dist[i][nuci] *
-                                             dist[j][nucj];
-
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            external_energy += probability * penalty;
-
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
-                        }
-
-                        long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length) / RT;
-                        // long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
-                        external_energy += probability * newscore;
-
-                        outside[i][nuci] += dist[j][nucj] * newscore;
-                        outside[j][nucj] += dist[i][nuci] * newscore;
-                    }
-                }
-            }
-        }
-    }
-
-    if (is_verbose) {
-        fprintf(stderr, "External loop : %.2f\n", external_energy * kT);
-    }
-    total_energy += external_energy;
-
-    if (is_verbose) {
-        fprintf(stderr, "Total Energy: %.2f\n\n", total_energy * kT);
-    }
-    return total_energy;
-}
-
-double BeamCKYParser::inside_partition(vector<array<double, 4>>& dist) {
-    struct timeval parse_starttime, parse_endtime;
-
-    gettimeofday(&parse_starttime, NULL);
-
-// #ifdef SPECIAL_HP
-//     v_init_tetra_hex_tri(seq, seq_length, if_tetraloops, if_hexaloops, if_triloops);
-// #endif
-
-    // E[Q(x)]
-    if(seq_length > 0) bestC[0].alpha = 0.0;
-    if(seq_length > 1) bestC[1].alpha = 0.0;
-    
-    for (int j = 0; j < seq_length; ++j) {
-        hairpin_beam(j, dist);
-
-        if (j == 0) continue;
-
-        Multi_beam(j, dist);
-        P_beam(j, dist);
-        M2_beam(j, dist);
-        M_beam(j, dist);
-        C_beam(j, dist);
-    }
-
-    return bestC[seq_length-1].alpha;
 }
 
 
@@ -880,20 +274,6 @@ void BeamCKYParser::update(vector<array<double, 4>> &dist) {
     projection(dist);
 }
 
-vector<array<double, 4>> get_one_hot(string& seq) {
-    int n = seq.size();
-    vector<array<double, 4>> dist(n);
-
-    for (int i = 0; i < n; i++) {
-        for (int nuci = 0; nuci < 4; nuci++) {
-            if (nuci == GET_ACGU_NUM(seq[i])) dist[i][nuci] = 1.00;
-            else dist[i][nuci] = 0.00;
-        }
-    }
-
-    return dist;
-}
-
 string best_rna_seq(vector<array<double, 4>>& dist, string& rna_struct) {
     int n = dist.size();
     stack<int> st;
@@ -931,32 +311,6 @@ string best_rna_seq(vector<array<double, 4>>& dist, string& rna_struct) {
     return best_seq;
 }
 
-double BeamCKYParser::eval(string& rna_seq, string& rna_struct, bool verbose) {
-    int n = rna_seq.size();
-    prepare(static_cast<unsigned>(n));
-    vector<array<double, 4>> dist = get_one_hot(rna_seq);
-
-    double Q, deltaG, objective_value;
-
-    Q = inside_partition(dist); // log Q(x)
-    deltaG = free_energy(dist, rna_struct, verbose); // deltaG / kT
-    objective_value = Q + deltaG;
-
-    if (verbose) {
-        fprintf(stderr, "Q(x): %6.4f, deltaG: %8.4f\n", exp(Q), deltaG * kT / 100.0);
-        fprintf(stderr, "log Q(x): %6.4f, deltaG / kT: %8.4f, -log p(y|x): %8.4f\n", Q, deltaG, objective_value);
-        printf("p(y|x) = %8.4f\n\n", exp(-1. * objective_value));
-
-        for (int i = 0; i < n; i++) {
-            printf("bestC[%d] = %.4f\n", i, bestC[i].alpha);
-        }
-        printf("\n");
-    }
-
-    postprocess();
-    return objective_value;
-}
-
 void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna_struct) {
     assert(dist.size() == rna_struct.size());
     string nucs = "ACGU";
@@ -975,13 +329,13 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         gettimeofday(&parse_starttime, NULL);
         prepare(static_cast<unsigned>(n));
 
-        // Q = inside_partition(dist);
-        // outside_partition(dist);
+        Q = inside_partition(dist);
+        outside_partition(dist);
 
-        deltaG = free_energy(dist, rna_struct, verbose);
+        deltaG = free_energy(dist, rna_struct, false);
 
-        objective_value = deltaG;
-        // objective_value = Q + deltaG;
+        // objective_value = deltaG;
+        objective_value = Q + deltaG;
         log.push_back(objective_value);
 
         // update distribution
@@ -991,46 +345,54 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         
         gettimeofday(&parse_endtime, NULL);
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-        fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
+        
+        if (i % 10 == 0)
+            fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
         
         if (i > 0 && abs(log[i] - log[i-1]) < 1e-6) break;
-        string rna_seq = best_rna_seq(dist, rna_struct);
 
-        int k = log_string.size();
-        if (k == 0 || get<1>(log_string[k-1]) != rna_seq)
-            log_string.push_back({i, rna_seq, eval(rna_seq, rna_struct, verbose)});
+
+        if (verbose) {
+            string rna_seq = best_rna_seq(dist, rna_struct);
+            int k = log_string.size();
+            if (k == 0 || get<1>(log_string[k-1]) != rna_seq)
+                log_string.push_back({i, rna_seq, eval(rna_seq, rna_struct, false)});
+        }
     }
 
-    printf("Target Structure\n");
-    printf("%s\n", rna_struct.c_str());
 
+    string rna_seq = best_rna_seq(dist, rna_struct);
     printf("Final Sequence\n");
-    printf("%s\n\n", best_rna_seq(dist, rna_struct).c_str());
+    printf("%s\n", rna_struct.c_str());
+    printf("%s\n\n", rna_seq.c_str());
+    eval(rna_seq, rna_struct, true);
 
     printf("Final Distribution\n");
     for (int i = 0; i < n; i++) {
         printf("%2d: %.2f, %.2f, %.2f, %.2f\n", i+1, dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
     }
-    printf("\n");
+    printf("\n\n");
 
-    printf("Step, Sequence, -log p(y|x), p(y|x)\n");
-    for (int i = 0; i < log_string.size(); i++) {
-        printf("%5d, %s, %10.4f, %10.4f\n", get<0>(log_string[i]) + 1, get<1>(log_string[i]).c_str(), get<2>(log_string[i]), exp(-get<2>(log_string[i])));
-    }
-    printf("\n");
+    if (verbose) {
+        printf("Step, Sequence, -log p(y|x), p(y|x)\n");
+        for (int i = 0; i < log_string.size(); i++) {
+            printf("%5d, %s, %10.4f, %10.4f\n", get<0>(log_string[i]) + 1, get<1>(log_string[i]).c_str(), get<2>(log_string[i]), exp(-get<2>(log_string[i])));
+        }
+        printf("\n");
 
-    printf("start\n");
-    for (int i = 0; i < log.size(); i++) {
-        printf("%.4lf\n", log[i]);
+        printf("start\n");
+        for (int i = 0; i < log.size(); i++) {
+            printf("%.4lf\n", log[i]);
+        }
+        printf("end\n");
+        printf("\n");
     }
-    printf("end\n");
-    printf("\n");
 
     gettimeofday(&total_endtime, NULL);
     double total_elapsed_time = total_endtime.tv_sec - total_starttime.tv_sec + (total_endtime.tv_usec-total_starttime.tv_usec)/1000000.0;
 
-    fprintf(stderr,"Total Time: %.2f seconds.\n", total_elapsed_time);
-    fprintf(stderr,"Average Time: %.4f seconds.\n", total_elapsed_time / num_steps);
+    printf("Total Time: %.2f seconds.\n", total_elapsed_time);
+    printf("Average Time: %.4f seconds.\n", total_elapsed_time / num_steps);
 }
 
 int main(int argc, char** argv){
@@ -1098,7 +460,6 @@ int main(int argc, char** argv){
 
     for (string rna_struct; getline(cin, rna_struct);){
         int length = rna_struct.size();
-        printf("%s\n", rna_struct.c_str());
 
         vector<array<double, 4>> dist (length); // initial distribution
 
@@ -1122,24 +483,21 @@ int main(int argc, char** argv){
             }
         }
 
-        printf("Num Steps: %6d, Learning Rate: %7.6f\n", num_steps, learning_rate);
+        if (is_verbose) {
+            printf("Num Steps: %6d, Learning Rate: %7.6f\n", num_steps, learning_rate);
 
-        printf("Starting Distribution\n");
-        for (int i = 0; i < length; i++) {
-            printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
+            printf("Starting Distribution\n");
+            for (int i = 0; i < length; i++) {
+                printf("%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
+            }
+            printf("\n");
         }
-        printf("\n");
-
 
         // lhuang: moved inside loop, fixing an obscure but crucial bug in initialization
         BeamCKYParser parser(learning_rate, num_steps, beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
 
-
         parser.gradient_descent(dist, rna_struct);
-        
     }
-
-    
 
     return 0;
 }
