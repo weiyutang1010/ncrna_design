@@ -84,8 +84,7 @@ void BeamCKYParser::prepare(unsigned len) {
     scores.reserve(seq_length);
 
     outside = new array<double, 4> [seq_length];
-    // for (int j = 0; j < seq_length; j++) outside[j] = {VALUE_MIN, VALUE_MIN, VALUE_MIN, VALUE_MIN};
-    for (int j = 0; j < seq_length; j++) outside[j] = {0., 0., 0., 0.};
+    for (int j = 0; j < seq_length; j++) outside[j] = {VALUE_MIN, VALUE_MIN, VALUE_MIN, VALUE_MIN};
 
     stacking_score.resize(6, vector<int>(6));
     bulge_score.resize(6, vector<vector<int>>(6, vector<int>(SINGLE_MAX_LEN+1)));
@@ -315,7 +314,6 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
     assert(dist.size() == rna_struct.size());
     string nucs = "ACGU";
     int n = dist.size();
-    bool verbose = false;
 
     struct timeval parse_starttime, parse_endtime;
     struct timeval total_starttime, total_endtime;
@@ -331,10 +329,8 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
 
         Q = inside_partition(dist);
         outside_partition(dist);
-
         deltaG = free_energy(dist, rna_struct, false);
 
-        // objective_value = deltaG;
         objective_value = Q + deltaG;
         log.push_back(objective_value);
 
@@ -349,10 +345,10 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         if (i % 10 == 0)
             fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
         
-        if (i > 0 && abs(log[i] - log[i-1]) < 1e-6) break;
+        if (i > 0 && abs(log[i] - log[i-1]) < 1e-8) break;
 
 
-        if (verbose) {
+        if (is_verbose) {
             string rna_seq = best_rna_seq(dist, rna_struct);
             int k = log_string.size();
             if (k == 0 || get<1>(log_string[k-1]) != rna_seq)
@@ -373,7 +369,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
     }
     printf("\n\n");
 
-    if (verbose) {
+    if (is_verbose) {
         printf("Step, Sequence, -log p(y|x), p(y|x)\n");
         for (int i = 0; i < log_string.size(); i++) {
             printf("%5d, %s, %10.4f, %10.4f\n", get<0>(log_string[i]) + 1, get<1>(log_string[i]).c_str(), get<2>(log_string[i]), exp(-get<2>(log_string[i])));
@@ -400,7 +396,7 @@ int main(int argc, char** argv){
 
     int beamsize = 100;
     bool sharpturn = false;
-    bool is_verbose = false;
+    bool is_verbose = true;
     string bpp_file;
     string bpp_prefix;
     bool pf_only = false;
@@ -453,7 +449,6 @@ int main(int argc, char** argv){
             
             bool verbose = true;
             double obj = parser.eval(rna_seq, rna_struct, verbose);
-            // printf("-log p(y | x) = %10.4f\n\n", obj);
         }
         return 0;
     }

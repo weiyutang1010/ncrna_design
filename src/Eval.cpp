@@ -1,7 +1,6 @@
 #include "ExpectedPartition.h"
 
 double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose) {
-    double RT = kT;
     int seq_length = rna_struct.length();
 
     double total_energy = 0;
@@ -54,10 +53,12 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                                      dist[i+1][nuci1] *
                                                      dist[j-1][nucj_1];
 
-                                double newscore = (v_score_hairpin(i, j, -1) +
-                                                   v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj)) / RT;
-                                // double newscore = (v_score_hairpin(i, j, -1) +
-                                //                    v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj));
+                                double newscore;
+                                if (j - i - 1 > 3)
+                                    newscore = (v_score_hairpin(i, j, -1) +
+                                                v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj)) / kT;
+                                else
+                                    newscore = v_score_hairpin(i, j, -1) / kT;
 
                                 hairpin_score += probability * newscore;
 
@@ -111,8 +112,7 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                 if (p == i+1 || q == j-1) {
                                     double probability = prob_ij * prob_pq;
 
-                                    double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / RT;
-                                    // double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1);
+                                    double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / kT;
                                     single_score += probability * newscore;
 
                                     outside[i][nuci] += prob_pq * dist[j][nucj] * newscore;
@@ -132,9 +132,7 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                                                          dist[j-1][nucj_1];
 
                                                     double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
-                                                                                        nucp_1, nucp, nucq, nucq1) / RT;
-                                                    // double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
-                                                    //                                     nucp_1, nucp, nucq, nucq1);
+                                                                                        nucp_1, nucp, nucq, nucq1) / kT;
                                                     single_score += probability * newscore;
 
                                                     double prob_tm = dist[i+1][nuci1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * dist[j-1][nucj_1];
@@ -180,8 +178,7 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                 continue;
                             }
                             
-                            long double newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length) / RT;
-                            // long double newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length);
+                            long double newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length) / kT;
                             multi_score += probability * newscore;
 
                             outside[p][nucp] += dist[q][nucq] * newscore;
@@ -202,8 +199,7 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                             continue;
                         }
 
-                        long double newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length) / RT;
-                        // long double newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
+                        long double newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length) / kT;
                         multi_score += probability * newscore;
 
                         outside[i][nuci] += dist[j][nucj] * newscore;
@@ -240,8 +236,7 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                             continue;
                         }
 
-                        long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length) / RT;
-                        // long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length);
+                        long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length) / kT;
                         external_energy += probability * newscore;
 
                         outside[i][nuci] += dist[j][nucj] * newscore;
@@ -285,7 +280,6 @@ double BeamCKYParser::eval(string& rna_seq, string& rna_struct, bool verbose) {
     double Q, deltaG, objective_value;
 
     Q = inside_partition(dist); // log Q(x)
-    // deltaG = free_energy(dist, rna_struct, verbose); // deltaG / kT
     deltaG = free_energy(dist, rna_struct, false); // deltaG / kT
     objective_value = Q + deltaG;
 

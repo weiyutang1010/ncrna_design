@@ -56,7 +56,10 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
                                                  log(prob_nucj_1 + SMALL_NUM) +
                                                  log(prob_nucj + SMALL_NUM);
 
-                        newscore = - v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj);
+                        if (j - i - 1 > 3)
+                            newscore = - v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj);
+                        else
+                            newscore = 0;
                         Fast_LogPlusEquals(score, state.alpha + log_probability + newscore/kT);
                     }
                 }
