@@ -12,6 +12,8 @@ def setgflags():
     flags.DEFINE_float('learning_rate', 0.01, "set learning rate", short_name='lr')
     flags.DEFINE_integer('num_steps', 1, "set number of iterations", short_name='step')
     flags.DEFINE_boolean('eval', False, "evaluate -log p(y|x) given the seq and struct", short_name='eval')
+    flags.DEFINE_integer('objective', 0, "0: -log p(y|x), 1: Delta_G(x, y)", short_name='obj')
+    flags.DEFINE_integer('penalty', 1000, "penalty value", short_name='pen')
     argv = FLAGS(sys.argv)
 
 def main():
@@ -19,11 +21,13 @@ def main():
     learning_rate = str(FLAGS.lr)
     num_steps = str(FLAGS.step)
     eval_seq = '1' if FLAGS.eval else '0'
+    objective = str(FLAGS.obj)
+    penalty = str(FLAGS.pen)
 
     # TODO: error handling
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, 'bin/expectedpartition'), initial, learning_rate, num_steps, eval_seq]
+    cmd = ["%s/%s" % (path, 'bin/expectedpartition'), initial, learning_rate, num_steps, eval_seq, objective, penalty]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

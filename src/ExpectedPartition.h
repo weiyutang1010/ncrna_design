@@ -101,10 +101,14 @@ public:
 
     double learning_rate;
     int num_steps;
+    int objective;
+    int penalty;
 
     BeamCKYParser(
                   double learningrate=0.01,
                   int numsteps=1,
+                  int obj = 0,
+                  int penalty = 1000,
                   int beam_size=100,
                   bool nosharpturn=true,
                   bool is_verbose=false,
@@ -152,7 +156,7 @@ private:
     void update(vector<array<double, 4>> &dist);
     void projection(vector<array<double, 4>> &dist);
 
-    int penalty = 1000;
+    // int penalty = 1000;
     array<double, 4> *outside;
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;

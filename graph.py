@@ -1,9 +1,16 @@
 import sys
 import numpy as np
-import plotext as plt
+import sys
+import matplotlib.pyplot as plt
+
+prob = 0 # 0: - log p(y|x), 1: p(y|x)
+if len(sys.argv) >= 2:
+    prob = int(sys.argv[1])
 
 i = 0
-log = []
+neg_log_prob = []
+prob = []
+
 is_value = False
 
 for line in sys.stdin:
@@ -15,26 +22,28 @@ for line in sys.stdin:
         break
 
     if is_value:
-        log.append(np.exp(-1 * float(line)))
+        neg_log_prob.append(float(line))
+        prob.append(np.exp(-1 * float(line)))
 
     if line == 'start\n':
         is_value = True
 
-# plt.plot(log)
-# plt.plot_size(60, 20)
-# plt.xlabel('step')
+plt.rcParams["figure.figsize"] = [7.50, 3.50]
+plt.rcParams["figure.autolayout"] = True
 
-# plt.ylabel('- log p(y|x)')
-# plt.title(f'gradient descent')
+fig, ax1 = plt.subplots()
+color = 'red'
 
-# plt.show()
+ax1.set_xlabel('step')
+ax1.set_ylabel('- log p(y | x)', color=color)
+ax1.plot(neg_log_prob, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
 
-plt.plot(log[11:])
-plt.plot_size(60, 20)
-plt.xlabel('step')
-plt.xlim(11)
+ax2 = ax1.twinx()
+color = 'blue'
+ax2.set_ylabel('p(y  | x)', color=color)
+ax2.plot(prob, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
 
-plt.ylabel('p(y|x)')
 plt.title(f'gradient descent')
-
 plt.show()

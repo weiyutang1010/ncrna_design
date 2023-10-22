@@ -14,6 +14,7 @@
 #include <stack>
 #include <tuple>
 #include <cassert>
+#include <numeric>
 #include <unordered_map>
 #include <algorithm>
 #include <string>
@@ -84,7 +85,11 @@ void BeamCKYParser::prepare(unsigned len) {
     scores.reserve(seq_length);
 
     outside = new array<double, 4> [seq_length];
-    for (int j = 0; j < seq_length; j++) outside[j] = {VALUE_MIN, VALUE_MIN, VALUE_MIN, VALUE_MIN};
+
+    if (objective == 0)
+        for (int j = 0; j < seq_length; j++) outside[j] = {VALUE_MIN, VALUE_MIN, VALUE_MIN, VALUE_MIN};
+    else
+        for (int j = 0; j < seq_length; j++) outside[j] = {0., 0., 0., 0.};
 
     stacking_score.resize(6, vector<int>(6));
     bulge_score.resize(6, vector<vector<int>>(6, vector<int>(SINGLE_MAX_LEN+1)));
@@ -140,6 +145,8 @@ void print_map(string st, int seq_length, unordered_map<int, State> *best) {
 
 BeamCKYParser::BeamCKYParser(double learningrate,
                              int numsteps,
+                             int obj,
+                             int penalty,
                              int beam_size,
                              bool nosharpturn,
                              bool verbose,
@@ -159,6 +166,8 @@ BeamCKYParser::BeamCKYParser(double learningrate,
                              bool fasta)
     : learning_rate(learningrate),
       num_steps(numsteps),
+      objective(obj),
+      penalty(penalty),
       beam(beam_size), 
       no_sharp_turn(nosharpturn), 
       is_verbose(verbose),
@@ -225,33 +234,30 @@ void BeamCKYParser::projection(vector<array<double, 4>> &dist) {
     int n = dist.size(), z = 1;
 
     vector<array<double, 4>> sorted_dist (dist);
-    for (int i = 0; i < n; i++) {
-        sort(sorted_dist[i].begin(), sorted_dist[i].end(), [&] (const double& a, const double& b) {
-            return a > b;
-        });
+    for (array<double, 4>& row: sorted_dist) {
+        sort(row.rbegin(), row.rend());
     }
 
+    int i = 0;
     vector<array<double, 4>> cumsum (sorted_dist);
-    for (int i = 0; i < n; i++) {
-        for (int j = 1; j < 4; j++) {
-            cumsum[i][j] = sorted_dist[i][j] + cumsum[i][j-1];
-        }
+    for (array<double, 4>& row: cumsum) {
+        std::partial_sum(row.begin(), row.end(), cumsum[i++].begin());
     }
 
     vector<array<double, 4>> theta (cumsum);
-    for (int i = 0; i < n; i++) {
+
+    for (array<double, 4>& row: theta) {
         for (int j = 0; j < 4; j++) {
-            theta[i][j] = (theta[i][j] - z) / (j+1);
+            row[j] = (row[j] - z) / (j+1);
         }
     }
 
     vector<int> indices (n);
     for (int i = 0; i < n; i++) {
-        int index = 0;
-        for (int j = 0; j < 4; j++) {
-            index += sorted_dist[i][j] > theta[i][j];
-        }
-        indices[i] = index - 1;
+        int j = 0;
+        indices[i] = count_if(sorted_dist[i].begin(), sorted_dist[i].end(), [&theta, &i, &j] (double value) {
+            return value > theta[i][j++];
+        }) - 1;
     }
 
     for (int i = 0; i < n; i++) {
@@ -327,11 +333,16 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         gettimeofday(&parse_starttime, NULL);
         prepare(static_cast<unsigned>(n));
 
-        Q = inside_partition(dist);
-        outside_partition(dist);
-        deltaG = free_energy(dist, rna_struct, false);
+        if (objective == 0) {
+            Q = inside_partition(dist);
+            outside_partition(dist);
+            deltaG = free_energy(dist, rna_struct, false);
+            objective_value = Q + deltaG;
+        } else {
+            deltaG = free_energy(dist, rna_struct, false);
+            objective_value = deltaG;
+        }
 
-        objective_value = Q + deltaG;
         log.push_back(objective_value);
 
         // update distribution
@@ -342,7 +353,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         gettimeofday(&parse_endtime, NULL);
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
         
-        if (i % 20 == 0)
+        // if (i % 20 == 0)
             fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
         
         if (i > 0 && abs(log[i] - log[i-1]) < 1e-8) break;
@@ -416,6 +427,8 @@ int main(int argc, char** argv){
     double learning_rate = 0.01;
     int num_steps = 1;
     bool seq_eval = false;
+    int obj = 0;
+    int penalty = 1000;
 
     // SHAPE
     string shape_file_path = "";
@@ -425,6 +438,8 @@ int main(int argc, char** argv){
         learning_rate = atof(argv[2]);
         num_steps = atoi(argv[3]);
         seq_eval = atoi(argv[4]);
+        obj = atoi(argv[5]); // 0: - log p(y|x), 1: Delta_G (x, y)
+        penalty = atoi(argv[6]);
     }
 
     // if (is_verbose) printf("beam size: %d\n", beamsize);
@@ -445,7 +460,7 @@ int main(int argc, char** argv){
             string rna_struct;
             getline(cin, rna_struct);
             printf("%s\n%s\n\n", rna_seq.c_str(), rna_struct.c_str());
-            BeamCKYParser parser(learning_rate, num_steps, beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
+            BeamCKYParser parser(learning_rate, num_steps, obj, penalty, beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
             
             bool verbose = true;
             double obj = parser.eval(rna_seq, rna_struct, verbose);
@@ -489,7 +504,7 @@ int main(int argc, char** argv){
         }
 
         // lhuang: moved inside loop, fixing an obscure but crucial bug in initialization
-        BeamCKYParser parser(learning_rate, num_steps, beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
+        BeamCKYParser parser(learning_rate, num_steps, obj, penalty, beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index, pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index, MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index, shape_file_path);
 
         parser.gradient_descent(dist, rna_struct);
     }
