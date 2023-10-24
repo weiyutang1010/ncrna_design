@@ -40,6 +40,8 @@ using namespace std;
   #define VALUE_MIN numeric_limits<double>::lowest()
 #endif
 
+// CG, GC, AU, UA, GU, UG
+vector<pair<int, int>> nucs_pairs = {{1,2}, {2,1}, {0,3}, {3,0}, {2,3}, {3,2}};
 
 // A hash function used to hash a pair of any kind 
 struct hash_pair { 
@@ -80,19 +82,6 @@ public:
     int beam;
     bool no_sharp_turn;
     bool is_verbose;
-    string bpp_file;
-    string bpp_file_index;
-    bool pf_only;
-    float bpp_cutoff;
-    string forest_file;
-    bool mea_;
-    float gamma;
-    string mea_file_index;
-    bool bpseq;
-    bool threshknot_;
-    float threshknot_threshold;
-    string threshknot_file_index;
-    bool is_fasta;
 
     // SHAPE
     bool use_shape = false;
@@ -111,24 +100,10 @@ public:
                   int penalty = 1000,
                   int beam_size=100,
                   bool nosharpturn=true,
-                  bool is_verbose=false,
-                  string bppfile="",
-                  string bppfileindex="",
-                  bool pf_only=false,
-                  float bpp_cutoff=0.0,
-		          string forestfile="",
-                  bool mea_=false,
-                  float gamma=3.0,
-                  string mea_file_index="",
-                  bool bpseq=false,
-                  bool threshknot_=false,
-                  float threshknot_threshold=0.3,
-                  string threshknot_file_index="",
-                  string shape_file_path="",
-                  bool is_fasta=false);
+                  bool is_verbose=false);
 
-    void gradient_descent(vector<array<double, 4>>& dist, string& rna_struct);
-    double eval(string& rna_seq, string& rna_struct, bool verbose);
+    void gradient_descent(vector<array<double, 4>>& dist, string& rna_struct, FILE* fp);
+    double eval(string& rna_seq, string& rna_struct, bool verbose, FILE* fp);
 
 private:
     void get_parentheses(char* result, string& seq);
@@ -173,32 +148,15 @@ private:
 
     int *nucs;
 
+    void stacking_energy();
     void prepare(unsigned len);
     void postprocess();
 
     // void cal_PairProb(State& viterbi); 
 
 
-
-    string back_trace(const int i, const int j, const vector<vector<int> >& back_pointer);
-    map<int, int> get_pairs(string & structure);
-
-
     pf_type beam_prune(unordered_map<int, State>& beamstep);
-
     vector<pair<pf_type, int>> scores;
-
-    unordered_map<pair<int,int>, pf_type, hash_pair> Pij;
-
-    void output_to_file(string file_name, const char * type);
-    // void output_to_file_MEA_threshknot_bpseq(string file_name, const char * type, map<int,int> & pairs, string & seq);
-
-
-
-    // SHAPE
-    std::vector<double> SHAPE_data;
-
-    std::vector<int> pseudo_energy_stack;
 
 };
 
