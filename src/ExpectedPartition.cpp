@@ -260,7 +260,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
 
         gettimeofday(&parse_endtime, NULL);
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-        if (i % 25 == 0)
+        if (i % 10 == 0)
             fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
     }
 

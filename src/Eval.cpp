@@ -54,11 +54,8 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                                      dist[j-1][nucj_1];
 
                                 double newscore;
-                                if (j - i - 1 > 3)
-                                    newscore = (v_score_hairpin(i, j, -1) +
-                                                v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj)) / kT;
-                                else
-                                    newscore = v_score_hairpin(i, j, -1) / kT;
+                                newscore = (v_score_hairpin(i, j, -1) +
+                                                v_score_hairpin_mismatch(i, j, nuci, nuci1, nucj_1, nucj)) / kT;
 
                                 hairpin_score += probability * newscore;
 

@@ -19,7 +19,7 @@ expectedpartition: src/ExpectedPartition.cpp $(DEPS)
 test0:
 	cat data/eterna/short_eterna.txt | ./expectedpartition --init 2 --obj 0 --test --verbose
 
-test0:
+test1:
 	cat data/eterna/short_eterna.txt | ./expectedpartition --init 2 --obj 1 --test --verbose
 
 clean:
