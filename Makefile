@@ -16,8 +16,11 @@ expectedpartition: src/ExpectedPartition.cpp $(DEPS)
 		mkdir -p bin
 		$(CC) src/ExpectedPartition.cpp $(CFLAGS) -Dlpv -o bin/expectedpartition
 
-test:
-	cat data/eterna/short_eterna.txt | ./expectedpartition --init 2 --test --verbose
+test0:
+	cat data/eterna/short_eterna.txt | ./expectedpartition --init 2 --obj 0 --test --verbose
+
+test0:
+	cat data/eterna/short_eterna.txt | ./expectedpartition --init 2 --obj 1 --test --verbose
 
 clean:
 	-rm $(objects)
