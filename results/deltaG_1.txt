@@ -21,7 +21,7 @@ Final Sequence
 (((((......)))))
 GGGCCGAAAAAGGCCC
 
-free energy of ensemble: -10.20325 kcal/mol, free energy: -10.20000 kcal/mol
+free energy of ensemble: -10.20326 kcal/mol, free energy: -10.20000 kcal/mol
 log Q(x): 16.5551, deltaG / kT: -16.5498, -log p(y|x):   0.0053
 p(y|x) =   0.9947
 
@@ -44,9 +44,11 @@ Final Distribution
 16: 0.00, 1.00, 0.00, 0.00
 
 
+Total Time: 0.51 seconds.
+Average Time: 0.0005 seconds.
 Step, Sequence, -log p(y|x), p(y|x)
-    1, GGGCCAAAAAAGGCCC,     0.0066,     0.9935
-  781, GGGCCGAAAAAGGCCC,     0.0053,     0.9947
+    1, GGGCCAAAAAAGGCCC,     0.0066,     0.9934
+  801, GGGCCGAAAAAGGCCC,     0.0053,     0.9947
 
 start
 3997.8829

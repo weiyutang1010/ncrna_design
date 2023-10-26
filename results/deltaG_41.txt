@@ -82,9 +82,10 @@ Final Distribution
 35: 0.00, 1.00, 0.00, 0.00
 
 
+Total Time: 43.20 seconds.
+Average Time: 0.0432 seconds.
 Step, Sequence, -log p(y|x), p(y|x)
     1, CCAAAAGGAGCAAAAGCAGCAAAAGCAGCAAAAGC,     9.7157,     0.0001
-  781, CCAAAAGGAGCGAAAGCAGCGAAAGCAGCGAAAGC,    10.1676,     0.0000
   801, CCGAAAGGAGCGAAAGCAGCGAAAGCAGCGAAAGC,     9.3239,     0.0001
 
 start

@@ -50,7 +50,7 @@ Final Sequence
 .......(.(.(.(.(.((.((.(....).)).)).).).).).)
 AAAAAAAGGCGCACACGCCGGCGCGAAAGGGCGGGGGAGAGGGGC
 
-free energy of ensemble: -12.26961 kcal/mol, free energy: -6.40000 kcal/mol
+free energy of ensemble: -12.26962 kcal/mol, free energy: -6.40000 kcal/mol
 log Q(x): 19.9078, deltaG / kT: -10.3842, -log p(y|x):   9.5236
 p(y|x) =   0.0001
 
@@ -102,11 +102,13 @@ Final Distribution
 45: 0.00, 1.00, 0.00, 0.00
 
 
+Total Time: 222.82 seconds.
+Average Time: 0.2228 seconds.
 Step, Sequence, -log p(y|x), p(y|x)
     1, AAAAAAAGACACACACACCAGCACAAAAGAGCAGGAGAGAGAGAC,    10.5081,     0.0000
-  461, AAAAAAAGGCACACACACCGGCGCAAAAGGGCGGGAGAGAGAGGC,     8.2293,     0.0003
+  476, AAAAAAAGGCACACACACCGGCGCAAAAGGGCGGGAGAGAGAGGC,     8.2293,     0.0003
   801, AAAAAAAGGCACACACACCGGCGCGAAAGGGCGGGAGAGAGAGGC,     7.7929,     0.0004
-  921, AAAAAAAGGCGCACACGCCGGCGCGAAAGGGCGGGGGAGAGGGGC,     9.5236,     0.0001
+  926, AAAAAAAGGCGCACACGCCGGCGCGAAAGGGCGGGGGAGAGGGGC,     9.5236,     0.0001
 
 start
 7754.2107

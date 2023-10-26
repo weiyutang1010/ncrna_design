@@ -92,9 +92,10 @@ Final Distribution
 40: 1.00, 0.00, 0.00, 0.00
 
 
+Total Time: 78.70 seconds.
+Average Time: 0.0787 seconds.
 Step, Sequence, -log p(y|x), p(y|x)
     1, AGGGCCAAAAAAAAGGGCCAAAAGGCCAAGCCCAAAAAAA,     9.2649,     0.0001
-  781, AGGGCCAAAAAAAAGGGCCGAAAGGCCAAGCCCAAAAAAA,     9.2623,     0.0001
   801, AGGGCCGAAAAAAAGGGCCGAAAGGCCAAGCCCAAAAAAA,     7.9756,     0.0003
 
 start

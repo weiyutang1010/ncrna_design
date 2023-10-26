@@ -279,10 +279,11 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
     gettimeofday(&total_endtime, NULL);
     double total_elapsed_time = total_endtime.tv_sec - total_starttime.tv_sec + (total_endtime.tv_usec-total_starttime.tv_usec)/1000000.0;
 
-    fprintf(fp, "Total Time: %.2f seconds.\n", total_elapsed_time);
-    fprintf(fp, "Average Time: %.4f seconds.\n", total_elapsed_time / num_steps);
 
     if (is_verbose) {
+        fprintf(fp, "Total Time: %.2f seconds.\n", total_elapsed_time);
+        fprintf(fp, "Average Time: %.4f seconds.\n", total_elapsed_time / num_steps);
+
         fprintf(fp, "Step, Sequence, -log p(y|x), p(y|x)\n");
         for (int i = 0; i < log_string.size(); i++) {
             fprintf(fp, "%5d, %s, %10.4f, %10.4f\n", get<0>(log_string[i]) + 1, get<1>(log_string[i]).c_str(), get<2>(log_string[i]), exp(-get<2>(log_string[i])));
@@ -384,6 +385,7 @@ int main(int argc, char** argv){
                 output_file_name = "results/result_" + puzzle_id + ".txt";
             else
                 output_file_name = "results/deltaG_" + puzzle_id + ".txt";
+            
             FILE* fp = fopen(output_file_name.c_str(), "w");
 
             vector<array<double, 4>> dist = initialize_dist(length, init_mode, rna_struct); // initial distribution

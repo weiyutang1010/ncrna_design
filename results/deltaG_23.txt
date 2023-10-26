@@ -46,10 +46,12 @@ Final Distribution
 17: 0.00, 1.00, 0.00, 0.00
 
 
+Total Time: 1.00 seconds.
+Average Time: 0.0010 seconds.
 Step, Sequence, -log p(y|x), p(y|x)
     1, GCAAAAGCAGGAAAACC,     3.5063,     0.0300
-  481, GCAAAAGCAGGGAAACC,     1.9817,     0.1378
-  781, GCGAAAGCAGGGAAACC,     1.1853,     0.3057
+  476, GCAAAAGCAGGGAAACC,     1.9817,     0.1378
+  801, GCGAAAGCAGGGAAACC,     1.1853,     0.3057
 
 start
 3503.8596

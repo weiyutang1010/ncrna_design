@@ -64,10 +64,12 @@ Final Distribution
 26: 1.00, 0.00, 0.00, 0.00
 
 
+Total Time: 12.23 seconds.
+Average Time: 0.0122 seconds.
 Step, Sequence, -log p(y|x), p(y|x)
     1, AACGGGGCCCAAAAAGGAGCCCCGAA,     0.0274,     0.9730
-   21, AACCGGGCCCAAAAAGGAGCCCGGAA,     0.0120,     0.9881
-  781, AACCGGGCCCGAAAAGGAGCCCGGAA,     0.0111,     0.9889
+   26, AACCGGGCCCAAAAAGGAGCCCGGAA,     0.0120,     0.9881
+  801, AACCGGGCCCGAAAAGGAGCCCGGAA,     0.0111,     0.9889
 
 start
 6245.3018
