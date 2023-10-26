@@ -13,70 +13,6 @@
 
 using namespace std;
 
-void BeamCKYParser::output_to_file(string file_name, const char * type) {
-    if(!file_name.empty()) {
-        printf("Outputing base pairing probability matrix to %s...\n", file_name.c_str()); 
-        FILE *fptr = fopen(file_name.c_str(), type); 
-        if (fptr == NULL) { 
-            printf("Could not open file!\n"); 
-            return; 
-        }
-
-        int turn = no_sharp_turn?3:0;
-        for (int i = 1; i <= seq_length; i++) {
-            for (int j = i + turn + 1; j <= seq_length; j++) {
-                pair<int, int> key = make_pair(i,j);
-                auto got = Pij.find(key);
-                if (got != Pij.end()){
-                    fprintf(fptr, "%d %d %.4e\n", i, j, got->second);
-                }
-            }
-        }
-        fprintf(fptr, "\n");
-        fclose(fptr); 
-        printf("Done!\n"); 
-    }
-
-    return;
-}
-
-
-string BeamCKYParser::back_trace(const int i, const int j, const vector<vector<int> >& back_pointer){
-
-    if (i>j) return "";
-    if (back_pointer[i][j] == -1){
-        if (i == j) return ".";
-        else return "." + back_trace(i+1,j, back_pointer);
-    }else if (back_pointer[i][j] != 0){
-        int k = back_pointer[i][j];
-        assert(k + 1 > 0 && k + 1 <= seq_length);
-        string temp;
-        if (k == j) temp = "";
-        else temp = back_trace(k+1,j, back_pointer);
-        return "(" + back_trace(i+1,k-1, back_pointer) + ")" + temp;
-    }
-    assert(false);
-    return "";
-}
-
-map<int, int> BeamCKYParser::get_pairs(string & structure){
-    map<int, int> pairs;
-    stack<int> s;
-    int index = 1;
-    int pre_index = 0;
-    for (auto & elem : structure){
-        if (elem == '(') s.push(index);
-        else if(elem == ')'){
-            pre_index = s.top();
-            pairs[pre_index] = index;
-            pairs[index] = pre_index;
-            s.pop();
-        }
-        index++;
-    }
-    return pairs;
-}
-
 void BeamCKYParser::hairpin_outside(int j, vector<array<double, 4>>& dist) {
     value_type newscore;
     unordered_map<int, State>& beamstepH = bestH[j];
@@ -90,39 +26,31 @@ void BeamCKYParser::hairpin_outside(int j, vector<array<double, 4>>& dist) {
         State state = item.second;
 
         // 1. generate p(i, j)
-        for (int nuci = 0; nuci < 4; ++nuci) {
+        for (auto& [nuci, nucj]: nucs_pairs) {
+            pf_type score = NEG_INF;
             double prob_nuci = dist[i][nuci];
+            double prob_nucj = dist[j][nucj];
 
-            for (int nucj = 0; nucj < 4; ++nucj) {
-                pf_type score = NEG_INF;
-                double prob_nucj = dist[j][nucj];
+            for (int nuci1 = 0; nuci1 < 4; ++nuci1) {
+                double prob_nuci1 = dist[i+1][nuci1];
 
-                if (!_allowed_pairs[nuci][nucj]) continue;
+                for (int nucj_1 = 0; nucj_1 < 4; ++nucj_1) {
+                    double prob_nucj_1 = dist[j-1][nucj_1];
+                    double log_probability = log(prob_nuci + SMALL_NUM) +
+                                            log(prob_nuci1 + SMALL_NUM) +
+                                            log(prob_nucj_1 + SMALL_NUM) +
+                                            log(prob_nucj + SMALL_NUM);
 
-                for (int nuci1 = 0; nuci1 < 4; ++nuci1) {
-                    double prob_nuci1 = dist[i+1][nuci1];
+                    newscore = - v_score_hairpin_mismatch(i, j, nuci, nuci1, nucj_1, nucj);
 
-                    for (int nucj_1 = 0; nucj_1 < 4; ++nucj_1) {
-                        double prob_nucj_1 = dist[j-1][nucj_1];
-                        double log_probability = log(prob_nuci + SMALL_NUM) +
-                                                 log(prob_nuci1 + SMALL_NUM) +
-                                                 log(prob_nucj_1 + SMALL_NUM) +
-                                                 log(prob_nucj + SMALL_NUM);
-
-                        if (j - i - 1 > 3)
-                            newscore = - v_score_hairpin_mismatch(nuci, nuci1, nucj_1, nucj);
-                        else
-                            newscore = 0;
-
-                        pair<int, int> index_nucpair {i, NUM_TO_PAIR(nuci, nucj)};
-                        double softmax = state.alpha + log_probability + (newscore/kT) - beamstepP[index_nucpair].alpha;
-                        
-                        Fast_LogPlusEquals(state.beta, beamstepP[index_nucpair].beta + softmax);
-                        Fast_LogPlusEquals(outside[i][nuci], beamstepP[index_nucpair].beta + softmax - log(prob_nuci + SMALL_NUM));
-                        Fast_LogPlusEquals(outside[i+1][nuci1], beamstepP[index_nucpair].beta + softmax - log(prob_nuci1 + SMALL_NUM));
-                        Fast_LogPlusEquals(outside[j-1][nucj_1], beamstepP[index_nucpair].beta + softmax - log(prob_nucj_1 + SMALL_NUM));
-                        Fast_LogPlusEquals(outside[j][nucj], beamstepP[index_nucpair].beta + softmax - log(prob_nucj + SMALL_NUM));
-                    }
+                    pair<int, int> index_nucpair {i, NUM_TO_PAIR(nuci, nucj)};
+                    double softmax = state.alpha + log_probability + (newscore/kT) - beamstepP[index_nucpair].alpha;
+                    
+                    Fast_LogPlusEquals(state.beta, beamstepP[index_nucpair].beta + softmax);
+                    Fast_LogPlusEquals(outside[i][nuci], beamstepP[index_nucpair].beta + softmax - log(prob_nuci + SMALL_NUM));
+                    Fast_LogPlusEquals(outside[i+1][nuci1], beamstepP[index_nucpair].beta + softmax - log(prob_nuci1 + SMALL_NUM));
+                    Fast_LogPlusEquals(outside[j-1][nucj_1], beamstepP[index_nucpair].beta + softmax - log(prob_nucj_1 + SMALL_NUM));
+                    Fast_LogPlusEquals(outside[j][nucj], beamstepP[index_nucpair].beta + softmax - log(prob_nucj + SMALL_NUM));
                 }
             }
         }
@@ -145,25 +73,21 @@ void BeamCKYParser::Multi_outside(int j, vector<array<double, 4>>& dist) {
         }
 
         // 2. generate P (i, j)
-        for (int nuci = 0; nuci < 4; ++nuci) {
-            for (int nucj = 0; nucj < 4; ++nucj) {
+        for (auto& [nuci, nucj]: nucs_pairs) {
+            double prob_nuci = dist[i][nuci];
+            double prob_nucj = dist[j][nucj];
 
-                if (!_allowed_pairs[nuci][nucj]) continue;
-                double prob_nuci = dist[i][nuci];
-                double prob_nucj = dist[j][nucj];
+            double log_probability = log(prob_nuci + SMALL_NUM) +
+                                        log(prob_nucj + SMALL_NUM);
 
-                double log_probability = log(prob_nuci + SMALL_NUM) +
-                                         log(prob_nucj + SMALL_NUM);
+            newscore = - v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
+            
+            pair<int, int> index_nucpair {i, NUM_TO_PAIR(nuci, nucj)};
 
-                newscore = - v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length);
-                
-                pair<int, int> index_nucpair {i, NUM_TO_PAIR(nuci, nucj)};
-
-                double softmax = state.alpha + log_probability + (newscore/kT) - beamstepP[index_nucpair].alpha;
-                Fast_LogPlusEquals(state.beta, beamstepP[index_nucpair].beta + softmax);
-                Fast_LogPlusEquals(outside[i][nuci], beamstepP[index_nucpair].beta + softmax - log(prob_nuci + SMALL_NUM));
-                Fast_LogPlusEquals(outside[j][nucj], beamstepP[index_nucpair].beta + softmax - log(prob_nucj + SMALL_NUM));
-            }
+            double softmax = state.alpha + log_probability + (newscore/kT) - beamstepP[index_nucpair].alpha;
+            Fast_LogPlusEquals(state.beta, beamstepP[index_nucpair].beta + softmax);
+            Fast_LogPlusEquals(outside[i][nuci], beamstepP[index_nucpair].beta + softmax - log(prob_nuci + SMALL_NUM));
+            Fast_LogPlusEquals(outside[j][nucj], beamstepP[index_nucpair].beta + softmax - log(prob_nucj + SMALL_NUM));
         }
     }
 }
@@ -187,76 +111,61 @@ void BeamCKYParser::P_outside(int j, vector<array<double, 4>>& dist) {
 
         if (i > 0 && j < seq_length-1) {
             // stacking
-            for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
-                for (int nucj1 = 0; nucj1 < 4; ++nucj1) {       
+            for (auto& [nuci_1, nucj1]: nucs_pairs) {
+                double prob_nuci_1 = dist[i-1][nuci_1];
+                double prob_nucj1 = dist[j+1][nucj1];
+                int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucj1);
 
-                    if (!_allowed_pairs[nuci_1][nucj1]) continue;
+                double log_probability = log(prob_nuci_1 + SMALL_NUM) +
+                                        log(prob_nucj1 + SMALL_NUM);
 
-                    double prob_nuci_1 = dist[i-1][nuci_1];
-                    double prob_nucj1 = dist[j+1][nucj1];
-                    int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucj1);
+                newscore = stacking_score[outer_pair-1][pair_nuc-1];
+                pair<int, int> index_nucpair {i-1, NUM_TO_PAIR(nuci_1, nucj1)};
 
-                    double log_probability = log(prob_nuci_1 + SMALL_NUM) +
-                                            log(prob_nucj1 + SMALL_NUM);
-
-                    newscore = stacking_score[outer_pair-1][pair_nuc-1];
-                    pair<int, int> index_nucpair {i-1, NUM_TO_PAIR(nuci_1, nucj1)};
-
-                    double softmax = log_probability + state.alpha + (newscore/kT) - bestP[j+1][index_nucpair].alpha;
-                    Fast_LogPlusEquals(state.beta, bestP[j+1][index_nucpair].beta + softmax);
-                    Fast_LogPlusEquals(outside[i-1][nuci_1], bestP[j+1][index_nucpair].beta + softmax - log(prob_nuci_1 + SMALL_NUM));
-                    Fast_LogPlusEquals(outside[j+1][nucj1], bestP[j+1][index_nucpair].beta + softmax - log(prob_nucj1 + SMALL_NUM));
-                }
+                double softmax = log_probability + state.alpha + (newscore/kT) - bestP[j+1][index_nucpair].alpha;
+                Fast_LogPlusEquals(state.beta, bestP[j+1][index_nucpair].beta + softmax);
+                Fast_LogPlusEquals(outside[i-1][nuci_1], bestP[j+1][index_nucpair].beta + softmax - log(prob_nuci_1 + SMALL_NUM));
+                Fast_LogPlusEquals(outside[j+1][nucj1], bestP[j+1][index_nucpair].beta + softmax - log(prob_nucj1 + SMALL_NUM));
             }
 
             // right bulge: ((...)..) 
-            for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
-                for (int q = j+2; q < std::min((int)seq_length, j + SINGLE_MAX_LEN); ++q) {
-                    for (int nucq = 0; nucq < 4; ++nucq) {
+            for (int q = j+2; q < std::min((int)seq_length, j + SINGLE_MAX_LEN); ++q) {
+                for (auto& [nuci_1, nucq]: nucs_pairs) {
+                    double prob_nuci_1 = dist[i-1][nuci_1];
+                    double prob_nucq = dist[q][nucq];
+                    int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucq);
 
-                        if (!_allowed_pairs[nuci_1][nucq]) continue;
+                    double log_probability = log(prob_nuci_1 + SMALL_NUM) +
+                                            log(prob_nucq + SMALL_NUM);
 
-                        double prob_nuci_1 = dist[i-1][nuci_1];
-                        double prob_nucq = dist[q][nucq];
-                        int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucq);
+                    newscore = bulge_score[outer_pair-1][pair_nuc-1][q-j-2];
+                    pair<int, int> index_nucpair {i-1, NUM_TO_PAIR(nuci_1, nucq)};
 
-                        double log_probability = log(prob_nuci_1 + SMALL_NUM) +
-                                                log(prob_nucq + SMALL_NUM);
-
-                        newscore = bulge_score[outer_pair-1][pair_nuc-1][q-j-2];
-                        pair<int, int> index_nucpair {i-1, NUM_TO_PAIR(nuci_1, nucq)};
-
-                        double softmax = log_probability + state.alpha + (newscore/kT) - bestP[q][index_nucpair].alpha;
-                        Fast_LogPlusEquals(state.beta, bestP[q][index_nucpair].beta + softmax);
-                        Fast_LogPlusEquals(outside[i-1][nuci_1], bestP[q][index_nucpair].beta + softmax - log(prob_nuci_1 + SMALL_NUM));
-                        Fast_LogPlusEquals(outside[q][nucq], bestP[q][index_nucpair].beta + softmax - log(prob_nucq + SMALL_NUM));
-                    }
+                    double softmax = log_probability + state.alpha + (newscore/kT) - bestP[q][index_nucpair].alpha;
+                    Fast_LogPlusEquals(state.beta, bestP[q][index_nucpair].beta + softmax);
+                    Fast_LogPlusEquals(outside[i-1][nuci_1], bestP[q][index_nucpair].beta + softmax - log(prob_nuci_1 + SMALL_NUM));
+                    Fast_LogPlusEquals(outside[q][nucq], bestP[q][index_nucpair].beta + softmax - log(prob_nucq + SMALL_NUM));
                 }
             }
 
             // left bulge: (..(...)) 
-            for (int nucj1 = 0; nucj1 < 4; ++nucj1) {
-                for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
-                    for (int nucp = 0; nucp < 4; ++nucp) {
+            for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
+                for (auto& [nucj1, nucp]: nucs_pairs) {
+                    double prob_nucp = dist[p][nucp];
+                    double prob_nucj1 = dist[j+1][nucj1];
+                    int8_t outer_pair = NUM_TO_PAIR(nucp, nucj1);
 
-                        if (!_allowed_pairs[nucp][nucj1]) continue;
+                    double log_probability = log(prob_nucp + SMALL_NUM) +
+                                            log(prob_nucj1 + SMALL_NUM);
 
-                        double prob_nucp = dist[p][nucp];
-                        double prob_nucj1 = dist[j+1][nucj1];
-                        int8_t outer_pair = NUM_TO_PAIR(nucp, nucj1);
+                    newscore = bulge_score[outer_pair-1][pair_nuc-1][i-p-2];
 
-                        double log_probability = log(prob_nucp + SMALL_NUM) +
-                                                log(prob_nucj1 + SMALL_NUM);
+                    pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucj1)};
 
-                        newscore = bulge_score[outer_pair-1][pair_nuc-1][i-p-2];
-
-                        pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucj1)};
-
-                        double softmax = log_probability + state.alpha + (newscore/kT) - bestP[j+1][index_nucpair].alpha;
-                        Fast_LogPlusEquals(state.beta, bestP[j+1][index_nucpair].beta + softmax);
-                        Fast_LogPlusEquals(outside[p][nucp], bestP[j+1][index_nucpair].beta + softmax - log(prob_nucp + SMALL_NUM));
-                        Fast_LogPlusEquals(outside[j+1][nucj1], bestP[j+1][index_nucpair].beta + softmax - log(prob_nucj1 + SMALL_NUM));
-                    }
+                    double softmax = log_probability + state.alpha + (newscore/kT) - bestP[j+1][index_nucpair].alpha;
+                    Fast_LogPlusEquals(state.beta, bestP[j+1][index_nucpair].beta + softmax);
+                    Fast_LogPlusEquals(outside[p][nucp], bestP[j+1][index_nucpair].beta + softmax - log(prob_nucp + SMALL_NUM));
+                    Fast_LogPlusEquals(outside[j+1][nucj1], bestP[j+1][index_nucpair].beta + softmax - log(prob_nucj1 + SMALL_NUM));
                 }
             }
 
@@ -265,42 +174,38 @@ void BeamCKYParser::P_outside(int j, vector<array<double, 4>>& dist) {
             for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
                 for (int q = j+2; (i - p) + (q - j) - 2 <= SINGLE_MAX_LEN && q < seq_length; ++q) {
                     
-                    for (int nucp = 0; nucp < 4; ++nucp) {
-                        for (int nucq = 0; nucq < 4; ++nucq) {
+                    for (auto& [nucp, nucq]: nucs_pairs) {
+                        double prob_nucp = dist[p][nucp];
+                        double prob_nucq = dist[q][nucq];
 
-                            if (!_allowed_pairs[nucp][nucq]) continue;
-                            double prob_nucp = dist[p][nucp];
-                            double prob_nucq = dist[q][nucq];
+                        for (int nucp1 = 0; nucp1 < 4; ++nucp1) {
+                            double prob_nucp1 = dist[p+1][nucp1];
+                            for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
+                                double prob_nuci_1 = dist[i-1][nuci_1];
+                                for (int nucj1 = 0; nucj1 < 4; ++nucj1) {
+                                    double prob_nucj1 = dist[j+1][nucj1];
+                                    for (int nucq_1 = 0; nucq_1 < 4; ++nucq_1) {
+                                        double prob_nucq_1 = dist[q-1][nucq_1];
 
-                            for (int nucp1 = 0; nucp1 < 4; ++nucp1) {
-                                double prob_nucp1 = dist[p+1][nucp1];
-                                for (int nuci_1 = 0; nuci_1 < 4; ++nuci_1) {
-                                    double prob_nuci_1 = dist[i-1][nuci_1];
-                                    for (int nucj1 = 0; nucj1 < 4; ++nucj1) {
-                                        double prob_nucj1 = dist[j+1][nucj1];
-                                        for (int nucq_1 = 0; nucq_1 < 4; ++nucq_1) {
-                                            double prob_nucq_1 = dist[q-1][nucq_1];
+                                        double log_probability = log(prob_nucp + SMALL_NUM) +
+                                                                log(prob_nucp1 + SMALL_NUM) +
+                                                                log(prob_nuci_1 + SMALL_NUM) +
+                                                                log(prob_nucj1 + SMALL_NUM) +
+                                                                log(prob_nucq_1 + SMALL_NUM) +
+                                                                log(prob_nucq + SMALL_NUM);
+                                        
+                                        newscore = - v_score_single(p,q,i,j, nucp, nucp1, nucq_1, nucq,
+                                                        nuci_1, nuci, nucj, nucj1);
+                                        pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucq)};
 
-                                            double log_probability = log(prob_nucp + SMALL_NUM) +
-                                                                    log(prob_nucp1 + SMALL_NUM) +
-                                                                    log(prob_nuci_1 + SMALL_NUM) +
-                                                                    log(prob_nucj1 + SMALL_NUM) +
-                                                                    log(prob_nucq_1 + SMALL_NUM) +
-                                                                    log(prob_nucq + SMALL_NUM);
-                                            
-                                            newscore = - v_score_single(p,q,i,j, nucp, nucp1, nucq_1, nucq,
-                                                            nuci_1, nuci, nucj, nucj1);
-                                            pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucq)};
-
-                                            double softmax = log_probability + state.alpha + (newscore/kT) - bestP[q][index_nucpair].alpha;
-                                            Fast_LogPlusEquals(state.beta, bestP[q][index_nucpair].beta + softmax);
-                                            Fast_LogPlusEquals(outside[p][nucp], bestP[q][index_nucpair].beta + softmax - log(prob_nucp + SMALL_NUM));
-                                            Fast_LogPlusEquals(outside[p+1][nucp1], bestP[q][index_nucpair].beta + softmax - log(prob_nucp1 + SMALL_NUM));
-                                            Fast_LogPlusEquals(outside[i-1][nuci_1], bestP[q][index_nucpair].beta + softmax - log(prob_nuci_1 + SMALL_NUM));
-                                            Fast_LogPlusEquals(outside[j+1][nucj1], bestP[q][index_nucpair].beta + softmax - log(prob_nucj1 + SMALL_NUM));
-                                            Fast_LogPlusEquals(outside[q-1][nucq_1], bestP[q][index_nucpair].beta + softmax - log(prob_nucq_1 + SMALL_NUM));
-                                            Fast_LogPlusEquals(outside[q][nucq], bestP[q][index_nucpair].beta + softmax - log(prob_nucq + SMALL_NUM));
-                                        }
+                                        double softmax = log_probability + state.alpha + (newscore/kT) - bestP[q][index_nucpair].alpha;
+                                        Fast_LogPlusEquals(state.beta, bestP[q][index_nucpair].beta + softmax);
+                                        Fast_LogPlusEquals(outside[p][nucp], bestP[q][index_nucpair].beta + softmax - log(prob_nucp + SMALL_NUM));
+                                        Fast_LogPlusEquals(outside[p+1][nucp1], bestP[q][index_nucpair].beta + softmax - log(prob_nucp1 + SMALL_NUM));
+                                        Fast_LogPlusEquals(outside[i-1][nuci_1], bestP[q][index_nucpair].beta + softmax - log(prob_nuci_1 + SMALL_NUM));
+                                        Fast_LogPlusEquals(outside[j+1][nucj1], bestP[q][index_nucpair].beta + softmax - log(prob_nucj1 + SMALL_NUM));
+                                        Fast_LogPlusEquals(outside[q-1][nucq_1], bestP[q][index_nucpair].beta + softmax - log(prob_nucq_1 + SMALL_NUM));
+                                        Fast_LogPlusEquals(outside[q][nucq], bestP[q][index_nucpair].beta + softmax - log(prob_nucq + SMALL_NUM));
                                     }
                                 }
                             }
@@ -360,20 +265,17 @@ void BeamCKYParser::M2_outside(int j, vector<array<double, 4>>& dist) {
         // 1. multi-loop
         for (int p = i-1; p >= std::max(i - SINGLE_MAX_LEN, 0); --p) {
             for (int q = j+1; q < seq_length; ++q) {
-                for (int nucp = 0; nucp < 4; ++nucp) {
-                    for (int nucq = 0; nucq < 4; ++nucq) {
-                        if (!_allowed_pairs[nucp][nucq]) continue;
-                        double prob_nucp = dist[p][nucp];
-                        double prob_nucq = dist[q][nucq];
+                for (auto& [nucp, nucq]: nucs_pairs) {
+                    double prob_nucp = dist[p][nucp];
+                    double prob_nucq = dist[q][nucq];
 
-                        double log_probability = log(prob_nucp + SMALL_NUM) +
-                                                 log(prob_nucq + SMALL_NUM);
+                    double log_probability = log(prob_nucp + SMALL_NUM) +
+                                                log(prob_nucq + SMALL_NUM);
 
-                        double softmax = log_probability + state.alpha - bestMulti[q][p].alpha;
-                        Fast_LogPlusEquals(state.beta, bestMulti[q][p].beta + softmax);
-                        Fast_LogPlusEquals(outside[p][nucp], bestMulti[q][p].beta + softmax - log(prob_nucp + SMALL_NUM));
-                        Fast_LogPlusEquals(outside[q][nucq], bestMulti[q][p].beta + softmax - log(prob_nucq + SMALL_NUM));
-                    }
+                    double softmax = log_probability + state.alpha - bestMulti[q][p].alpha;
+                    Fast_LogPlusEquals(state.beta, bestMulti[q][p].beta + softmax);
+                    Fast_LogPlusEquals(outside[p][nucp], bestMulti[q][p].beta + softmax - log(prob_nucp + SMALL_NUM));
+                    Fast_LogPlusEquals(outside[q][nucq], bestMulti[q][p].beta + softmax - log(prob_nucq + SMALL_NUM));
                 }
             }
         }

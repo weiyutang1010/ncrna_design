@@ -77,11 +77,15 @@ inline void v_init_tetra_hex_tri(std::string& seq, int seq_length, std::vector<i
     return;
 }
 
-inline int v_score_hairpin_mismatch(int nuci, int nuci1, int nucj_1, int nucj) {
+inline int v_score_hairpin_mismatch(int i, int j, int nuci, int nuci1, int nucj_1, int nucj) {
     int type = NUM_TO_PAIR(nuci, nucj);
     int si1 = NUM_TO_NUC(nuci1);
     int sj1 = NUM_TO_NUC(nucj_1);
 
+    int size = j-i-1;
+
+    if (size == 3)
+        return type>2 ? TerminalAU37 : 0;
     return mismatchH37[type][si1][sj1];
 }
 
