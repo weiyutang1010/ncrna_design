@@ -228,6 +228,9 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
     vector<double> log;
     vector<tuple<int, string, double>> log_string;
 
+    string rna_seq = best_rna_seq(dist, rna_struct);
+    log_string.push_back({0, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+
     for (int i = 0; i < num_steps; i++) {
         gettimeofday(&parse_starttime, NULL);
         prepare(static_cast<unsigned>(n));
@@ -252,10 +255,10 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
 
 
         if (is_verbose && i % 25 == 0) {
-            string rna_seq = best_rna_seq(dist, rna_struct);
+            rna_seq = best_rna_seq(dist, rna_struct);
             int k = log_string.size();
             if (k == 0 || get<1>(log_string[k-1]) != rna_seq)
-                log_string.push_back({i, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+                log_string.push_back({i + 1, rna_seq, eval(rna_seq, rna_struct, false, fp)});
         }
 
         gettimeofday(&parse_endtime, NULL);
@@ -264,7 +267,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
             fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
     }
 
-    string rna_seq = best_rna_seq(dist, rna_struct);
+    rna_seq = best_rna_seq(dist, rna_struct);
     fprintf(fp, "Final Sequence\n");
     fprintf(fp, "%s\n", rna_struct.c_str());
     fprintf(fp, "%s\n\n", rna_seq.c_str());
@@ -286,7 +289,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
 
         fprintf(fp, "Step, Sequence, -log p(y|x), p(y|x)\n");
         for (int i = 0; i < log_string.size(); i++) {
-            fprintf(fp, "%5d, %s, %10.4f, %10.4f\n", get<0>(log_string[i]) + 1, get<1>(log_string[i]).c_str(), get<2>(log_string[i]), exp(-get<2>(log_string[i])));
+            fprintf(fp, "%5d, %s, %10.4f, %10.4f\n", get<0>(log_string[i]), get<1>(log_string[i]).c_str(), get<2>(log_string[i]), exp(-get<2>(log_string[i])));
         }
         fprintf(fp, "\n");
 
@@ -302,16 +305,11 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
 vector<array<double, 4>> initialize_dist(int length, int init_mode, string rna_struct) {
     vector<array<double, 4>> dist (length); // initial distribution
 
-    if (init_mode == 0) {
-        for (int i = 0; i < length; i++) {
-            cin >> dist[i][0] >> dist[i][1] >> dist[i][2] >> dist[i][3];
-        }
-        cin.ignore();
-    } else if (init_mode == 1) { // uniform initialization
+    if (init_mode == 0) { // uniform initialization
         for (int i = 0; i < length; i++) {
             dist[i] = {.25, .25, .25, .25};
         }
-    } else { // target initialization
+    } else if (init_mode == 1) { // targeted initialization
         for (int i = 0; i < length; i++) {
             if (rna_struct[i] == '(' or rna_struct[i] == ')') {
                 if (rand() % 2) dist[i] = {.0, .49, .51, .0}; 
@@ -320,6 +318,20 @@ vector<array<double, 4>> initialize_dist(int length, int init_mode, string rna_s
                 dist[i] = {1., .0, .0, .0};
             }
         }
+    } else if (init_mode == 2) { // special targeted initialization
+        for (int i = 0; i < length; i++) {
+            if (rna_struct[i] == '(' or rna_struct[i] == ')') {
+                if (rand() % 2) dist[i] = {.0, .49, .51, .0}; 
+                else dist[i] = {.0, .51, .49, .0}; 
+            } else {
+                dist[i] = {.25, .25, .25, .25};
+            }
+        }
+    } else {
+        for (int i = 0; i < length; i++) {
+            cin >> dist[i][0] >> dist[i][1] >> dist[i][2] >> dist[i][3];
+        }
+        cin.ignore();
     }
 
     return dist;
@@ -342,11 +354,11 @@ int main(int argc, char** argv){
     string shape_file_path = "";
 
     if (argc > 1) {
-        init_mode = atoi(argv[1]);
+        init_mode = atoi(argv[1]); // 0: uniform, 1: targeted, 2: special targeted
         learning_rate = atof(argv[2]);
         num_steps = atoi(argv[3]);
         seq_eval = atoi(argv[4]);
-        obj = atoi(argv[5]); // 0: - log p(y|x), 1: Delta_G (x, y)
+        obj = atoi(argv[5]); // 0: -log p(y|x), 1: Delta_G (x, y)
         penalty = atoi(argv[6]);
         is_verbose = atoi(argv[7]);
         test = atoi(argv[8]);
@@ -380,11 +392,15 @@ int main(int argc, char** argv){
         while (cin >> puzzle_id >> rna_struct >> sample_sol_1 >> sample_sol_2) {
             fprintf(stderr, "Puzzle: %s\n", puzzle_id.c_str());
             int length = rna_struct.size();
-            string output_file_name;
+
+            string output_file_name = "results/";
             if (obj == 0)
-                output_file_name = "results/result_" + puzzle_id + ".txt";
+                output_file_name += "pyx_";
             else
-                output_file_name = "results/deltaG_" + puzzle_id + ".txt";
+                output_file_name += "deltaG_";
+
+            output_file_name += "init" + to_string(init_mode) + "_";
+            output_file_name += puzzle_id + ".txt";
             
             FILE* fp = fopen(output_file_name.c_str(), "w");
 
