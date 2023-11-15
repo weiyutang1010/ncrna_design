@@ -281,8 +281,9 @@ double BeamCKYParser::eval(string& rna_seq, string& rna_struct, bool verbose, FI
     objective_value = Q + deltaG;
 
     if (verbose) {
-        fprintf(fp, "free energy of ensemble: %6.5f kcal/mol, free energy: %8.5f kcal/mol\n", Q * -kT / 100.0, deltaG * kT / 100.0);
-        fprintf(fp, "log Q(x): %6.4f, deltaG / kT: %8.4f, -log p(y|x): %8.4f\n", Q, deltaG, objective_value);
+        fprintf(fp, "free energy: %8.5f kcal/mol\n", deltaG * kT / 100.0);
+        fprintf(fp, "free energy of ensemble: %6.5f kcal/mol\n", Q * -kT / 100.0);
+        // fprintf(fp, "log Q(x): %6.4f, deltaG / kT: %8.4f, -log p(y|x): %8.4f\n", Q, deltaG, objective_value);
         fprintf(fp, "p(y|x) = %8.4f\n\n", exp(-1. * objective_value));
     }
 

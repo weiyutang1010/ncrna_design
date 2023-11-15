@@ -8,7 +8,7 @@ import os
 FLAGS = flags.FLAGS
 
 def setgflags():
-    flags.DEFINE_integer('initialization', 2, "initialization: 0 - stdin, 1 - uniform, 2 - target", short_name='init')
+    flags.DEFINE_integer('initialization', 2, "initialization: 0 - uniform, 1 - target, 2 - special target", short_name='init')
     flags.DEFINE_float('learning_rate', 0.001, "set learning rate", short_name='lr')
     flags.DEFINE_integer('num_steps', 1000, "set number of iterations", short_name='step')
     flags.DEFINE_boolean('eval', False, "evaluate -log p(y|x) given the seq and struct", short_name='eval')

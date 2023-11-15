@@ -240,7 +240,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
             outside_partition(dist);
             deltaG = free_energy(dist, rna_struct, false);
             objective_value = Q + deltaG;
-        } else {
+        } else if (objective == 1) {
             deltaG = free_energy(dist, rna_struct, false);
             objective_value = deltaG;
         }
@@ -253,18 +253,19 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         
         if (i > 0 && abs(log[i] - log[i-1]) < 1e-8) break;
 
-
         if (is_verbose && i % 25 == 0) {
             rna_seq = best_rna_seq(dist, rna_struct);
             int k = log_string.size();
             if (k == 0 || get<1>(log_string[k-1]) != rna_seq)
-                log_string.push_back({i + 1, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+                log_string.push_back({i + 1, rna_seq, 0.0});
+                // log_string.push_back({i + 1, rna_seq, eval(rna_seq, rna_struct, false, fp)});
         }
 
-        gettimeofday(&parse_endtime, NULL);
-        double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-        if (i % 10 == 0)
+        if (i % 10 == 0) {
+            gettimeofday(&parse_endtime, NULL);
+            double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
             fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
+        }
     }
 
     rna_seq = best_rna_seq(dist, rna_struct);
@@ -437,6 +438,7 @@ int main(int argc, char** argv){
             }
             fprintf(fp, "\n");
         }
+        fflush(fp);
 
         // lhuang: moved inside loop, fixing an obscure but crucial bug in initialization
         BeamCKYParser parser(learning_rate, num_steps, obj, penalty, beamsize, !sharpturn, is_verbose);
