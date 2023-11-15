@@ -1,6 +1,6 @@
 #include "ExpectedPartition.h"
 
-double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose) {
+double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose) {
     int seq_length = rna_struct.length();
 
     double total_energy = 0;
@@ -109,7 +109,7 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                 if (p == i+1 || q == j-1) {
                                     double probability = prob_ij * prob_pq;
 
-                                    double newscore = v_score_single_without_special_internal(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / kT;
+                                    double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / kT;
                                     single_score += probability * newscore;
 
                                     outside[i][nuci] += prob_pq * dist[j][nucj] * newscore;
@@ -128,7 +128,7 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                                                          dist[q+1][nucq1] *
                                                                          dist[j-1][nucj_1];
 
-                                                    double newscore = v_score_single_without_special_internal(i,j,p,q, nuci, nuci1, nucj_1, nucj,
+                                                    double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
                                                                                         nucp_1, nucp, nucq, nucq1) / kT;
                                                     single_score += probability * newscore;
 
@@ -165,21 +165,42 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
 
                     for (int nucp = 0; nucp < 4; nucp++) {
                         for (int nucq = 0; nucq < 4; nucq++) {
-                            double probability = dist[p][nucp] * dist[q][nucq];
+                            double prob_pq = dist[p][nucp] * dist[q][nucq];
 
                             if (!_allowed_pairs[nucp][nucq]) {
-                                multi_score += probability * penalty;
+                                multi_score += prob_pq * penalty;
 
                                 outside[p][nucp] += dist[q][nucq] * penalty;
                                 outside[q][nucq] += dist[p][nucp] * penalty;
                                 continue;
                             }
                             
-                            long double newscore = v_score_M1_without_dangle(p, q, -1, -1, nucp, nucq, -1, seq_length) / kT;
-                            multi_score += probability * newscore;
+                            double prob_p_1 = 1., prob_q1 = 1.;
+                            for (int nucp_1 = 0; nucp_1 < 4; nucp_1++) {
+                                for (int nucq1 = 0; nucq1 < 4; nucq1++) {
+                                    if (p == 0) {
+                                        nucp_1 = -1;
+                                    } else {
+                                        prob_p_1 = dist[p-1][nucp_1];
+                                    }
 
-                            outside[p][nucp] += dist[q][nucq] * newscore;
-                            outside[q][nucq] += dist[p][nucp] * newscore;
+                                    if (q == seq_length-1) {
+                                        nucq1 = -1;
+                                    } else {
+                                        prob_q1 = dist[q+1][nucq1];
+                                    }
+
+                                    double probability = prob_pq * prob_p_1 * prob_q1;
+                                    long double newscore = v_score_M1(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
+                                    multi_score += probability * newscore;
+
+                                    outside[p][nucp] += dist[q][nucq] * prob_p_1 * prob_q1 * newscore;
+                                    outside[q][nucq] += dist[p][nucp] * prob_p_1 * prob_q1 * newscore;
+
+                                    if (p != 0) outside[p-1][nucp_1] += prob_pq * prob_q1 * newscore;
+                                    if (q != seq_length-1) outside[q+1][nucq1] += prob_pq * prob_p_1 * newscore;
+                                }
+                            }
                         }
                     }
                 }
@@ -196,11 +217,19 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                             continue;
                         }
 
-                        long double newscore = v_score_multi_without_dangle(i, j, nuci, -1, -1, nucj, seq_length) / kT;
-                        multi_score += probability * newscore;
+                        for (int nuci1 = 0; nuci1 < 4; nuci1++) {
+                            for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
+                                probability *= dist[i+1][nuci1] * dist[j-1][nucj_1];
 
-                        outside[i][nuci] += dist[j][nucj] * newscore;
-                        outside[j][nucj] += dist[i][nuci] * newscore;
+                                long double newscore = v_score_multi_without_dangle(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
+                                multi_score += probability * newscore;
+
+                                outside[i][nuci] += dist[j][nucj] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
+                                outside[j][nucj] += dist[i][nuci] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
+                                outside[i+1][nuci1] += dist[i][nuci] * dist[j][nucj] * dist[j-1][nucj_1] * newscore;
+                                outside[j-1][nucj_1] += dist[i][nuci] * dist[j][nucj] * dist[i+1][nuci1] * newscore;
+                            }
+                        }
                     }
                 }
                 
@@ -253,40 +282,4 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
         fprintf(stderr, "Total Energy: %.2f\n\n", total_energy * kT);
     }
     return total_energy;
-}
-
-vector<array<double, 4>> get_one_hot(string& seq) {
-    int n = seq.size();
-    vector<array<double, 4>> dist(n);
-
-    for (int i = 0; i < n; i++) {
-        for (int nuci = 0; nuci < 4; nuci++) {
-            if (nuci == GET_ACGU_NUM(seq[i])) dist[i][nuci] = 1.00;
-            else dist[i][nuci] = 0.00;
-        }
-    }
-
-    return dist;
-}
-
-double BeamCKYParser::eval(string& rna_seq, string& rna_struct, bool verbose, FILE* fp) {
-    int n = rna_seq.size();
-    prepare(static_cast<unsigned>(n));
-    vector<array<double, 4>> dist = get_one_hot(rna_seq);
-
-    double Q, deltaG, objective_value;
-
-    Q = inside_partition(dist); // log Q(x)
-    deltaG = free_energy(dist, rna_struct, false); // deltaG / kT
-    objective_value = Q + deltaG;
-
-    if (verbose) {
-        fprintf(fp, "free energy: %8.5f kcal/mol\n", deltaG * kT / 100.0);
-        fprintf(fp, "free energy of ensemble: %6.5f kcal/mol\n", Q * -kT / 100.0);
-        // fprintf(fp, "log Q(x): %6.4f, deltaG / kT: %8.4f, -log p(y|x): %8.4f\n", Q, deltaG, objective_value);
-        fprintf(fp, "p(y|x) = %8.4f\n\n", exp(-1. * objective_value));
-    }
-
-    postprocess();
-    return objective_value;
 }

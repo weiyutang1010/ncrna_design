@@ -110,6 +110,7 @@ private:
 
     double inside_partition(vector<array<double, 4>>& dist);
     double free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose);
+    double free_energy_full_model(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose);
     void outside_partition(vector<array<double, 4>>& dist);
 
     unsigned seq_length;

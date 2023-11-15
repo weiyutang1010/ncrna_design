@@ -1,0 +1,1 @@
+cat data/eterna/short_eterna.txt | ./expectedpartition --init 1 --obj 1 --test --verbose -o deltaG_targeted_full_energy

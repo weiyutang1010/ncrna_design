@@ -16,6 +16,7 @@ def setgflags():
     flags.DEFINE_integer('penalty', 1000, "penalty value")
     flags.DEFINE_boolean('verbose', False, "print out more information")
     flags.DEFINE_boolean('test', False, "testing mode")
+    flags.DEFINE_string('output_file', "results", "output file name", short_name='o')
     argv = FLAGS(sys.argv)
 
 def main():
@@ -27,11 +28,12 @@ def main():
     penalty = str(FLAGS.penalty)
     is_verbose = '1' if FLAGS.verbose else '0'
     test = '1' if FLAGS.test else '0'
+    output_file = str(FLAGS.o)
 
     # TODO: error handling
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, 'bin/expectedpartition'), initialization, learning_rate, num_steps, eval_seq, objective, penalty, is_verbose, test]
+    cmd = ["%s/%s" % (path, 'bin/expectedpartition'), initialization, learning_rate, num_steps, eval_seq, objective, penalty, is_verbose, test, output_file]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

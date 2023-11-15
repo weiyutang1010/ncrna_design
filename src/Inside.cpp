@@ -202,7 +202,7 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
                                                             log(prob_nucq_1 + SMALL_NUM) +
                                                             log(prob_nucq + SMALL_NUM);
                                         
-                                        newscore = - v_score_single(p,q,i,j, nucp, nucp1, nucq_1, nucq,
+                                        newscore = - v_score_single_without_special_internal(p,q,i,j, nucp, nucp1, nucq_1, nucq,
                                                         nuci_1, nuci, nucj, nucj1);
                                         pair<int, int> index_nucpair {p, NUM_TO_PAIR(nucp, nucq)};
                                         Fast_LogPlusEquals(bestP[q][index_nucpair].alpha, state.alpha + log_probability + newscore/kT);

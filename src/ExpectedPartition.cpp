@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 #include <sys/time.h>
 #include <stack>
 #include <tuple>
@@ -28,8 +29,9 @@
 #include "Inside.cpp"
 #include "Outside.cpp"
 #include "Eval.cpp"
+#include "EvalFull.cpp"
 
-#define SPECIAL_HP
+// #define SPECIAL_HP
 
 using namespace std;
 
@@ -63,13 +65,13 @@ void BeamCKYParser::stacking_energy() {
         for(int8_t inner_pair=1; inner_pair<=6; inner_pair++){
             auto nuci = PAIR_TO_LEFT_NUC(inner_pair);
             auto nucj_1 = PAIR_TO_RIGHT_NUC(inner_pair);
-            newscore = - v_score_single(0, 1, 1, 0,
+            newscore = - v_score_single_without_special_internal(0, 1, 1, 0,
                                 nuci_1, nuci, nucj_1, nucq,
                                 nuci_1, nuci, nucj_1, nucq);
             stacking_score[outer_pair-1][inner_pair-1] = newscore;
 
             for (int32_t l=0; l<=SINGLE_MAX_LEN; l++){
-                newscore = - v_score_single(0, l+2, 1, 0,
+                newscore = - v_score_single_without_special_internal(0, l+2, 1, 0,
                               nuci_1, nuci, nucj_1, nucq,
                               nuci_1, nuci, nucj_1, nucq); 
 
@@ -229,7 +231,9 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
     vector<tuple<int, string, double>> log_string;
 
     string rna_seq = best_rna_seq(dist, rna_struct);
-    log_string.push_back({0, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+    // calculating Q(x) is slow
+    // log_string.push_back({0, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+    log_string.push_back({0, rna_seq, 0.0});
 
     for (int i = 0; i < num_steps; i++) {
         gettimeofday(&parse_starttime, NULL);
@@ -241,7 +245,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
             deltaG = free_energy(dist, rna_struct, false);
             objective_value = Q + deltaG;
         } else if (objective == 1) {
-            deltaG = free_energy(dist, rna_struct, false);
+            deltaG = free_energy_full_model(dist, rna_struct, false);
             objective_value = deltaG;
         }
 
@@ -350,6 +354,9 @@ int main(int argc, char** argv){
     int penalty = 1000;
     bool is_verbose = false;
     bool test = false;
+    string output_file = "results";
+
+    srand(42); // for testing
 
     // SHAPE
     string shape_file_path = "";
@@ -363,6 +370,7 @@ int main(int argc, char** argv){
         penalty = atoi(argv[6]);
         is_verbose = atoi(argv[7]);
         test = atoi(argv[8]);
+        output_file = argv[9];
     }
 
     // if (is_verbose) printf("beam size: %d\n", beamsize);
@@ -394,15 +402,9 @@ int main(int argc, char** argv){
             fprintf(stderr, "Puzzle: %s\n", puzzle_id.c_str());
             int length = rna_struct.size();
 
-            string output_file_name = "results/";
-            if (obj == 0)
-                output_file_name += "pyx_";
-            else
-                output_file_name += "deltaG_";
-
-            output_file_name += "init" + to_string(init_mode) + "_";
-            output_file_name += puzzle_id + ".txt";
-            
+            string output_folder = "results/" + output_file + "/";
+            string output_file_name = output_folder + puzzle_id + ".txt";
+            std::filesystem::create_directories(output_folder);
             FILE* fp = fopen(output_file_name.c_str(), "w");
 
             vector<array<double, 4>> dist = initialize_dist(length, init_mode, rna_struct); // initial distribution

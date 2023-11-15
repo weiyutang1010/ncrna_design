@@ -14,7 +14,7 @@
 #define NBPAIRS 7
 #endif
 
-#define SPECIAL_HP
+// #define SPECIAL_HP
 //int special_hp = 1;
 
 double lxc37=107.856;

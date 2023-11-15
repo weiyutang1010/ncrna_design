@@ -104,19 +104,19 @@ inline int v_score_hairpin(int i, int j, int tetra_hex_tri_index = -1) {
 
     if(size < 3) return energy; /* should only be the case when folding alignments */
 
-// #ifdef SPECIAL_HP
-//     // if(special_hp){
-//         if (size == 4 && tetra_hex_tri_index > -1)
-//             return Tetraloop37[tetra_hex_tri_index];
-//         else if (size == 6 && tetra_hex_tri_index > -1)
-//             return Hexaloop37[tetra_hex_tri_index];
-//         else if (size == 3) {
-//             if (tetra_hex_tri_index > -1)
-//                 return Triloop37[tetra_hex_tri_index];
-//             return (energy + (type>2 ? TerminalAU37 : 0));
-//         }
-//     // }
-// #endif
+#ifdef SPECIAL_HP
+    // if(special_hp){
+        if (size == 4 && tetra_hex_tri_index > -1)
+            return Tetraloop37[tetra_hex_tri_index];
+        else if (size == 6 && tetra_hex_tri_index > -1)
+            return Hexaloop37[tetra_hex_tri_index];
+        else if (size == 3) {
+            if (tetra_hex_tri_index > -1)
+                return Triloop37[tetra_hex_tri_index];
+            return (energy + (type>2 ? TerminalAU37 : 0));
+        }
+    // }
+#endif
 
     // energy += mismatchH37[type][si1][sj1];
 
@@ -154,33 +154,75 @@ inline int v_score_single(int i, int j, int p, int q,
     return energy;
   }
   else {                            /* interior loop */
-    // if (ns==1) {
-    //   if (nl==1)                    /* 1x1 loop */
-    //     return int11_37[type][type_2][si1][sj1];
-    //   if (nl==2) {                  /* 2x1 loop */
-    //     if (n1==1)
-    //       energy = int21_37[type][type_2][si1][sq1][sj1];
-    //     else
-    //       energy = int21_37[type_2][type][sq1][si1][sp1];
-    //     return energy;
-    //   }
-    //   else {  /* 1xn loop */
-    //     energy = (nl+1<=MAXLOOP)?(internal_loop37[nl+1]) : (internal_loop37[30]+(int)(lxc37*log((nl+1)/30.)));
-    //     energy += MIN2(MAX_NINIO, (nl-ns)*ninio37);
-    //     energy += mismatch1nI37[type][si1][sj1] + mismatch1nI37[type_2][sq1][sp1];
-    //     return energy;
-    //   }
-    // }
-    // else if (ns==2) {
-    //   if(nl==2)      {              /* 2x2 loop */
-    //     return int22_37[type][type_2][si1][sp1][sq1][sj1];}
-    //   else if (nl==3){              /* 2x3 loop */
-    //     energy = internal_loop37[5]+ninio37;
-    //     energy += mismatch23I37[type][si1][sj1] + mismatch23I37[type_2][sq1][sp1];
-    //     return energy;
-    //   }
+    if (ns==1) {
+      if (nl==1)                    /* 1x1 loop */
+        return int11_37[type][type_2][si1][sj1];
+      if (nl==2) {                  /* 2x1 loop */
+        if (n1==1)
+          energy = int21_37[type][type_2][si1][sq1][sj1];
+        else
+          energy = int21_37[type_2][type][sq1][si1][sp1];
+        return energy;
+      }
+      else {  /* 1xn loop */
+        energy = (nl+1<=MAXLOOP)?(internal_loop37[nl+1]) : (internal_loop37[30]+(int)(lxc37*log((nl+1)/30.)));
+        energy += MIN2(MAX_NINIO, (nl-ns)*ninio37);
+        energy += mismatch1nI37[type][si1][sj1] + mismatch1nI37[type_2][sq1][sp1];
+        return energy;
+      }
+    }
+    else if (ns==2) {
+      if(nl==2)      {              /* 2x2 loop */
+        return int22_37[type][type_2][si1][sp1][sq1][sj1];}
+      else if (nl==3){              /* 2x3 loop */
+        energy = internal_loop37[5]+ninio37;
+        energy += mismatch23I37[type][si1][sj1] + mismatch23I37[type_2][sq1][sp1];
+        return energy;
+      }
+    }
+    { /* generic interior loop (no else here!)*/
+      u = nl + ns;
+      energy = (u <= MAXLOOP) ? (internal_loop37[u]) : (internal_loop37[30]+(int)(lxc37*log((u)/30.)));
 
-    // }
+      energy += MIN2(MAX_NINIO, (nl-ns)*ninio37);
+
+      energy += mismatchI37[type][si1][sj1] + mismatchI37[type_2][sq1][sp1];
+    }
+  }
+  return energy;
+}
+
+inline int v_score_single_without_special_internal(int i, int j, int p, int q,
+                        int nuci, int nuci1, int nucj_1, int nucj,
+                        int nucp_1, int nucp, int nucq, int nucq1){
+    int si1 = NUM_TO_NUC(nuci1);
+    int sj1 = NUM_TO_NUC(nucj_1);
+    int sp1 = NUM_TO_NUC(nucp_1);
+    int sq1 = NUM_TO_NUC(nucq1);
+    int type = NUM_TO_PAIR(nuci, nucj);
+    int type_2 = NUM_TO_PAIR(nucq, nucp);
+    int n1 = p-i-1;
+    int n2 = j-q-1;
+    int nl, ns, u, energy;
+    energy = 0;
+
+    if (n1>n2) { nl=n1; ns=n2;}
+    else {nl=n2; ns=n1;}
+
+    if (nl == 0)
+        return stack37[type][type_2];  /* stack */
+
+    if (ns==0) {                      /* bulge */
+        energy = (nl<=MAXLOOP)?bulge37[nl]:
+      (bulge37[30]+(int)(lxc37*log(nl/30.)));
+    if (nl==1) energy += stack37[type][type_2];
+    else {
+      if (type>2) energy += TerminalAU37;
+      if (type_2>2) energy += TerminalAU37;
+    }
+    return energy;
+  }
+  else {                            /* interior loop */
     { /* generic interior loop (no else here!)*/
       u = nl + ns;
       energy = (u <= MAXLOOP) ? (internal_loop37[u]) : (internal_loop37[30]+(int)(lxc37*log((u)/30.)));
