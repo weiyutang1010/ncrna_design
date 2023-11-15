@@ -132,11 +132,11 @@ private:
     void update(vector<array<double, 4>> &dist);
     void projection(vector<array<double, 4>> &dist);
 
-    // int penalty = 1000;
     array<double, 4> *outside;
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
     unordered_map<int, State> *bestH, *bestM2, *bestM, *bestMulti;
+    State *bestC;
 
     vector<vector<vector<int>>> bulge_score;
     vector<vector<int>> stacking_score;
@@ -145,19 +145,17 @@ private:
     vector<int> if_hexaloops;
     vector<int> if_triloops;
 
-    State *bestC;
-
     int *nucs;
 
     void stacking_energy();
     void prepare(unsigned len);
     void postprocess();
 
-    // void cal_PairProb(State& viterbi); 
-
-
-    pf_type beam_prune(unordered_map<int, State>& beamstep);
     vector<pair<pf_type, int>> scores;
+    pf_type beam_prune(unordered_map<int, State>& beamstep);
+
+    vector<pair<pf_type, pair<int, int>>> scores_P;
+    pf_type beam_prune_P(std::unordered_map<pair<int, int>, State, hash_pair> &beamstep);
 
 };
 

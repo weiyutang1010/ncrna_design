@@ -14,12 +14,95 @@
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
 
+unsigned long quickselect_partition(vector<pair<pf_type, int>>& scores, unsigned long lower, unsigned long upper) {
+    pf_type pivot = scores[upper].first;
+    while (lower < upper) {
+        while (scores[lower].first < pivot) ++lower;
+        while (scores[upper].first > pivot) --upper;
+        if (scores[lower].first == scores[upper].first) ++lower;
+        else if (lower < upper) swap(scores[lower], scores[upper]);
+    }
+    return upper;
+}
+
+// in-place quick-select
+pf_type quickselect(vector<pair<pf_type, int>>& scores, unsigned long lower, unsigned long upper, unsigned long k) {
+    if ( lower == upper ) return scores[lower].first;
+    unsigned long split = quickselect_partition(scores, lower, upper);
+    unsigned long length = split - lower + 1;
+    if (length == k) return scores[split].first;
+    else if (k  < length) return quickselect(scores, lower, split-1, k);
+    else return quickselect(scores, split+1, upper, k - length);
+}
+
+
+pf_type BeamCKYParser::beam_prune(std::unordered_map<int, State> &beamstep) {
+    scores.clear();
+    for (auto &item : beamstep) {
+        int i = item.first;
+        State &cand = item.second;
+        int k = i - 1;
+        pf_type newalpha = (k >= 0 ? bestC[k].alpha : pf_type(0.0)) + cand.alpha;
+        scores.push_back(make_pair(newalpha, i));
+    }
+
+    if (scores.size() <= beam) return VALUE_MIN;
+    pf_type threshold = quickselect(scores, 0, scores.size() - 1, scores.size() - beam);
+
+    for (auto &p : scores) {
+        if (p.first < threshold) beamstep.erase(p.second);
+    }
+
+    return threshold;
+}
+
+unsigned long quickselect_partition_P(vector<pair<pf_type, pair<int, int>>>& scores, unsigned long lower, unsigned long upper) {
+    pf_type pivot = scores[upper].first;
+    while (lower < upper) {
+        while (scores[lower].first < pivot) ++lower;
+        while (scores[upper].first > pivot) --upper;
+        if (scores[lower].first == scores[upper].first) ++lower;
+        else if (lower < upper) swap(scores[lower], scores[upper]);
+    }
+    return upper;
+}
+
+// in-place quick-select
+pf_type quickselect_P(vector<pair<pf_type, pair<int, int>>>& scores, unsigned long lower, unsigned long upper, unsigned long k) {
+    if ( lower == upper ) return scores[lower].first;
+    unsigned long split = quickselect_partition_P(scores, lower, upper);
+    unsigned long length = split - lower + 1;
+    if (length == k) return scores[split].first;
+    else if (k  < length) return quickselect_P(scores, lower, split-1, k);
+    else return quickselect_P(scores, split+1, upper, k - length);
+}
+
+pf_type BeamCKYParser::beam_prune_P(std::unordered_map<pair<int, int>, State, hash_pair> &beamstep) {
+    scores_P.clear();
+    for (auto &item : beamstep) {
+        pair<int, int> index_nucpair = item.first;
+        State &cand = item.second;
+        int k = index_nucpair.first - 1;
+        pf_type newalpha = (k >= 0 ? bestC[k].alpha : pf_type(0.0)) + cand.alpha;
+        scores_P.push_back(make_pair(newalpha, index_nucpair));
+    }
+    
+    if (scores_P.size() <= beam) return VALUE_MIN;
+    pf_type threshold = quickselect_P(scores_P, 0, scores_P.size() - 1, scores_P.size() - beam);
+
+    for (auto &p : scores_P) {
+        if (p.first < threshold) beamstep.erase(p.second);
+    }
+
+    return threshold;
+}
+
 void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
     value_type newscore;
     unordered_map<int, State>& beamstepH = bestH[j];
     unordered_map<pair<int, int>, State, hash_pair>& beamstepP = bestP[j];
 
-    // if (beam > 0 && beamstepH.size() > beam) beam_prune(beamstepH);
+    if (beam > 0 && beamstepH.size() > beam) beam_prune(beamstepH);
 
     // for nucj put H(j, j_next) into H[j_next]
     int jnext = (no_sharp_turn ? j + 4 : j + 1);
@@ -76,7 +159,7 @@ void BeamCKYParser::Multi_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<pair<int, int>, State, hash_pair>& beamstepP = bestP[j];
     unordered_map<int, State>& beamstepMulti = bestMulti[j];
 
-    // if (beam > 0 && beamstepMulti.size() > beam) beam_prune(beamstepMulti);
+    if (beam > 0 && beamstepMulti.size() > beam) beam_prune(beamstepMulti);
 
     double prob_nuci, prob_nucj, log_probability;
     for (auto& item: beamstepMulti) {
@@ -112,7 +195,7 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<int, State>& beamstepM2 = bestM2[j];
     State& beamstepC = bestC[j];
 
-    // if (beam > 0 && beamstepP.size() > beam) beam_prune(beamstepP);
+    if (beam > 0 && beamstepP.size() > beam) beam_prune_P(beamstepP);
 
     // for every state in P[j]
     //   1. generate new helix/bulge
@@ -251,7 +334,7 @@ void BeamCKYParser::M2_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<int, State>& beamstepM2 = bestM2[j];
     unordered_map<int, State>& beamstepM = bestM[j];
 
-    // if (beam > 0 && beamstepM2.size() > beam) beam_prune(beamstepM2);
+    if (beam > 0 && beamstepM2.size() > beam) beam_prune(beamstepM2);
 
     for(auto& item : beamstepM2) {
         int i = item.first;
@@ -280,7 +363,7 @@ void BeamCKYParser::M2_beam(int j, vector<array<double, 4>>& dist) {
 void BeamCKYParser::M_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<int, State>& beamstepM = bestM[j];
     
-    // if (beam > 0 && beamstepM.size() > beam) beam_prune(beamstepM);
+    if (beam > 0 && beamstepM.size() > beam) beam_prune(beamstepM);
 
     if (j < seq_length-1) {
         for(auto& item : beamstepM) {
@@ -305,10 +388,6 @@ double BeamCKYParser::inside_partition(vector<array<double, 4>>& dist) {
     struct timeval parse_starttime, parse_endtime;
 
     gettimeofday(&parse_starttime, NULL);
-
-// #ifdef SPECIAL_HP
-//     v_init_tetra_hex_tri(seq, seq_length, if_tetraloops, if_hexaloops, if_triloops);
-// #endif
 
     // E[Q(x)]
     if(seq_length > 0) bestC[0].alpha = 0.0;

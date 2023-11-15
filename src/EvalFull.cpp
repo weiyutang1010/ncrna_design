@@ -221,7 +221,7 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
                             for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
                                 probability *= dist[i+1][nuci1] * dist[j-1][nucj_1];
 
-                                long double newscore = v_score_multi_without_dangle(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
+                                long double newscore = v_score_multi(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
                                 multi_score += probability * newscore;
 
                                 outside[i][nuci] += dist[j][nucj] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
