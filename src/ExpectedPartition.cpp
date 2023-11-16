@@ -231,9 +231,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
     vector<tuple<int, string, double>> log_string;
 
     string rna_seq = best_rna_seq(dist, rna_struct);
-    // calculating Q(x) is slow
-    // log_string.push_back({0, rna_seq, eval(rna_seq, rna_struct, false, fp)});
-    log_string.push_back({0, rna_seq, 0.0});
+    // log_string.push_back({0, rna_seq, eval(rna_seq, rna_struct, false, fp)}); // initial seq
 
     for (int i = 0; i < num_steps; i++) {
         gettimeofday(&parse_starttime, NULL);
@@ -242,6 +240,7 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         if (objective == 0) {
             Q = inside_partition(dist);
             outside_partition(dist);
+
             deltaG = free_energy(dist, rna_struct, false);
             objective_value = Q + deltaG;
         } else if (objective == 1) {
@@ -323,13 +322,13 @@ vector<array<double, 4>> initialize_dist(int length, int init_mode, string rna_s
                 dist[i] = {1., .0, .0, .0};
             }
         }
-    } else if (init_mode == 2) { // special targeted initialization
+    } else if (init_mode == 2) {
         for (int i = 0; i < length; i++) {
             if (rna_struct[i] == '(' or rna_struct[i] == ')') {
                 if (rand() % 2) dist[i] = {.0, .49, .51, .0}; 
                 else dist[i] = {.0, .51, .49, .0}; 
             } else {
-                dist[i] = {.25, .25, .25, .25};
+                dist[i] = {.25, .25, .25, .25}; // try uniform dist[i]
             }
         }
     } else {
@@ -362,7 +361,7 @@ int main(int argc, char** argv){
     string shape_file_path = "";
 
     if (argc > 1) {
-        init_mode = atoi(argv[1]); // 0: uniform, 1: targeted, 2: special targeted
+        init_mode = atoi(argv[1]); // 0: uniform, 1: targeted
         learning_rate = atof(argv[2]);
         num_steps = atoi(argv[3]);
         seq_eval = atoi(argv[4]);
@@ -370,7 +369,8 @@ int main(int argc, char** argv){
         penalty = atoi(argv[6]);
         is_verbose = atoi(argv[7]);
         test = atoi(argv[8]);
-        output_file = argv[9];
+        output_file = argv[9]; // output folder
+        beamsize = atoi(argv[10]);
     }
 
     // if (is_verbose) printf("beam size: %d\n", beamsize);
@@ -409,7 +409,7 @@ int main(int argc, char** argv){
 
             vector<array<double, 4>> dist = initialize_dist(length, init_mode, rna_struct); // initial distribution
             if (is_verbose) {
-                fprintf(fp, "Number of Steps: %6d, Learning Rate: %7.5f\n", num_steps, learning_rate);
+                fprintf(fp, "Number of Steps: %6d, Learning Rate: %7.5f, Beam Size: %d\n", num_steps, learning_rate, beamsize);
 
                 fprintf(fp, "Starting Distribution\n");
                 for (int i = 0; i < length; i++) {
@@ -432,7 +432,7 @@ int main(int argc, char** argv){
         vector<array<double, 4>> dist = initialize_dist(length, init_mode, rna_struct); // initial distribution
 
         if (is_verbose) {
-            fprintf(fp, "Num Steps: %6d, Learning Rate: %7.6f\n", num_steps, learning_rate);
+            fprintf(fp, "Number of Steps: %6d, Learning Rate: %7.5f, Beam Size: %d\n", num_steps, learning_rate, beamsize);
 
             fprintf(fp, "Starting Distribution\n");
             for (int i = 0; i < length; i++) {
@@ -440,7 +440,6 @@ int main(int argc, char** argv){
             }
             fprintf(fp, "\n");
         }
-        fflush(fp);
 
         // lhuang: moved inside loop, fixing an obscure but crucial bug in initialization
         BeamCKYParser parser(learning_rate, num_steps, obj, penalty, beamsize, !sharpturn, is_verbose);

@@ -324,6 +324,18 @@ void BeamCKYParser::outside_partition(vector<array<double, 4>>& dist){
         }
         hairpin_outside(j, dist);
     }
+    gettimeofday(&bpp_endtime, NULL);
+    double parse_elapsed_time = bpp_endtime.tv_sec - bpp_starttime.tv_sec + (bpp_endtime.tv_usec-bpp_starttime.tv_usec)/1000000.0;
+    fprintf(stderr, "time: %.4f\n", parse_elapsed_time);
+
+    printf("Outside\n");
+    for (int j = 0; j < seq_length; j++) {
+        for (int nucj = 0; nucj < 4; nucj++) {
+            printf("%8.4f ", outside[j][nucj]);
+        }
+        printf("\n");
+    }
+    printf("\n");
 
     for (int j = 0; j < seq_length; j++) {
         for (int nucj = 0; nucj < 4; nucj++) {

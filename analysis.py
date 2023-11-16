@@ -6,18 +6,21 @@ import subprocess
 
 kT = 61.63207755
 
+LF_PATH = "./linearfold"
+LP_PATH = "./linearpartition"
+
 def main(path):
     curr_path = os.path.dirname(os.path.abspath(__file__))
     data_path = curr_path + '/data/eterna'
     results_path = curr_path + '/results/' + path + '/'
 
     def get_prob_full_model(seq, struct):
-        cmds = f"./linearfold -V --eval --dangle 2" # path to LinearFold
+        cmds = f"{LF_PATH} -V --eval --dangle 2" # path to LinearFold
         rt = subprocess.run(cmds.split(), stdout=subprocess.PIPE, input="\n".join([seq, struct]).encode())
         lines = rt.stdout.decode('utf-8').strip().split('\n')
         delta_G = eval(lines[1].split()[1])
 
-        cmds = f"./linearpartition -V -b 0" # path to LinearPartition
+        cmds = f"{LP_PATH} -V -b 0" # path to LinearPartition
         rt = subprocess.run(cmds.split(), stdout=subprocess.PIPE, input=seq.encode())
         lines = rt.stdout.decode('utf-8').strip().split('\n')
         Q = float(lines[1])

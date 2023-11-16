@@ -8,7 +8,7 @@ import os
 FLAGS = flags.FLAGS
 
 def setgflags():
-    flags.DEFINE_integer('initialization', 2, "initialization: 0 - uniform, 1 - target, 2 - special target", short_name='init')
+    flags.DEFINE_integer('initialization', 2, "initialization: 0 - uniform, 1 - targeted", short_name='init')
     flags.DEFINE_float('learning_rate', 0.001, "set learning rate", short_name='lr')
     flags.DEFINE_integer('num_steps', 1000, "set number of iterations", short_name='step')
     flags.DEFINE_boolean('eval', False, "evaluate -log p(y|x) given the seq and struct", short_name='eval')
@@ -17,6 +17,7 @@ def setgflags():
     flags.DEFINE_boolean('verbose', False, "print out more information")
     flags.DEFINE_boolean('test', False, "testing mode")
     flags.DEFINE_string('output_file', "results", "output file name", short_name='o')
+    flags.DEFINE_integer('beamsize', 100, "set beam size", short_name='b')
     argv = FLAGS(sys.argv)
 
 def main():
@@ -29,11 +30,12 @@ def main():
     is_verbose = '1' if FLAGS.verbose else '0'
     test = '1' if FLAGS.test else '0'
     output_file = str(FLAGS.o)
+    beamsize = str(FLAGS.b)
 
     # TODO: error handling
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, 'bin/expectedpartition'), initialization, learning_rate, num_steps, eval_seq, objective, penalty, is_verbose, test, output_file]
+    cmd = ["%s/%s" % (path, 'bin/expectedpartition'), initialization, learning_rate, num_steps, eval_seq, objective, penalty, is_verbose, test, output_file, beamsize]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':
