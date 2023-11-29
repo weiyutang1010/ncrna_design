@@ -3,4 +3,4 @@ obj  -> 0: - log p(y|x), 1: delta_g(x,y)
 
 cat data/eterna/short_eterna.txt | ./expectedpartition --init 1 --obj 1 --test --verbose -o deltaG_targeted_full_energy
 cat data/eterna/short_eterna.txt | ./expectedpartition --init 1 --obj 0 --test --verbose -o pyx_targeted_beam_prune
-cat input | ./expectedpartition --init 1 --obj 0 --verbose > result.txt
+cat input | ./expectedpartition --init 1 --obj 0 --verbose -b 0 > result.txt

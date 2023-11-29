@@ -231,7 +231,8 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
     vector<tuple<int, string, double>> log_string;
 
     string rna_seq = best_rna_seq(dist, rna_struct); // initial seq
-    // log_string.push_back({0, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+    double score = eval(rna_seq, rna_struct, false, fp);
+    log_string.push_back({0, rna_seq, score});
     fprintf(fp, "step: %d, seq: %s, -log p(y|x): %10.4f, p(y|x): %10.4f\n", 0, rna_seq.c_str(), score, exp(-score));
 
 
@@ -256,13 +257,13 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         
         if (i > 0 && abs(log[i] - log[i-1]) < 1e-12) break;
 
-        if (is_verbose && i % 25 == 0) {
+        if (is_verbose && i % 10 == 0) {
             rna_seq = best_rna_seq(dist, rna_struct);
             int k = log_string.size();
             if (k == 0 || get<1>(log_string[k-1]) != rna_seq) {
                 double score = eval(rna_seq, rna_struct, false, fp);
                 fprintf(fp, "step: %d, seq: %s, -log p(y|x): %10.4f, p(y|x): %10.4f\n", i+1, rna_seq.c_str(), score, exp(-score));
-                // log_string.push_back({i + 1, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+                log_string.push_back({i + 1, rna_seq, score});
                 fflush(fp);
             }
         }
@@ -400,7 +401,17 @@ int main(int argc, char** argv){
     if (test) {
         string puzzle_id, rna_struct, sample_sol_1, sample_sol_2;
 
+        vector<array<string, 4>> inputs;
         while (cin >> puzzle_id >> rna_struct >> sample_sol_1 >> sample_sol_2) {
+            inputs.push_back({puzzle_id, rna_struct, sample_sol_1, sample_sol_2});
+        }
+
+        // for (auto& input: inputs) {
+        //     printf("%s, %s\n", input[0].c_str(), input[1].c_str());
+        // }
+
+        #pragma omp parallel for
+        for (int i = 0; i < inputs.size(); i++) {
             fprintf(stderr, "Puzzle: %s\n", puzzle_id.c_str());
             int length = rna_struct.size();
 

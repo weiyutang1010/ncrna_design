@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <math.h> 
 #include <set>
+#include <omp.h>
 
 // #define MIN_CUBE_PRUNING_SIZE 20
 #define kT 61.63207755
