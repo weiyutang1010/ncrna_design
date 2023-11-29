@@ -110,7 +110,7 @@ void BeamCKYParser::P_outside(int j, vector<array<double, 4>>& dist) {
         State& state = item.second;
 
         if (i > 0 && j < seq_length-1) {
-            // stacking
+            // stacking ((...))
             for (auto& [nuci_1, nucj1]: nucs_pairs) {
                 double prob_nuci_1 = dist[i-1][nuci_1];
                 double prob_nucj1 = dist[j+1][nucj1];
@@ -307,9 +307,6 @@ void BeamCKYParser::C_outside(int j, vector<array<double, 4>>& dist) {
 }
 
 void BeamCKYParser::outside_partition(vector<array<double, 4>>& dist){
-    struct timeval bpp_starttime, bpp_endtime;
-    gettimeofday(&bpp_starttime, NULL);
-
     bestC[seq_length-1].beta = 0.0;
 
     // from right to left
@@ -324,24 +321,21 @@ void BeamCKYParser::outside_partition(vector<array<double, 4>>& dist){
         }
         hairpin_outside(j, dist);
     }
-    gettimeofday(&bpp_endtime, NULL);
-    double parse_elapsed_time = bpp_endtime.tv_sec - bpp_starttime.tv_sec + (bpp_endtime.tv_usec-bpp_starttime.tv_usec)/1000000.0;
-    fprintf(stderr, "time: %.4f\n", parse_elapsed_time);
-
-    printf("Outside\n");
-    for (int j = 0; j < seq_length; j++) {
-        for (int nucj = 0; nucj < 4; nucj++) {
-            printf("%8.4f ", outside[j][nucj]);
-        }
-        printf("\n");
-    }
-    printf("\n");
 
     for (int j = 0; j < seq_length; j++) {
         for (int nucj = 0; nucj < 4; nucj++) {
             outside[j][nucj] = exp(outside[j][nucj]);
         }
     }
+
+    // printf("Outside\n");
+    // for (int j = 0; j < seq_length; j++) {
+    //     for (int nucj = 0; nucj < 4; nucj++) {
+    //         printf("%8.4f ", outside[j][nucj]);
+    //     }
+    //     printf("\n");
+    // }
+    // printf("\n");
 
     return;
 }

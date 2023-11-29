@@ -230,8 +230,10 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
     vector<double> log;
     vector<tuple<int, string, double>> log_string;
 
-    string rna_seq = best_rna_seq(dist, rna_struct);
-    // log_string.push_back({0, rna_seq, eval(rna_seq, rna_struct, false, fp)}); // initial seq
+    string rna_seq = best_rna_seq(dist, rna_struct); // initial seq
+    // log_string.push_back({0, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+    fprintf(fp, "step: %d, seq: %s, -log p(y|x): %10.4f, p(y|x): %10.4f\n", 0, rna_seq.c_str(), score, exp(-score));
+
 
     for (int i = 0; i < num_steps; i++) {
         gettimeofday(&parse_starttime, NULL);
@@ -240,35 +242,34 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         if (objective == 0) {
             Q = inside_partition(dist);
             outside_partition(dist);
-
             deltaG = free_energy(dist, rna_struct, false);
             objective_value = Q + deltaG;
         } else if (objective == 1) {
             deltaG = free_energy_full_model(dist, rna_struct, false);
             objective_value = deltaG;
         }
-
         log.push_back(objective_value);
 
         // update distribution
         update(dist);
         postprocess();
         
-        if (i > 0 && abs(log[i] - log[i-1]) < 1e-8) break;
+        if (i > 0 && abs(log[i] - log[i-1]) < 1e-12) break;
 
         if (is_verbose && i % 25 == 0) {
             rna_seq = best_rna_seq(dist, rna_struct);
             int k = log_string.size();
-            if (k == 0 || get<1>(log_string[k-1]) != rna_seq)
-                log_string.push_back({i + 1, rna_seq, 0.0});
+            if (k == 0 || get<1>(log_string[k-1]) != rna_seq) {
+                double score = eval(rna_seq, rna_struct, false, fp);
+                fprintf(fp, "step: %d, seq: %s, -log p(y|x): %10.4f, p(y|x): %10.4f\n", i+1, rna_seq.c_str(), score, exp(-score));
                 // log_string.push_back({i + 1, rna_seq, eval(rna_seq, rna_struct, false, fp)});
+                fflush(fp);
+            }
         }
 
-        if (i % 10 == 0) {
-            gettimeofday(&parse_endtime, NULL);
-            double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-            fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
-        }
+        gettimeofday(&parse_endtime, NULL);
+        double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
+        fprintf(stderr, "step %d, time: %.4f, obj: %.4lf\n", i+1, parse_elapsed_time, objective_value);
     }
 
     rna_seq = best_rna_seq(dist, rna_struct);
@@ -297,11 +298,11 @@ void BeamCKYParser::gradient_descent(vector<array<double, 4>>& dist, string& rna
         }
         fprintf(fp, "\n");
 
-        fprintf(fp, "start\n");
+        fprintf(fp, "start log\n");
         for (int i = 0; i < log.size(); i++) {
             fprintf(fp, "%.4lf\n", log[i]);
         }
-        fprintf(fp, "end\n");
+        fprintf(fp, "end log\n");
         fprintf(fp, "\n");
     }
 }
@@ -342,12 +343,14 @@ vector<array<double, 4>> initialize_dist(int length, int init_mode, string rna_s
 }
 
 int main(int argc, char** argv){
+    FILE* fp = fopen("/dev/stdout", "w");
+
     int beamsize = 100;
     bool sharpturn = false;
 
     int init_mode = 0;
     double learning_rate = 0.001;
-    int num_steps = 1;
+    int num_steps = 1000;
     bool seq_eval = false;
     int obj = 0;
     int penalty = 1000;
@@ -383,10 +386,9 @@ int main(int argc, char** argv){
 
     if (seq_eval) {
         for (string rna_seq; getline(cin, rna_seq);){
-            FILE *fp = fopen("/dev/stdout", "w");
             string rna_struct;
             getline(cin, rna_struct);
-            printf("%s\n%s\n\n", rna_seq.c_str(), rna_struct.c_str());
+            fprintf(fp, "%s\n%s\n\n", rna_seq.c_str(), rna_struct.c_str());
             BeamCKYParser parser(learning_rate, num_steps, obj, penalty, beamsize, !sharpturn, is_verbose);
             
             bool verbose = true;
@@ -405,7 +407,7 @@ int main(int argc, char** argv){
             string output_folder = "results/" + output_file + "/";
             string output_file_name = output_folder + puzzle_id + ".txt";
             std::filesystem::create_directories(output_folder);
-            FILE* fp = fopen(output_file_name.c_str(), "w");
+            fp = fopen(output_file_name.c_str(), "w");
 
             vector<array<double, 4>> dist = initialize_dist(length, init_mode, rna_struct); // initial distribution
             if (is_verbose) {
@@ -426,7 +428,6 @@ int main(int argc, char** argv){
     }
 
     for (string rna_struct; getline(cin, rna_struct);){
-        FILE *fp = fopen("/dev/stdout", "w");
         int length = rna_struct.size();
 
         vector<array<double, 4>> dist = initialize_dist(length, init_mode, rna_struct); // initial distribution
@@ -439,6 +440,7 @@ int main(int argc, char** argv){
                 fprintf(fp, "%.2f, %.2f, %.2f, %.2f\n", dist[i][0], dist[i][1] ,dist[i][2], dist[i][3]);
             }
             fprintf(fp, "\n");
+            fflush(fp);
         }
 
         // lhuang: moved inside loop, fixing an obscure but crucial bug in initialization

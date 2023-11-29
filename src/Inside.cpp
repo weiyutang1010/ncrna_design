@@ -14,6 +14,27 @@
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
 
+void BeamCKYParser::print_state(unordered_map<pair<int, int>, State, hash_pair> *best, FILE* fp = NULL) {
+    if (fp == NULL) fp = fopen("/dev/stdout", "w");
+
+    string nucs = "ACGU";
+    for (int j = 0; j < seq_length; j++) {
+        fprintf(fp, "j = %d\n", j);
+        for (auto [x, y]: best[j]) {
+            fprintf(fp, "(%d, %d) %c%c: %.4f; ", x.first, j, nucs[PAIR_TO_LEFT_NUC(x.second)], nucs[PAIR_TO_RIGHT_NUC(x.second)], y.alpha);
+        }
+        fprintf(fp, "\n");
+    }
+    fprintf(fp, "\n");
+    
+    fflush(fp);
+    return;
+}
+
+void BeamCKYParser::print_state(unordered_map<int, State> *best, FILE* fp = NULL) {
+    return;
+}
+
 unsigned long quickselect_partition(vector<pair<pf_type, int>>& scores, unsigned long lower, unsigned long upper) {
     pf_type pivot = scores[upper].first;
     while (lower < upper) {
@@ -194,6 +215,7 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<int, State>& beamstepM = bestM[j];
     unordered_map<int, State>& beamstepM2 = bestM2[j];
     State& beamstepC = bestC[j];
+
 
     if (beam > 0 && beamstepP.size() > beam) beam_prune_P(beamstepP);
 

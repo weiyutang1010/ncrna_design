@@ -106,6 +106,8 @@ public:
     double eval(string& rna_seq, string& rna_struct, bool verbose, FILE* fp);
 
 private:
+    void print_state(unordered_map<pair<int, int>, State, hash_pair> *best, FILE* fp);
+    void print_state(unordered_map<int, State> *best, FILE* fp);
     void get_parentheses(char* result, string& seq);
 
     double inside_partition(vector<array<double, 4>>& dist);

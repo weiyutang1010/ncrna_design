@@ -18,14 +18,14 @@ for line in sys.stdin:
         i = 1
         continue
 
-    if line == 'end\n':
+    if line == 'end log\n':
         break
 
     if is_value:
         neg_log_prob.append(float(line))
         prob.append(np.exp(-1 * float(line)))
 
-    if line == 'start\n':
+    if line == 'start log\n':
         is_value = True
 
 plt.rcParams["figure.figsize"] = [7.50, 3.50]
