@@ -15,7 +15,6 @@
 #include <unordered_map>
 #include <math.h> 
 #include <set>
-#include <omp.h>
 
 // #define MIN_CUBE_PRUNING_SIZE 20
 #define kT 61.63207755
@@ -41,8 +40,7 @@ using namespace std;
   #define VALUE_MIN numeric_limits<double>::lowest()
 #endif
 
-// CG, GC, AU, UA, GU, UG
-vector<pair<int, int>> nucs_pairs = {{1,2}, {2,1}, {0,3}, {3,0}, {2,3}, {3,2}};
+vector<pair<int, int>> nucs_pairs = {{1,2}, {2,1}, {0,3}, {3,0}, {2,3}, {3,2}}; // CG, GC, AU, UA, GU, UG
 
 // A hash function used to hash a pair of any kind 
 struct hash_pair { 

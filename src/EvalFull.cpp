@@ -191,15 +191,15 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
                                     }
 
                                     double probability = prob_pq * prob_p_1 * prob_q1;
-                                    // long double newscore = v_score_M1(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
-                                    long double newscore = v_score_M1_without_dangle(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
+                                    long double newscore = v_score_M1(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
+                                    // long double newscore = v_score_M1_without_dangle(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
                                     multi_score += probability * newscore;
 
                                     outside[p][nucp] += dist[q][nucq] * prob_p_1 * prob_q1 * newscore;
                                     outside[q][nucq] += dist[p][nucp] * prob_p_1 * prob_q1 * newscore;
 
-                                    if (p != 0) outside[p-1][nucp_1] += prob_pq * prob_q1 * newscore;
-                                    if (q != seq_length-1) outside[q+1][nucq1] += prob_pq * prob_p_1 * newscore;
+                                    if (p > 0) outside[p-1][nucp_1] += prob_pq * prob_q1 * newscore;
+                                    if (q < seq_length-1) outside[q+1][nucq1] += prob_pq * prob_p_1 * newscore;
                                 }
                             }
                         }
@@ -222,8 +222,8 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
                             for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
                                 probability *= dist[i+1][nuci1] * dist[j-1][nucj_1];
 
-                                // long double newscore = v_score_multi(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
-                                long double newscore = v_score_multi_without_dangle(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
+                                long double newscore = v_score_multi(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
+                                // long double newscore = v_score_multi_without_dangle(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
                                 multi_score += probability * newscore;
 
                                 outside[i][nuci] += dist[j][nucj] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
@@ -253,22 +253,43 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
             if (stk.empty()) {
                 for (int nuci = 0; nuci < 4; nuci++) {
                     for (int nucj = 0; nucj < 4; nucj++) {
-                        double probability = dist[i][nuci] *
-                                             dist[j][nucj];
 
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            external_energy += probability * penalty;
+                        double prob_i_1 = 1., prob_j1 = 1.;
+                        for (int nuci_1 = 0; nuci_1 < 4; nuci_1++) {
+                            for (int nucj1 = 0; nucj1 < 4; nucj1++) {
+                                if (i == 0) {
+                                    nuci_1 = -1;
+                                } else {
+                                    prob_i_1 = dist[i-1][nuci_1];
+                                }
 
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
+                                if (j == seq_length-1) {
+                                    nucj1 = -1;
+                                } else {
+                                    prob_j1 = dist[j+1][nucj1];
+                                }
+                                
+                                double probability = dist[i][nuci] *
+                                                    dist[j][nucj] *
+                                                    prob_i_1 * prob_j1;
+
+                                if (!_allowed_pairs[nuci][nucj]) {
+                                    external_energy += probability * penalty;
+
+                                    outside[i][nuci] += dist[j][nucj] * penalty;
+                                    outside[j][nucj] += dist[i][nuci] * penalty;
+                                    continue;
+                                }
+
+                                // long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length) / kT;
+                                long double newscore = v_score_external_paired(i, j, nuci_1, nuci, nucj, nucj1, seq_length) / kT;
+                                external_energy += probability * newscore;
+                                outside[i][nuci] += dist[j][nucj] * prob_i_1 * prob_j1 * newscore;
+                                outside[j][nucj] += dist[i][nuci] * prob_i_1 * prob_j1 * newscore;
+                                if (i > 0) outside[i-1][nuci_1] +=  dist[i][nuci] * dist[j][nucj] * prob_j1 * newscore;
+                                if (j < seq_length-1) outside[i-1][nuci_1] += dist[i][nuci] * dist[j][nucj] * prob_i_1 * newscore;
+                            }
                         }
-
-                        long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length) / kT;
-                        external_energy += probability * newscore;
-
-                        outside[i][nuci] += dist[j][nucj] * newscore;
-                        outside[j][nucj] += dist[i][nuci] * newscore;
                     }
                 }
             }

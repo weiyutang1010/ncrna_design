@@ -26,7 +26,8 @@ void BeamCKYParser::hairpin_outside(int j, vector<array<double, 4>>& dist) {
         State state = item.second;
 
         // 1. generate p(i, j)
-        for (auto& [nuci, nucj]: nucs_pairs) {
+        for (auto& nucs_pair: nucs_pairs) {
+            int nuci = nucs_pair.first, nucj = nucs_pair.second;
             pf_type score = NEG_INF;
             double prob_nuci = dist[i][nuci];
             double prob_nucj = dist[j][nucj];
@@ -73,7 +74,8 @@ void BeamCKYParser::Multi_outside(int j, vector<array<double, 4>>& dist) {
         }
 
         // 2. generate P (i, j)
-        for (auto& [nuci, nucj]: nucs_pairs) {
+        for (auto& nucs_pair: nucs_pairs) {
+            int nuci = nucs_pair.first, nucj = nucs_pair.second;
             double prob_nuci = dist[i][nuci];
             double prob_nucj = dist[j][nucj];
 
@@ -111,7 +113,8 @@ void BeamCKYParser::P_outside(int j, vector<array<double, 4>>& dist) {
 
         if (i > 0 && j < seq_length-1) {
             // stacking ((...))
-            for (auto& [nuci_1, nucj1]: nucs_pairs) {
+            for (auto& nucs_pair: nucs_pairs) {
+                int nuci_1 = nucs_pair.first, nucj1 = nucs_pair.second;
                 double prob_nuci_1 = dist[i-1][nuci_1];
                 double prob_nucj1 = dist[j+1][nucj1];
                 int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucj1);
@@ -130,7 +133,8 @@ void BeamCKYParser::P_outside(int j, vector<array<double, 4>>& dist) {
 
             // right bulge: ((...)..) 
             for (int q = j+2; q < std::min((int)seq_length, j + SINGLE_MAX_LEN); ++q) {
-                for (auto& [nuci_1, nucq]: nucs_pairs) {
+                for (auto& nucs_pair: nucs_pairs) {
+                    int nuci_1 = nucs_pair.first, nucq = nucs_pair.second;
                     double prob_nuci_1 = dist[i-1][nuci_1];
                     double prob_nucq = dist[q][nucq];
                     int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucq);
@@ -150,7 +154,8 @@ void BeamCKYParser::P_outside(int j, vector<array<double, 4>>& dist) {
 
             // left bulge: (..(...)) 
             for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
-                for (auto& [nucj1, nucp]: nucs_pairs) {
+                for (auto& nucs_pair: nucs_pairs) {
+                    int nucj1 = nucs_pair.first, nucp = nucs_pair.second;
                     double prob_nucp = dist[p][nucp];
                     double prob_nucj1 = dist[j+1][nucj1];
                     int8_t outer_pair = NUM_TO_PAIR(nucp, nucj1);
@@ -174,7 +179,8 @@ void BeamCKYParser::P_outside(int j, vector<array<double, 4>>& dist) {
             for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
                 for (int q = j+2; (i - p) + (q - j) - 2 <= SINGLE_MAX_LEN && q < seq_length; ++q) {
                     
-                    for (auto& [nucp, nucq]: nucs_pairs) {
+                    for (auto& nucs_pair: nucs_pairs) {
+                        int nucp = nucs_pair.first, nucq = nucs_pair.second;
                         double prob_nucp = dist[p][nucp];
                         double prob_nucq = dist[q][nucq];
 
@@ -265,7 +271,8 @@ void BeamCKYParser::M2_outside(int j, vector<array<double, 4>>& dist) {
         // 1. multi-loop
         for (int p = i-1; p >= std::max(i - SINGLE_MAX_LEN, 0); --p) {
             for (int q = j+1; q < seq_length; ++q) {
-                for (auto& [nucp, nucq]: nucs_pairs) {
+                for (auto& nucs_pair: nucs_pairs) {
+                    int nucp = nucs_pair.first, nucq = nucs_pair.second;
                     double prob_nucp = dist[p][nucp];
                     double prob_nucq = dist[q][nucq];
 

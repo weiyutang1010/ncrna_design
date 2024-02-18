@@ -20,9 +20,9 @@ void BeamCKYParser::print_state(unordered_map<pair<int, int>, State, hash_pair> 
     string nucs = "ACGU";
     for (int j = 0; j < seq_length; j++) {
         fprintf(fp, "j = %d\n", j);
-        for (auto [x, y]: best[j]) {
-            fprintf(fp, "(%d, %d) %c%c: %.4f; ", x.first, j, nucs[PAIR_TO_LEFT_NUC(x.second)], nucs[PAIR_TO_RIGHT_NUC(x.second)], y.alpha);
-        }
+        // for (auto [x, y]: best[j]) {
+        //     fprintf(fp, "(%d, %d) %c%c: %.4f; ", x.first, j, nucs[PAIR_TO_LEFT_NUC(x.second)], nucs[PAIR_TO_RIGHT_NUC(x.second)], y.alpha);
+        // }
         fprintf(fp, "\n");
     }
     fprintf(fp, "\n");
@@ -123,7 +123,7 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<int, State>& beamstepH = bestH[j];
     unordered_map<pair<int, int>, State, hash_pair>& beamstepP = bestP[j];
 
-    if (beam > 0 && beamstepH.size() > beam) beam_prune(beamstepH);
+    // if (beam > 0 && beamstepH.size() > beam) beam_prune(beamstepH);
 
     // for nucj put H(j, j_next) into H[j_next]
     int jnext = (no_sharp_turn ? j + 4 : j + 1);
@@ -142,7 +142,9 @@ void BeamCKYParser::hairpin_beam(int j, vector<array<double, 4>>& dist) {
 
         // 1. generate p(i, j)
         double prob_nuci, prob_nucj, prob_nuci1, prob_nucj_1, log_probability;
-        for (auto& [nuci, nucj]: nucs_pairs) {
+        for (auto& nucs_pair: nucs_pairs) {
+            int nuci = nucs_pair.first, nucj = nucs_pair.second;
+
             pf_type score = NEG_INF;
             prob_nuci = dist[i][nuci];
             prob_nucj = dist[j][nucj];
@@ -180,7 +182,7 @@ void BeamCKYParser::Multi_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<pair<int, int>, State, hash_pair>& beamstepP = bestP[j];
     unordered_map<int, State>& beamstepMulti = bestMulti[j];
 
-    if (beam > 0 && beamstepMulti.size() > beam) beam_prune(beamstepMulti);
+    // if (beam > 0 && beamstepMulti.size() > beam) beam_prune(beamstepMulti);
 
     double prob_nuci, prob_nucj, log_probability;
     for (auto& item: beamstepMulti) {
@@ -194,7 +196,9 @@ void BeamCKYParser::Multi_beam(int j, vector<array<double, 4>>& dist) {
         }
 
         // 2. generate P (i, j)
-        for (auto& [nuci, nucj]: nucs_pairs) {
+        for (auto& nucs_pair: nucs_pairs) {
+            int nuci = nucs_pair.first, nucj = nucs_pair.second;
+
             prob_nuci = dist[i][nuci];
             prob_nucj = dist[j][nucj];
 
@@ -217,7 +221,7 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
     State& beamstepC = bestC[j];
 
 
-    if (beam > 0 && beamstepP.size() > beam) beam_prune_P(beamstepP);
+    // if (beam > 0 && beamstepP.size() > beam) beam_prune_P(beamstepP);
 
     // for every state in P[j]
     //   1. generate new helix/bulge
@@ -236,7 +240,8 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
 
         if (i > 0 && j < seq_length-1) {
             // stacking
-            for (auto& [nuci_1, nucj1]: nucs_pairs) {
+            for (auto& nucs_pair: nucs_pairs) {
+                int nuci_1 = nucs_pair.first, nucj1 = nucs_pair.second;
                 double prob_nuci_1 = dist[i-1][nuci_1];
                 double prob_nucj1 = dist[j+1][nucj1];
                 int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucj1);
@@ -251,7 +256,8 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
 
             // right bulge: ((...)..) 
             for (int q = j+2; q < std::min((int)seq_length, j + SINGLE_MAX_LEN); ++q) {
-                for (auto& [nuci_1, nucq]: nucs_pairs) {
+                for (auto& nucs_pair: nucs_pairs) {
+                    int nuci_1 = nucs_pair.first, nucq = nucs_pair.second;
                     double prob_nuci_1 = dist[i-1][nuci_1];
                     double prob_nucq = dist[q][nucq];
                     int8_t outer_pair = NUM_TO_PAIR(nuci_1, nucq);
@@ -267,7 +273,8 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
 
             // left bulge: (..(...)) 
             for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
-                for (auto& [nucj1, nucp]: nucs_pairs) {
+                for (auto& nucs_pair: nucs_pairs) {
+                    int nucj1 = nucs_pair.first, nucp = nucs_pair.second;
                     double prob_nucj1 = dist[j+1][nucj1];
                     double prob_nucp = dist[p][nucp];
                     int8_t outer_pair = NUM_TO_PAIR(nucp, nucj1);
@@ -287,7 +294,8 @@ void BeamCKYParser::P_beam(int j, vector<array<double, 4>>& dist) {
             for (int p = i-2; p >= max(0, i - SINGLE_MAX_LEN + 1); --p) {
                 for (int q = j+2; (i - p) + (q - j) - 2 <= SINGLE_MAX_LEN && q < seq_length; ++q) {
                     
-                    for (auto& [nucp, nucq]: nucs_pairs) {
+                    for (auto& nucs_pair: nucs_pairs) {
+                        int nucp = nucs_pair.first, nucq = nucs_pair.second;
                         double prob_nucp = dist[p][nucp];
                         double prob_nucq = dist[q][nucq];
 
@@ -356,7 +364,7 @@ void BeamCKYParser::M2_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<int, State>& beamstepM2 = bestM2[j];
     unordered_map<int, State>& beamstepM = bestM[j];
 
-    if (beam > 0 && beamstepM2.size() > beam) beam_prune(beamstepM2);
+    // if (beam > 0 && beamstepM2.size() > beam) beam_prune(beamstepM2);
 
     for(auto& item : beamstepM2) {
         int i = item.first;
@@ -365,7 +373,8 @@ void BeamCKYParser::M2_beam(int j, vector<array<double, 4>>& dist) {
         // 1. multi-loop
         for (int p = i-1; p >= std::max(i - SINGLE_MAX_LEN, 0); --p) {
             for (int q = j+1; q < seq_length; ++q) {
-                for (auto& [nucp, nucq]: nucs_pairs) {
+                for (auto& nucs_pair: nucs_pairs) {
+                    int nucp = nucs_pair.first, nucq = nucs_pair.second;
                     double prob_nucp = dist[p][nucp];
                     double prob_nucq = dist[q][nucq];
 
@@ -385,7 +394,7 @@ void BeamCKYParser::M2_beam(int j, vector<array<double, 4>>& dist) {
 void BeamCKYParser::M_beam(int j, vector<array<double, 4>>& dist) {
     unordered_map<int, State>& beamstepM = bestM[j];
     
-    if (beam > 0 && beamstepM.size() > beam) beam_prune(beamstepM);
+    // if (beam > 0 && beamstepM.size() > beam) beam_prune(beamstepM);
 
     if (j < seq_length-1) {
         for(auto& item : beamstepM) {

@@ -109,7 +109,8 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
                                 if (p == i+1 || q == j-1) {
                                     double probability = prob_ij * prob_pq;
 
-                                    double newscore = v_score_single_without_special_internal(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / kT;
+                                    // double newscore = v_score_single_without_special_internal(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / kT;
+                                    double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / kT;
                                     single_score += probability * newscore;
 
                                     outside[i][nuci] += prob_pq * dist[j][nucj] * newscore;
@@ -130,6 +131,8 @@ double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_st
 
                                                     double newscore = v_score_single_without_special_internal(i,j,p,q, nuci, nuci1, nucj_1, nucj,
                                                                                         nucp_1, nucp, nucq, nucq1) / kT;
+                                                    // double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
+                                                    //                                     nucp_1, nucp, nucq, nucq1) / kT;
                                                     single_score += probability * newscore;
 
                                                     double prob_tm = dist[i+1][nuci1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * dist[j-1][nucj_1];
@@ -274,9 +277,10 @@ double BeamCKYParser::eval(string& rna_seq, string& rna_struct, bool verbose, FI
     prepare(static_cast<unsigned>(n));
     vector<array<double, 4>> dist = get_one_hot(rna_seq);
 
-    double Q, deltaG, objective_value;
+    double Q = 0., deltaG, objective_value;
 
-    Q = inside_partition(dist); // log Q(x)
+    if (objective == 0)
+        Q = inside_partition(dist); // log Q(x)
     deltaG = free_energy(dist, rna_struct, false); // deltaG / kT
     objective_value = Q + deltaG;
 
