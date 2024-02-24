@@ -3,6 +3,13 @@
         "vector": "cpp",
         "tuple": "cpp",
         "iostream": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "array": "cpp",
+        "random": "cpp",
+        "algorithm": "cpp",
+        "fstream": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp"
     }
 }

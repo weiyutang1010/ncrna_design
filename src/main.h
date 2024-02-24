@@ -14,7 +14,10 @@
 #include <vector>
 #include <unordered_map>
 #include <math.h> 
+#include <iomanip>
 #include <set>
+#include <random>
+#include <algorithm>
 
 // #define MIN_CUBE_PRUNING_SIZE 20
 #define kT 61.63207755
@@ -53,7 +56,21 @@ struct hash_pair {
     } 
 };
 
+enum nucs {
+    A = 0,
+    C,
+    G,
+    U
+};
 
+enum nucpairs {
+    CG = 0,
+    GC,
+    GU,
+    UG,
+    AU,
+    UA,
+};
 
 struct comp
 {
@@ -68,41 +85,59 @@ struct comp
 };
 
 struct State {
-
     pf_type alpha;
     pf_type beta;
 
     State(): alpha(VALUE_MIN), beta(VALUE_MIN) {};
 };
 
+struct Objective {
+    double score;
+    unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
+};
+
 
 class BeamCKYParser {
 public:
-    int beam;
-    bool no_sharp_turn;
-    bool is_verbose;
-
-    // SHAPE
-    bool use_shape = false;
-    double m = 1.8;
-    double b = -0.6;
-
+    string rna_struct;
+    string objective, initialization;
     double learning_rate;
     int num_steps;
-    int objective;
-    int penalty;
+    bool is_verbose;
+    int beamsize;
+    bool nosharpturn;
+    
+    // for sampling method
+    int sample_size, resample_iter;
+
+    // paired: dist[i, j] = [p(CG), p(GC), p(GU), p(UG), p(AU), p(UA)]
+    // unpaired: dist[j, j] = [p(A), p(C), p(G), p(U)]
+    unordered_map<pair<int, int>, vector<double>, hash_pair> dist;
+    vector<vector<double>> X; // n x 4 distribution after marginalization
 
     BeamCKYParser(
-                  double learningrate=0.01,
-                  int numsteps=1,
-                  int obj = 0,
-                  int penalty = 1000,
-                  int beam_size=100,
+                  string rna_struct="",
+                  string objective="",
+                  string initialization="",
+                  double learning_rate=0.01,
+                  int num_steps=1000,
+                  bool is_verbose=false,
+                  int beamsize=100,
                   bool nosharpturn=true,
-                  bool is_verbose=false);
+                  int sample_size=1000,
+                  int resample_iter=1);
 
-    void gradient_descent(vector<array<double, 4>>& dist, string& rna_struct, FILE* fp);
+    void print_mode(); // print settings [lr, num_steps, ...]
+    void print_dist(string label, unordered_map<pair<int, int>, vector<double>, hash_pair>& dist); // print distribution or gradient
+    void initialize();
+    void marginalize();
+    void gradient_descent();
+    string get_integral_solution();
     double eval(string& rna_seq, string& rna_struct, bool verbose, FILE* fp);
+    
+    Objective objective_function(int step);
+    Objective expected_free_energy(bool verbose);
+    Objective sampling_approx(int step);
 
 private:
     void print_state(unordered_map<pair<int, int>, State, hash_pair> *best, FILE* fp);
@@ -111,7 +146,6 @@ private:
 
     double inside_partition(vector<array<double, 4>>& dist);
     double free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose);
-    double free_energy_full_model(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose);
     void outside_partition(vector<array<double, 4>>& dist);
 
     unsigned seq_length;
@@ -133,7 +167,6 @@ private:
     void update(vector<array<double, 4>> &dist);
     void projection(vector<array<double, 4>> &dist);
 
-    array<double, 4> *outside;
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
     unordered_map<int, State> *bestH, *bestM2, *bestM, *bestMulti;
@@ -157,6 +190,12 @@ private:
 
     vector<pair<pf_type, pair<int, int>>> scores_P;
     pf_type beam_prune_P(std::unordered_map<pair<int, int>, State, hash_pair> &beamstep);
+
+    // sampling
+    void get_k_samples();
+
+    vector<string> samples;
+    vector<double> samples_partition;
 
 };
 

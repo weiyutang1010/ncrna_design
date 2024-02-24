@@ -6,15 +6,15 @@
 ################################
 
 CC=g++
-DEPS=src/Outside.cpp src/Inside.cpp src/ExpectedPartition.h src/Utils/energy_parameter.h src/Utils/feature_weight.h src/Utils/intl11.h src/Utils/intl21.h src/Utils/intl22.h src/Utils/utility_v.h src/Utils/utility.h
-CFLAGS=-std=c++11 -O3 -fopenmp
-.PHONY : clean expectedpartition
-objects=bin/expectedpartition
+DEPS=src/Outside.cpp src/Inside.cpp src/main.h src/Utils/energy_parameter.h src/Utils/feature_weight.h src/Utils/intl11.h src/Utils/intl21.h src/Utils/intl22.h src/Utils/utility_v.h src/Utils/utility.h src/Sampling.cpp src/LinearPartition.cpp src/LinearPartition.h
+CFLAGS=-std=c++17 -O3 -fopenmp
+.PHONY : clean main
+objects=bin/main
 
-expectedpartition: src/ExpectedPartition.cpp $(DEPS) 
-		chmod +x expectedpartition
+main: src/main.cpp $(DEPS) 
+		chmod +x main
 		mkdir -p bin
-		$(CC) src/ExpectedPartition.cpp $(CFLAGS) -Dlpv -o bin/expectedpartition
+		$(CC) src/main.cpp $(CFLAGS) -Dlpv -DSPECIAL_HP -o bin/main
 
 clean:
 	-rm $(objects)

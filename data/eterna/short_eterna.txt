@@ -1,28 +1,28 @@
-8 ((((...)))). GUAUUUAAUACA GAUAAAAUAUCA
-1 (((((......))))) GGGGGGGGGGGCCCCC GGGGGGAAAAACCCCC
-23 ((....)).((....)) CUGAAAAGAGUGAGAGC UCGAAAGAGGCGAAAGU
-26 ..((((((((.....)).)))))).. AAAUGUGAAUGAAAAAUAUUAUAUAA AAAUAUGAAUGAAAAAUAUUAUGUAA
-15 (((((.....))..((.........))))) GCCGCGAAAAGCAACCGAAAAAAAAGGGGC GCCGCGAAAAGCAACGGAAAAAAAACGGGC
-30 .(((((((((((...)))))....)))))). AUAUAUAAUAUAAAAUAUAUCAAAUAUAUAA AUAUAUAUAUAUAAAAUAUACCCCUAUAUAA
-88 ....((((((((.(....)).).).))))).... AAAAUACAGGGCGCGAAAGGACUCACUGUAAAAA AAAAGUAUGGGCGCGAAAGGACUCACAUACAAAA
-41 ((....)).((....)).((....)).((....)) GAGAAAUCAGAGAAAUCAGUGAAAGCAGGGAAACU GUGAAAACAGUGAAAGCAGUGAAAGCAUCGAAAGA
-3 ((((((.((((....))))))).))).......... CGUGACAUUAUAAAAAUGAGUCGAUGAAAAAAAAAA CGCCCCACGCCAAAAGGUGGGGAGUGAAAAAAAAAA
-11 ((((((.((((((((....))))).)).).)))))) UAAAACGAGAAAAACGAAAGUUUUAUCAUGGUUUUA CCCCCCACCCCCCCCAAAAGGGGGAGGAGAGGGGGG
-57 ((.(..(.(....).(....).)..).(....).)) CCAGUGGAGGAAACAGGAAACAUUGCAGGAAACAGG GCAUUGCACGAAAGAGGAAACAGUGGAGGAAACAGC
-66 .((.((.((..((.(...).)).))..))....)). ACAAGCAGAGGGCGCAAAGGGUAUCGGGUGAAGUGA AGUGGUAGCGGGUGCAAAGGACAGUGGGCAAAAACA
-40 ..((((((((.....))))((((.....)))))))).. AAGCCCCAUUGAAAAGAUGGUAUGAAAAGUACGGGUAA AAGUACGGUGGAAAAUACCCGAUGAAAAAUUGGUGCAA
-65 .(((((........)((((....))))..))))....... AGAGUGGAAAAAAACGUAUAAAAAUACAGACUCAAAAAAA ACCGUGGAAAAAAACGUAUAAAAAUACAGACGGAAAAAAA
-20 (((((((.(.(.(.(((((((....))))))))))))))))) GGGGGGGAGAGAGAGGGGGGGAAAACCCCCCCCCCCCCCCCC GGCCAGGCGAGCGCGUGCCAGGCGUCUGGCACCCCCCUGGCC
-10 ..........((((....))))((((....))))((((...)))) AAAAAAAAAACUGUGAAAAUGGGUUAGAAAUAGCGAGCAAAGCUC AAAAAAAAAAGUUCGAAAGGGCGAUGGAAACGUCGGCGAAACGCC
-33 .......(.(.(.(.(.((.((.(....).)).)).).).).).) AAAAAAAGGUGAGAGAGUAGUUGCGAAGGGAAGUAGUGUGUGAGC AAAAAAAGGAGUGUGUGUAGUAGUGAAAAGUAGUAGAGAGAGUGC
-47 ((((......(((((...))).((....)).........)).....)))) GUACGAAAAGCGGUCAAAGACAUAGAAAUAAAAAAAAAACGAAAAAGUAU GUACGAAAAAGGACCAAAGGUAUAGAAAUAAAAAAAAAACCGAAAAGUAU
-62 .((.((.((.((..((..((.((...))..)).)).))..))..))....)). AGAGGUAGAAGUGGGUGGGUAUCAAAGAGGGCAGCAGCGGUCGGACAAAAUCA AGAAGUAGCAGCGGUCGGGCAACAAAGUGGGUAGAAGUGGGUGGACGAAGUCA
-27 .....(((((.(.(.((.(.(((((((((....)))))))))))))))))))..... AAAAGAUAUUAGAGACUAGAGUUUUUUUAGAAAUGGGGGGGCCAGCCGAUGUAAAAA AAAAACGUGUAGAGAUGAGAUAUUUUUUUGAAAGGGAGGGUACCGCCAUAUGAAAAA
-67 ......(.........((((.....)))).........)...................... AAAAAAGAAAAAAAAUAGUAAAAAAUACUUAAAAAAAGCAAAAAAAAAAAAAAAAAAAAAA AAAAAAGGAAAAAAAUGCCCAAAAAGGGUUAAAAAAAACGAAAAAAAAAAAAAAAAAAAAA
-25 (((.....(((.....(((.....(((.....(((........))).))).))).))).))) CCGAAAAAGGCAAAAAUCUAAAAACACAAAAAGUCAAAAAAAAGACAGUGGGGAAGUCGUGG GCCGAAAGUCCGAAAGUCCGAAAGACCGAAAGACCGAAAGAAAGGUAGGUAGGGAGGGAGGU
-44 .....(((.(((((....)).)))(((.((....))))).))).................... GGAAAGUCACUGAUGAAAAUACAGGAUAUGGAAACAAUCAGACAAAGAAACAACAACAACAAC GGAAACCGACUGGUGAAAACACAGCACAUAGAAAUAGUGACGGAAAGAAACAACAACAACAAC
-45 (((((((((....))))(((((....)))))(((((....)))))((((....))))))))). CUGUCGGGUGAAAACCCCAUACGAAAGUAUGCAUACGAAAGUAUGGACGGAAACGUCGACAGA CUAUCGAUCGAAAGAUCCAUAUGAAAAUAUGCAUAGGAAACUAUGGUAGGAAACUACGAUAGA
-13 ((((((((((((((((((((((((((...))))))....)))))))....))))))....))))))) GGCGGGGGGGGGGGGGGGGGGGCGGGAAACCCGCCAAAACCCCCCCAAAACCCCCCAAAACCCCGCC GCAGGGCCCCCGCGGCGGUCGCGGUCCAUGACCGCAAUAGACCGCCAUGAGCGGGGUUAAGCCCUGC
-18 ((((((.....(((....(((...(((((.............)))))....)))..)))..)))))) CUUUUAAAAAGUAUAAAGAUAAAGAAAAGAAAAAAAAAAAAACUUUUAAAGUAUAGAUAAGUGGGAG UAGAUUGAAAAUAUAAAAUGAGAAUUGUUGAAAAAAAAAAAAAAUAAGAAAUUAGGAUAGAAAUUUA
-61 .....((.((.((...)).((...))...)))).((.((.((...)).((...))...))))..... AAAAAGGAGGACGAAACGAGCAAAGCAAACCCCAGGACCACGGAACGAGCGAAGCAAAGGCCAAAAA AAAAAGGAGCAGCAAAGCAGCAAAGCAAAGCCCAGGACCAGCAAAGCAGCAAAGCAAAGGCCAAAAA
-59 .....((((((.((((((((....))))))).)))((((((((((....))))))))))))))..... AAAAAGAGGGGACCGGGGGAGAAAUUUUUUGCGCCCUGCGGGGAUGAAAGUUUUUGUAGCUUCAAAAA AAAAAUGGUCGACCGGGGGAGAAAUUUUUUGCGCGUAUUUUUUUUGAAAGGGGGGGAUAACCAAAAAA
+8 ((((...)))).
+1 (((((......)))))
+23 ((....)).((....))
+26 ..((((((((.....)).))))))..
+15 (((((.....))..((.........)))))
+30 .(((((((((((...)))))....)))))).
+88 ....((((((((.(....)).).).)))))....
+41 ((....)).((....)).((....)).((....))
+3 ((((((.((((....))))))).)))..........
+11 ((((((.((((((((....))))).)).).))))))
+57 ((.(..(.(....).(....).)..).(....).))
+66 .((.((.((..((.(...).)).))..))....)).
+40 ..((((((((.....))))((((.....))))))))..
+65 .(((((........)((((....))))..)))).......
+20 (((((((.(.(.(.(((((((....)))))))))))))))))
+10 ..........((((....))))((((....))))((((...))))
+33 .......(.(.(.(.(.((.((.(....).)).)).).).).).)
+47 ((((......(((((...))).((....)).........)).....))))
+62 .((.((.((.((..((..((.((...))..)).)).))..))..))....)).
+27 .....(((((.(.(.((.(.(((((((((....))))))))))))))))))).....
+67 ......(.........((((.....)))).........)......................
+25 (((.....(((.....(((.....(((.....(((........))).))).))).))).)))
+44 .....(((.(((((....)).)))(((.((....))))).)))....................
+45 (((((((((....))))(((((....)))))(((((....)))))((((....))))))))).
+13 ((((((((((((((((((((((((((...))))))....)))))))....))))))....)))))))
+18 ((((((.....(((....(((...(((((.............)))))....)))..)))..))))))
+61 .....((.((.((...)).((...))...)))).((.((.((...)).((...))...)))).....
+59 .....((((((.((((((((....))))))).)))((((((((((....)))))))))))))).....

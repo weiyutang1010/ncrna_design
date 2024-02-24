@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+import gflags as flags
+import subprocess
+import sys
+import os
+
+FLAGS = flags.FLAGS
+
+def setgflags():
+    flags.DEFINE_string('mode', "ncrna_design", "ncrna_design/expected_energy/")
+    flags.DEFINE_string('objective', "pyx_sampling", "pyx_sampling/pyx_jensen", short_name='o')
+    flags.DEFINE_string('initializations', "uniform", "uniform/targeted/input", short_name='init')
+    flags.DEFINE_float('learning_rate', 0.01, "learning rate", short_name='lr')
+    flags.DEFINE_integer('num_steps', 1000, "set number of iterations", short_name='step')
+    flags.DEFINE_boolean('verbose', False, "print out more information")
+    flags.DEFINE_integer('beamsize', 0, "set beam size", short_name='b')
+    flags.DEFINE_boolean('sharpturn', False, "set sharpturn")
+    flags.DEFINE_integer('sample_size', 1000, "number of samples", short_name='k')
+    flags.DEFINE_integer('resample_iter', 1, "resampling every iter step", short_name='iter')
+
+    argv = FLAGS(sys.argv)
+
+def main():
+    mode = str(FLAGS.mode)
+    objective = str(FLAGS.o)
+    initialization = str(FLAGS.init)
+    learning_rate = str(FLAGS.lr)
+    num_steps = str(FLAGS.step)
+    verbose = '1' if FLAGS.verbose else '0'
+    beamsize = str(FLAGS.b)
+    sharpturn = '1' if FLAGS.verbose else '0'
+    sample_size = str(FLAGS.k)
+    resample_iter = str(FLAGS.iter)
+
+    # TODO: error handling
+
+    path = os.path.dirname(os.path.abspath(__file__))
+    cmd = ["%s/%s" % (path, 'bin/main'), mode, objective, initialization, learning_rate, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter]
+    subprocess.call(cmd, stdin=sys.stdin)
+    
+if __name__ == '__main__':
+    setgflags()
+    main()
+

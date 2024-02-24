@@ -9,7 +9,7 @@
 #include <stdio.h> 
 #include <set>
 #include <algorithm>
-#include "ExpectedPartition.h"
+#include "main.h"
 
 using namespace std;
 

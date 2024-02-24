@@ -2,9 +2,8 @@
 
 import os, sys
 import numpy as np
-# import matplotlib.pyplot as plt # Matplotlib does not work in server
+import matplotlib.pyplot as plt
 
-sys.path.append(os.environ.get('VIENNAPATH'))
 import RNA
 
 kT = 61.63207755

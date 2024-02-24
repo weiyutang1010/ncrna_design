@@ -4,8 +4,8 @@ eval_input
 input
 result1.txt
 result2.txt
-linearfold
-linearpartition
+LinearFold/
+LinearPartition/
 dot.ps
 rna.ps
 result.txt

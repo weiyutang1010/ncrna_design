@@ -1,4 +1,4 @@
-#include "ExpectedPartition.h"
+#include "main.h"
 
 double BeamCKYParser::free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose) {
     int seq_length = rna_struct.length();
