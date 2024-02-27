@@ -10,12 +10,13 @@
 #define FASTCKY_UTILITY_V_H
 
 #define NUM_TO_NUC(x) (x==-1?-1:((x==4?0:(x+1))))
+
+// weiyu: CG: 1, GC: 2, GU: 3, UG: 4, AU: 5, UA: 6, XX: 0
 #define NUM_TO_PAIR(x,y) (x==0? (y==3?5:0) : (x==1? (y==2?1:0) : (x==2 ? (y==1?2:(y==3?3:0)) : (x==3 ? (y==2?4:(y==0?6:0)) : 0))))
-#define NUC_TO_PAIR(x,y) (x==1? (y==4?5:0) : (x==2? (y==3?1:0) : (x==3 ? (y==2?2:(y==4?3:0)) : (x==4 ? (y==3?4:(y==1?6:0)) : 0))))
-#define NUC_TO_PAIR16(x, y) x * 4 + y;
 
 #define PAIR_TO_LEFT_NUC(x) (x==1? 1:((x==2 || x==3)? 2:(x==5)? 0:3))
 #define PAIR_TO_RIGHT_NUC(x) (x==2? 1:((x==1 || x==4)? 2:(x==6)? 0:3))
+
 
 // bool _allowed_pairs[NOTON][NOTON];
 
@@ -89,11 +90,8 @@ inline int v_score_hairpin_mismatch(int i, int j, int nuci, int nuci1, int nucj_
     return mismatchH37[type][si1][sj1];
 }
 
-inline int v_score_hairpin(int i, int j, int tetra_hex_tri_index = -1) {
+inline int v_score_hairpin_no_mismatch(int i, int j, int tetra_hex_tri_index = -1) {
     int size = j-i-1;
-    // int type = NUM_TO_PAIR(nuci, nucj);
-    // int si1 = NUM_TO_NUC(nuci1);
-    // int sj1 = NUM_TO_NUC(nucj_1);
 
     int energy;
 
@@ -113,13 +111,42 @@ inline int v_score_hairpin(int i, int j, int tetra_hex_tri_index = -1) {
         else if (size == 3) {
             if (tetra_hex_tri_index > -1)
                 return Triloop37[tetra_hex_tri_index];
+        }
+    // }
+#endif
+
+    return energy;
+}
+
+inline int v_score_hairpin(int i, int j, int nuci, int nuci1, int nucj_1, int nucj, int tetra_hex_tri_index = -1) {
+    int size = j-i-1;
+    int type = NUM_TO_PAIR(nuci, nucj);
+    int si1 = NUM_TO_NUC(nuci1);
+    int sj1 = NUM_TO_NUC(nucj_1);
+
+    int energy;
+
+    if(size <= 30)
+        energy = hairpin37[size];
+    else
+        energy = hairpin37[30] + (int)(lxc37*log((size)/30.));
+
+    if(size < 3) return energy; /* should only be the case when folding alignments */
+#ifdef SPECIAL_HP
+    // if(special_hp){
+        if (size == 4 && tetra_hex_tri_index > -1)
+            return Tetraloop37[tetra_hex_tri_index];
+        else if (size == 6 && tetra_hex_tri_index > -1)
+            return Hexaloop37[tetra_hex_tri_index];
+        else if (size == 3) {
+            if (tetra_hex_tri_index > -1)
+                return Triloop37[tetra_hex_tri_index];
             return (energy + (type>2 ? TerminalAU37 : 0));
         }
     // }
 #endif
 
-    // energy += mismatchH37[type][si1][sj1];
-
+    energy += mismatchH37[type][si1][sj1];
     return energy;
 }
 
@@ -236,17 +263,23 @@ inline int v_score_single_without_special_internal(int i, int j, int p, int q,
 }
 
 // multi_loop
-inline int E_MLstem(int type, int si1, int sj1) {
+inline int E_MLstem(int type, int si1, int sj1, int dangle_mode) {
     int energy = 0;
 
-    if(si1 >= 0 && sj1 >= 0){
-        energy += mismatchM37[type][si1][sj1];
-    }
-    else if (si1 >= 0){
-        energy += dangle5_37[type][si1];
-    }
-    else if (sj1 >= 0){
-        energy += dangle3_37[type][sj1];
+    if (dangle_mode != 0) {
+        if(si1 >= 0 && sj1 >= 0){
+            energy += mismatchM37[type][si1][sj1];
+        }
+        
+        // lhuang: multi dangles are never used
+        // non-closing: ...x(...)x...
+        // closing:     (x.........x)
+        /* else if (si1 >= 0){ */
+        /*     energy += dangle5_37[type][si1]; */
+        /* } */
+        /* else if (sj1 >= 0){ */
+        /*     energy += dangle3_37[type][sj1]; */
+        /* } */
     }
 
     if(type > 2) {
@@ -271,14 +304,14 @@ inline int E_MLstem_without_Dangle(int type, int si1, int sj1) {
     return energy;
 }
 
-inline int v_score_M1(int i, int j, int k, int nuci_1, int nuci, int nuck, int nuck1, int len) {
+inline int v_score_M1(int i, int j, int k, int nuci_1, int nuci, int nuck, int nuck1, int len, int dangle_mode=2) {
     int p = i;
     int q = k;
     int tt = NUM_TO_PAIR(nuci, nuck);
     int sp1 = NUM_TO_NUC(nuci_1);
     int sq1 = NUM_TO_NUC(nuck1);
 
-    return E_MLstem(tt, sp1, sq1);
+    return E_MLstem(tt, sp1, sq1, dangle_mode);
 }
 
 inline int v_score_M1_without_dangle(int i, int j, int k, int nuci_1, int nuci, int nuck, int nuck1, int len) {
@@ -297,12 +330,12 @@ inline int v_score_multi_unpaired(int i, int j) {
     return 0;
 }
 
-inline int v_score_multi(int i, int j, int nuci, int nuci1, int nucj_1, int nucj, int len) {
+inline int v_score_multi(int i, int j, int nuci, int nuci1, int nucj_1, int nucj, int len, int dangle_mode=2) {
     int tt = NUM_TO_PAIR(nucj, nuci);
     int si1 = NUM_TO_NUC(nuci1);
     int sj1 = NUM_TO_NUC(nucj_1);
 
-    return E_MLstem(tt, sj1, si1) + ML_closing37;
+    return E_MLstem(tt, sj1, si1, dangle_mode) + ML_closing37;
 }
 
 inline int v_score_multi_without_dangle(int i, int j, int nuci, int nuci1, int nucj_1, int nucj, int len) {
@@ -315,20 +348,22 @@ inline int v_score_multi_without_dangle(int i, int j, int nuci, int nuci1, int n
 }
 
 // exterior_loop
-inline int v_score_external_paired(int i, int j, int nuci_1, int nuci, int nucj, int nucj1, int len) {
+inline int v_score_external_paired(int i, int j, int nuci_1, int nuci, int nucj, int nucj1, int len, int dangle_mode=2) {
     int type = NUM_TO_PAIR(nuci, nucj);
     int si1 = NUM_TO_NUC(nuci_1);
     int sj1 = NUM_TO_NUC(nucj1);
     int energy = 0;
 
-    if(si1 >= 0 && sj1 >= 0){
-        energy += mismatchExt37[type][si1][sj1];
-    }
-    else if (si1 >= 0){
-        energy += dangle5_37[type][si1];
-    }
-    else if (sj1 >= 0){
-        energy += dangle3_37[type][sj1];
+    if (dangle_mode != 0){
+        if(si1 >= 0 && sj1 >= 0){
+            energy += mismatchExt37[type][si1][sj1];
+        }
+        else if (si1 >= 0){
+            energy += dangle5_37[type][si1];
+        }
+        else if (sj1 >= 0){
+            energy += dangle3_37[type][sj1];
+        }
     }
 
     if(type > 2)

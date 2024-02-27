@@ -1,0 +1,19 @@
+{
+    "files.associations": {
+        "vector": "cpp",
+        "tuple": "cpp",
+        "iostream": "cpp",
+        "ostream": "cpp",
+        "array": "cpp",
+        "random": "cpp",
+        "algorithm": "cpp",
+        "fstream": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp"
+    }
+}

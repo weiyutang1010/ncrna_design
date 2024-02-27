@@ -1,25 +1,46 @@
-#include "ExpectedPartition.h"
+#include "main.h"
 
-double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose) {
+#define NEXT_NUC(x) ((x=='A'? 'C' : (x=='C'? 'G' : (x=='G'? 'U' : (x=='U'?'A': 'N')))))
+
+void next_seq(string& seq, int size) {
+    for (int j = size; j >= 1; j--) {
+        if (j == 1 && seq[j] == 'U') {
+            seq = "";
+            return;
+        }
+        seq[j] = NEXT_NUC(seq[j]);
+        if(seq[j] != 'A') break;
+    }
+}
+
+Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
     int seq_length = rna_struct.length();
 
-    double total_energy = 0;
-    double external_energy = 0;
+    double total_energy = 0.; // objective value
+    unordered_map<pair<int, int>, vector<double>, hash_pair> gradient; // gradient
+    vector<vector<double>> X_grad (seq_length, vector<double> (4, 0.)); // marginalized gradient
+
+    // initialize gradient
+    for (auto& [idx, probs]: dist) {
+        gradient[idx] = vector<double> (probs.size(), 0.);
+    }
+
+    double external_energy = 0.;
     vector<pair<int, int>> M1_indices[seq_length];
-    double multi_number_unpaired[seq_length];
+    // double multi_number_unpaired[seq_length];
 
     stack<pair<int, int>> stk; // tuple of (index, page)
     tuple<int, int> inner_loop;
 
     for (int j=0; j<seq_length; j++) {
-        multi_number_unpaired[j] = 0;
+        // multi_number_unpaired[j] = 0;
 
-        if (rna_struct[j] == '.') {
-            if (!stk.empty())
-                multi_number_unpaired[stk.top().first] += 1;
-        }
+        // if (rna_struct[j] == '.') {
+        //     if (!stk.empty())
+        //         multi_number_unpaired[stk.top().first] += 1;
+        // }
 
-        else if (rna_struct[j] == '(') {
+        if (rna_struct[j] == '(') {
             if (!stk.empty()) { // +1 for outer loop page
                 stk.top().second ++;
             }
@@ -34,41 +55,87 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
 
             if (page == 0) { // hairpin
                 double hairpin_score = 0.;
-                for (int nuci = 0; nuci < 4; nuci++) {
-                    for (int nucj = 0; nucj < 4; nucj++) {
-                        double prob_ij = dist[i][nuci] *
-                                         dist[j][nucj];
+                for (int nucij = 0; nucij < 6; nucij++) {
+                    int nuci = PAIR_TO_LEFT_NUC(nucij+1), nucj = PAIR_TO_RIGHT_NUC(nucij+1);
+                    int size = j - i - 1;
 
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            hairpin_score += prob_ij * penalty;
+                    // TODO: optimize iterations
+                    if (size == 3 || size == 4 || size == 6) {
+                        // special hairpins: triloops, tetraloops, hexaloops
+                        string nucs = "ACGU";
+                        string seq = string(size+2, 'A');
+                        seq[0] = nucs[nuci], seq[size+1] = nucs[nucj]; // i ... j
 
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
-                        }
+                        do {
+                            vector<int> if_tetraloops;
+                            vector<int> if_hexaloops;
+                            vector<int> if_triloops;
+                            v_init_tetra_hex_tri(seq, seq.length(), if_tetraloops, if_hexaloops, if_triloops); // calculate if_tetraloops, if_hexaloops, if_triloops
 
-                        for (int nuci1 = 0; nuci1 < 4; nuci1++) {
-                            for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
-                                double probability = prob_ij *
-                                                     dist[i+1][nuci1] *
-                                                     dist[j-1][nucj_1];
+                            int tetra_hex_tri = -1;
+                            if (size == 4) // 6:tetra
+                                tetra_hex_tri = if_tetraloops[0];
+                            else if (size == 6) // 8:hexa
+                                tetra_hex_tri = if_hexaloops[0];
+                            else if (size == 3) // 5:tri
+                                tetra_hex_tri = if_triloops[0];
 
-                                double newscore;
-                                newscore = (v_score_hairpin(i, j, -1) +
-                                                v_score_hairpin_mismatch(i, j, nuci, nuci1, nucj_1, nucj)) / kT;
-
-                                hairpin_score += probability * newscore;
-
-                                outside[i][nuci] += dist[j][nucj] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
-                                outside[i+1][nuci1] +=  prob_ij * dist[j-1][nucj_1] * newscore;
-                                outside[j-1][nucj_1] += prob_ij * dist[i+1][nuci1] * newscore;
-                                outside[j][nucj] += dist[i][nuci] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
+                            double newscore = v_score_hairpin(i, j, nuci, GET_ACGU_NUM(seq[1]), GET_ACGU_NUM(seq[size]), nucj, tetra_hex_tri) / kT;
+                            
+                            double probability = dist[{i, j}][nucij];
+                            for (int x = i + 1; x < j; x++) {
+                                probability *= dist[{x, x}][GET_ACGU_NUM(seq[x-i])];
                             }
+
+                            hairpin_score += probability * newscore;
+
+                            // temporary storage
+                            unordered_map<pair<int, int>, double, hash_pair> grad;
+
+                            // compute product except for self
+                            double left_product = dist[{i, j}][nucij];
+                            for (int x = i + 1; x < j; x++) {
+                                grad[{x, x}] = left_product;
+                                left_product *= dist[{x, x}][GET_ACGU_NUM(seq[x])];
+                            }
+
+                            double right_product = 1.;
+                            for (int x = j - 1; x > i; x--) {
+                                grad[{x, x}] *= right_product;
+                                right_product *= dist[{x, x}][GET_ACGU_NUM(seq[x])];
+                            }
+                            grad[{i, j}] = right_product;
+
+                            for (int x = i + 1; x < j; x++) {
+                                gradient[{x, x}][GET_ACGU_NUM(seq[x])] += grad[{x, x}] * newscore;
+                            }
+                            gradient[{i, j}][nucij] += grad[{i, j}] * newscore;
+
+                            next_seq(seq, size);
+                        } while (seq != "");
+                        continue;
+                    }
+
+                    for (int nuci1 = 0; nuci1 < 4; nuci1++) {
+                        for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
+                            double probability = dist[{i, j}][nucij] *
+                                                    dist[{i+1, i+1}][nuci1] *
+                                                    dist[{j-1, j-1}][nucj_1];
+
+                            double newscore;
+                            newscore = v_score_hairpin(i, j, nuci, nuci1, nucj_1, nucj) / kT;
+                            // newscore = (v_score_hairpin(i, j, -1) +
+                            //                 v_score_hairpin_mismatch(i, j, nuci, nuci1, nucj_1, nucj)) / kT;
+                            hairpin_score += probability * newscore;
+
+                            gradient[{i, j}][nucij]  += dist[{i+1, i+1}][nuci1] * dist[{j-1, j-1}][nucj_1] * newscore;
+                            gradient[{i+1, i+1}][nuci1] +=  dist[{i, j}][nucij] * dist[{j-1, j-1}][nucj_1] * newscore;
+                            gradient[{j-1, j-1}][nucj_1] += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * newscore;
                         }
                     }
                 }
                 
-                if (is_verbose) {
+                if (verbose) {
                     fprintf(stderr, "Hairpin loop ( %d, %d) : %.2f\n", i+1, j+1, hairpin_score * kT);
                 }
                 total_energy += hairpin_score;
@@ -78,72 +145,43 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
                 double single_score = 0.;
                 int p = get<0>(inner_loop), q = get<1>(inner_loop);
 
-                for (int nuci = 0; nuci < 4; nuci++) {
-                    for (int nucj = 0; nucj < 4; nucj++) {
-                        double prob_ij = dist[i][nuci] *
-                                            dist[j][nucj];
+                for (int nucij = 0; nucij < 6; nucij++) {
+                    for (int nucpq = 0; nucpq < 6; nucpq++) {
+                        int nuci = PAIR_TO_LEFT_NUC(nucij+1), nucj = PAIR_TO_RIGHT_NUC(nucij+1);
+                        int nucp = PAIR_TO_LEFT_NUC(nucpq+1), nucq = PAIR_TO_RIGHT_NUC(nucpq+1);
 
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            single_score += prob_ij * penalty;
+                        if (p == i+1 || q == j-1) {
+                            // stack or bulge
+                            double probability = dist[{i, j}][nucij] * dist[{p, q}][nucpq];
 
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
-                        }
+                            double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / kT;
+                            single_score += probability * newscore;
 
-                        for (int nucp = 0; nucp < 4; nucp++) {
-                            for (int nucq = 0; nucq < 4; nucq++) {
-                                double prob_pq = dist[p][nucp] *
-                                                 dist[q][nucq];
+                            gradient[{i, j}][nucij] += dist[{p, q}][nucpq] * newscore;
+                            gradient[{p, q}][nucpq] += dist[{i, j}][nucij] * newscore;
+                        } else {
+                            // internal
+                            for (int nuci1 = 0; nuci1 < 4; ++nuci1) {
+                                for (int nucp_1 = 0; nucp_1 < 4; ++nucp_1) {
+                                    for (int nucq1 = 0; nucq1 < 4; ++nucq1) {
+                                        for (int nucj_1 = 0; nucj_1 < 4; ++nucj_1) {
+                                            double probability = dist[{i, j}][nucij] *
+                                                                 dist[{p, q}][nucpq] *
+                                                                 dist[{i+1, i+1}][nuci1] *
+                                                                 dist[{p-1, p-1}][nucp_1] *
+                                                                 dist[{q+1, q+1}][nucq1] *
+                                                                 dist[{j-1, j-1}][nucj_1];
 
-                                if (!_allowed_pairs[nucp][nucq]) {
-                                    single_score += prob_ij * prob_pq * penalty;
+                                            double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
+                                                                                nucp_1, nucp, nucq, nucq1) / kT;
+                                            single_score += probability * newscore;
 
-                                    outside[i][nuci] += dist[j][nucj] * prob_pq * penalty;
-                                    outside[j][nucj] += dist[i][nuci] * prob_pq * penalty;
-                                    outside[p][nucp] += dist[q][nucq] * prob_ij * penalty;
-                                    outside[q][nucq] += dist[p][nucp] * prob_ij * penalty;
-                                    continue;
-                                }
-
-                                if (p == i+1 || q == j-1) {
-                                    double probability = prob_ij * prob_pq;
-
-                                    double newscore = v_score_single(i, j, p, q, nuci, -1, -1, nucj, -1, nucp, nucq, -1) / kT;
-                                    single_score += probability * newscore;
-
-                                    outside[i][nuci] += prob_pq * dist[j][nucj] * newscore;
-                                    outside[j][nucj] += prob_pq * dist[i][nuci] * newscore;
-                                    outside[p][nucp] += prob_ij * dist[q][nucq] * newscore;
-                                    outside[q][nucq] += prob_ij * dist[p][nucp] * newscore;
-                                } else {
-                                    for (int nuci1 = 0; nuci1 < 4; ++nuci1) {
-                                        for (int nucp_1 = 0; nucp_1 < 4; ++nucp_1) {
-                                            for (int nucq1 = 0; nucq1 < 4; ++nucq1) {
-                                                for (int nucj_1 = 0; nucj_1 < 4; ++nucj_1) {
-                                                    double probability = prob_ij *
-                                                                         prob_pq *
-                                                                         dist[i+1][nuci1] *
-                                                                         dist[p-1][nucp_1] *
-                                                                         dist[q+1][nucq1] *
-                                                                         dist[j-1][nucj_1];
-
-                                                    double newscore = v_score_single(i,j,p,q, nuci, nuci1, nucj_1, nucj,
-                                                                                        nucp_1, nucp, nucq, nucq1) / kT;
-                                                    single_score += probability * newscore;
-
-                                                    double prob_tm = dist[i+1][nuci1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * dist[j-1][nucj_1];
-                                                    outside[i][nuci] += dist[j][nucj] * prob_pq * prob_tm * newscore;
-                                                    outside[j][nucj] += dist[i][nuci] * prob_pq * prob_tm * newscore;
-                                                    outside[p][nucp] += dist[q][nucq] * prob_ij * prob_tm * newscore;
-                                                    outside[q][nucq] += dist[p][nucp] * prob_ij * prob_tm * newscore;
-
-                                                    outside[i+1][nuci1] += prob_ij * prob_pq * dist[j-1][nucj_1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * newscore;
-                                                    outside[j-1][nucj_1] += prob_ij * prob_pq * dist[i+1][nuci1] * dist[p-1][nucp_1] * dist[q+1][nucq1] * newscore;
-                                                    outside[p-1][nucp_1] += prob_ij * prob_pq * dist[j-1][nucj_1] * dist[i+1][nuci1] * dist[q+1][nucq1] * newscore;
-                                                    outside[q+1][nucq1] += prob_ij * prob_pq * dist[j-1][nucj_1] * dist[p-1][nucp_1] * dist[i+1][nuci1] * newscore;
-                                                }
-                                            }
+                                            gradient[{i, j}][nucij] += dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1];
+                                            gradient[{p, q}][nucpq] += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1];
+                                            gradient[{i+1, i+1}][nuci1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1];
+                                            gradient[{p-1, p-1}][nucp_1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1];
+                                            gradient[{q+1, q+1}][nucq1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{j-1, j-1}][nucj_1];
+                                            gradient[{j-1, j-1}][nucj_1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1];
                                         }
                                     }
                                 }
@@ -151,7 +189,8 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
                         }
                     }
                 }
-                if (is_verbose) {
+
+                if (verbose) {
                     fprintf(stderr, "Interior loop ( %d, %d); ( %d, %d) : %.2f\n", i+1, j+1, p+1, q+1, single_score * kT);
                 }
                 total_energy += single_score;
@@ -161,81 +200,52 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
                 double multi_score = 0;
 
                 for (auto& multi_inside: M1_indices[i]) {
+                    // enclosed pairs ..x(...)x..
                     int p = multi_inside.first, q = multi_inside.second;
 
-                    for (int nucp = 0; nucp < 4; nucp++) {
-                        for (int nucq = 0; nucq < 4; nucq++) {
-                            double prob_pq = dist[p][nucp] * dist[q][nucq];
+                    for (int nucpq = 0; nucpq < 6; nucpq++) {
+                        int nucp = PAIR_TO_LEFT_NUC(nucpq+1), nucq = PAIR_TO_RIGHT_NUC(nucpq+1);
+                        for (int nucp_1 = 0; nucp_1 < 4; nucp_1++) {
+                            for (int nucq1 = 0; nucq1 < 4; nucq1++) {
+                                // TODO: marginalize
+                                double probability = dist[{p, q}][nucpq] * X[p-1][nucp_1] * X[q+1][nucq1];
+                                long double newscore = v_score_M1(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
+                                // long double newscore = v_score_M1_without_dangle(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
+                                multi_score += probability * newscore;
 
-                            if (!_allowed_pairs[nucp][nucq]) {
-                                multi_score += prob_pq * penalty;
+                                gradient[{p, q}][nucpq] += X[p+1][nucp_1] * X[q+1][nucq1] * newscore;
+                                X_grad[p-1][nucp_1] += dist[{p, q}][nucpq] * X[q+1][nucq1] * newscore;
+                                X_grad[q+1][nucp_1] += dist[{p, q}][nucpq] * X[p-1][nucq1] * newscore;
+                                
+                                // gradient[q][nucq] += dist[p][nucp] * prob_p_1 * prob_q1 * newscore;
 
-                                outside[p][nucp] += dist[q][nucq] * penalty;
-                                outside[q][nucq] += dist[p][nucp] * penalty;
-                                continue;
-                            }
-                            
-                            double prob_p_1 = 1., prob_q1 = 1.;
-                            for (int nucp_1 = 0; nucp_1 < 4; nucp_1++) {
-                                for (int nucq1 = 0; nucq1 < 4; nucq1++) {
-                                    if (p == 0) {
-                                        nucp_1 = -1;
-                                    } else {
-                                        prob_p_1 = dist[p-1][nucp_1];
-                                    }
-
-                                    if (q == seq_length-1) {
-                                        nucq1 = -1;
-                                    } else {
-                                        prob_q1 = dist[q+1][nucq1];
-                                    }
-
-                                    double probability = prob_pq * prob_p_1 * prob_q1;
-                                    // long double newscore = v_score_M1(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
-                                    long double newscore = v_score_M1_without_dangle(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
-                                    multi_score += probability * newscore;
-
-                                    outside[p][nucp] += dist[q][nucq] * prob_p_1 * prob_q1 * newscore;
-                                    outside[q][nucq] += dist[p][nucp] * prob_p_1 * prob_q1 * newscore;
-
-                                    if (p != 0) outside[p-1][nucp_1] += prob_pq * prob_q1 * newscore;
-                                    if (q != seq_length-1) outside[q+1][nucq1] += prob_pq * prob_p_1 * newscore;
-                                }
+                                // if (p > 0) outside[p-1][nucp_1] += prob_pq * prob_q1 * newscore;
+                                // if (q < seq_length-1) outside[q+1][nucq1] += prob_pq * prob_p_1 * newscore;
                             }
                         }
                     }
                 }
 
-                for (int nuci = 0; nuci < 4; nuci++) {
-                    for (int nucj = 0; nucj < 4; nucj++) {
-                        double probability = dist[i][nuci] * dist[j][nucj];
-                        
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            multi_score += probability * penalty;
+                for (int nucij = 0; nucij < 6; nucij++) {
+                    // closing pairs (x...x)
+                    int nuci = PAIR_TO_LEFT_NUC(nucij+1), nucj = PAIR_TO_RIGHT_NUC(nucij+1);
 
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
-                        }
+                    for (int nuci1 = 0; nuci1 < 4; nuci1++) {
+                        for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
+                            double probability = dist[{i, j}][nucij] * X[i+1][nuci1] * X[j-1][nucj_1];
 
-                        for (int nuci1 = 0; nuci1 < 4; nuci1++) {
-                            for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
-                                probability *= dist[i+1][nuci1] * dist[j-1][nucj_1];
+                            long double newscore = v_score_multi(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
+                            // long double newscore = v_score_multi_without_dangle(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
+                            multi_score += probability * newscore;
 
-                                // long double newscore = v_score_multi(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
-                                long double newscore = v_score_multi_without_dangle(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
-                                multi_score += probability * newscore;
-
-                                outside[i][nuci] += dist[j][nucj] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
-                                outside[j][nucj] += dist[i][nuci] * dist[i+1][nuci1] * dist[j-1][nucj_1] * newscore;
-                                outside[i+1][nuci1] += dist[i][nuci] * dist[j][nucj] * dist[j-1][nucj_1] * newscore;
-                                outside[j-1][nucj_1] += dist[i][nuci] * dist[j][nucj] * dist[i+1][nuci1] * newscore;
-                            }
+                            gradient[{i, j}][nucij] = X[i+1][nuci1] * X[j-1][nucj_1] * newscore;
+                            X_grad[i+1][nuci1] += dist[{i, j}][nucij] * X[j-1][nucj_1] * newscore;
+                            X_grad[j-1][nucj_1] += dist[{i, j}][nucij] * X[i+1][nuci1] * newscore;
                         }
                     }
                 }
                 
-                if (is_verbose) {
+                if (verbose) {
                     fprintf(stderr, "Multi loop ( %d, %d) : %.2f\n", i+1, j+1, multi_score * kT);
                 }
                 total_energy += multi_score;
@@ -251,37 +261,63 @@ double BeamCKYParser::free_energy_full_model(vector<array<double, 4>>& dist, str
 
             // check if adding external energy
             if (stk.empty()) {
-                for (int nuci = 0; nuci < 4; nuci++) {
-                    for (int nucj = 0; nucj < 4; nucj++) {
-                        double probability = dist[i][nuci] *
-                                             dist[j][nucj];
+                for (int nucij = 0; nucij < 6; nucij++) {
+                    int nuci = PAIR_TO_LEFT_NUC(nucij+1), nucj = PAIR_TO_RIGHT_NUC(nucij+1); 
 
-                        if (!_allowed_pairs[nuci][nucj]) {
-                            external_energy += probability * penalty;
+                    // TODO: not necessary to iterate nucs out of bound
+                    for (int nuci_1s = 0; nuci_1s < 4; nuci_1s++) {
+                        for (int nucj1s = 0; nucj1s < 4; nucj1s++) {
 
-                            outside[i][nuci] += dist[j][nucj] * penalty;
-                            outside[j][nucj] += dist[i][nuci] * penalty;
-                            continue;
+                            int nuci_1 = (i - 1 >= 0) ? nuci_1s : -1;
+                            double prob_i_1 = (i - 1 >= 0) ? X[i-1][nuci_1s] : .25;
+
+                            int nucj1 = (j + 1 < seq_length) ? nucj1s : -1;
+                            double prob_j1 = (j + 1 < seq_length) ? X[j+1][nucj1s] : .25;
+
+                            double probability = dist[{i, j}][nucij] *
+                                                 prob_i_1 * prob_j1;
+
+                            // long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length) / kT;
+                            long double newscore = v_score_external_paired(i, j, nuci_1, nuci, nucj, nucj1, seq_length) / kT;
+                            external_energy += probability * newscore;
+
+                            gradient[{i, j}][nucij] += prob_i_1 * prob_j1 * newscore;
+                            if (i > 0) X_grad[i-1][nuci_1] +=  dist[{i, j}][nucij] * prob_j1 * newscore;
+                            if (j < seq_length-1) X_grad[j+1][nucj1] += dist[{i, j}][nucij] * prob_i_1 * newscore;
                         }
-
-                        long double newscore = v_score_external_paired_without_dangle(i, j, nuci, nucj, seq_length) / kT;
-                        external_energy += probability * newscore;
-
-                        outside[i][nuci] += dist[j][nucj] * newscore;
-                        outside[j][nucj] += dist[i][nuci] * newscore;
                     }
                 }
             }
         }
     }
 
-    if (is_verbose) {
+    if (verbose) {
         fprintf(stderr, "External loop : %.2f\n", external_energy * kT);
     }
     total_energy += external_energy;
 
-    if (is_verbose) {
+    if (verbose) {
         fprintf(stderr, "Total Energy: %.2f\n\n", total_energy * kT);
     }
-    return total_energy;
+
+    // Add X_grad to gradient
+    for (auto& [idx, grads]: gradient) {
+        auto& [i, j] = idx;
+
+        if (i == j) {
+            for (int x = 0; x < 4; x++) {
+                grads[x] += X_grad[j][x];
+            }
+        } else {
+            grads[CG] += X_grad[i][C] + X_grad[j][G];
+            grads[GC] += X_grad[i][G] + X_grad[j][C];
+            grads[GU] += X_grad[i][G] + X_grad[j][U];
+            grads[UG] += X_grad[i][U] + X_grad[j][G];
+            grads[AU] += X_grad[i][A] + X_grad[j][U];
+            grads[UA] += X_grad[i][U] + X_grad[j][A];
+        }
+    }
+
+
+    return {total_energy, gradient};
 }
