@@ -343,6 +343,9 @@ Objective BeamCKYParser::objective_function(int step) {
         Objective E_Delta_G = expected_free_energy();
 
         return E_log_Q + E_Delta_G;
+    } else if (objective == "deltaG") {
+        Objective E_Delta_G = expected_free_energy();
+        return E_Delta_G;
     } else {
         throw std::runtime_error("Objective not implemented!");
     }

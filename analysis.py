@@ -80,14 +80,15 @@ def process_result_file(rna_id, result_file, args):
     n, rna_struct = len(lines[0]), lines[0]
 
     lr = float(lines[2].split(', ')[0].split(': ')[1])
-    method = lines[1].split(', ')[0].split(': ')[1]
     init = lines[1].split(', ')[1].split(': ')[1]
+    time = float(lines[-2].split(': ')[1])
 
     objs, seqs, pyx = [], [], []
     for line in lines:
         if line.startswith("step:"):
             objs.append(float(line.split(', ')[1].split(': ')[1]))
             seqs.append(line.split(', ')[2].split(': ')[1])
+    objs_exp = [np.exp(-1 * obj) for obj in objs]
 
     best_seq, best_score = '', 0.
     prev_seq, prev_score = '', 0.
@@ -103,9 +104,9 @@ def process_result_file(rna_id, result_file, args):
         else:
             pyx.append(prev_score)
 
-    print(best_seq, best_score, len(np.unique(seqs)))
+    print("initial, final objective: ", objs_exp[0], objs_exp[-1])
+    print("best seq, best score, #unique seq: ", best_seq, best_score, len(np.unique(seqs)))
 
-    objs_exp = [np.exp(-1 * obj) for obj in objs]
 
     plt.rcParams["figure.figsize"] = [7.50, 4.50]
     plt.rcParams["figure.autolayout"] = True
@@ -123,7 +124,10 @@ def process_result_file(rna_id, result_file, args):
     ax1.tick_params(axis='y')
     ax1.legend(fontsize="8")
 
-    plt.title(f'id {rna_id}, Puzzle {rna_struct}, method={method}, init={init}, lr={lr}')
+    if not os.path.exists(f"graphs/{args.folder}"):
+        os.makedirs(f"graphs/{args.folder}")
+
+    plt.title(f'id {rna_id}, Puzzle {rna_struct}, init={init}, lr={lr}, time={time:.2f}')
     plt.savefig(f'graphs/{args.folder}/puzzle_{rna_id}.png', format="png", bbox_inches="tight")
 
 def main():
