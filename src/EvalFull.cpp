@@ -1,5 +1,18 @@
 #include "main.h"
 
+#define NEXT_NUC(x) ((x=='A'? 'C' : (x=='C'? 'G' : (x=='G'? 'U' : (x=='U'?'A': 'N')))))
+
+void next_seq(string& seq, int size) {
+    for (int j = size; j >= 1; j--) {
+        if (j == 1 && seq[j] == 'U') {
+            seq = "";
+            return;
+        }
+        seq[j] = NEXT_NUC(seq[j]);
+        if(seq[j] != 'A') break;
+    }
+}
+
 Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
     int seq_length = rna_struct.length();
 
@@ -46,19 +59,62 @@ Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
                     int nuci = PAIR_TO_LEFT_NUC(nucij+1), nucj = PAIR_TO_RIGHT_NUC(nucij+1);
                     int size = j - i - 1;
 
-                    // // TODO: incorporate special hairpins
-                    // if (size == 3 || size == 4 || size == 6) {
-                    //     // TODO: optimize
-                    //     // special hairpins: triloops, tetraloops, hexaloops
-                    //     string nucs = "ACGU";
-                    //     string subseq = string(size, 'A'); 
+                    // TODO: optimize iterations
+                    if (size == 3 || size == 4 || size == 6) {
+                        // special hairpins: triloops, tetraloops, hexaloops
+                        string nucs = "ACGU";
+                        string seq = string(size+2, 'A');
+                        seq[0] = nucs[nuci], seq[size+1] = nucs[nucj]; // i ... j
 
-                    //     do {
-                    //         string seq = char(nucs[nuci]) + subseq + char(nucs[nucj]);
-                    //         next_seq(subseq);
-                    //     } while (subseq != string(size, 'A'))
-                    //     continue;
-                    // }
+                        do {
+                            vector<int> if_tetraloops;
+                            vector<int> if_hexaloops;
+                            vector<int> if_triloops;
+                            v_init_tetra_hex_tri(seq, seq.length(), if_tetraloops, if_hexaloops, if_triloops); // calculate if_tetraloops, if_hexaloops, if_triloops
+
+                            int tetra_hex_tri = -1;
+                            if (size == 4) // 6:tetra
+                                tetra_hex_tri = if_tetraloops[0];
+                            else if (size == 6) // 8:hexa
+                                tetra_hex_tri = if_hexaloops[0];
+                            else if (size == 3) // 5:tri
+                                tetra_hex_tri = if_triloops[0];
+
+                            double newscore = v_score_hairpin(i, j, nuci, GET_ACGU_NUM(seq[1]), GET_ACGU_NUM(seq[size]), nucj, tetra_hex_tri) / kT;
+                            
+                            double probability = dist[{i, j}][nucij];
+                            for (int x = i + 1; x < j; x++) {
+                                probability *= dist[{x, x}][GET_ACGU_NUM(seq[x-i])];
+                            }
+
+                            hairpin_score += probability * newscore;
+
+                            // temporary storage
+                            unordered_map<pair<int, int>, double, hash_pair> grad;
+
+                            // compute product except for self
+                            double left_product = dist[{i, j}][nucij];
+                            for (int x = i + 1; x < j; x++) {
+                                grad[{x, x}] = left_product;
+                                left_product *= dist[{x, x}][GET_ACGU_NUM(seq[x])];
+                            }
+
+                            double right_product = 1.;
+                            for (int x = j - 1; x > i; x--) {
+                                grad[{x, x}] *= right_product;
+                                right_product *= dist[{x, x}][GET_ACGU_NUM(seq[x])];
+                            }
+                            grad[{i, j}] = right_product;
+
+                            for (int x = i + 1; x < j; x++) {
+                                gradient[{x, x}][GET_ACGU_NUM(seq[x])] += grad[{x, x}] * newscore;
+                            }
+                            gradient[{i, j}][nucij] += grad[{i, j}] * newscore;
+
+                            next_seq(seq, size);
+                        } while (seq != "");
+                        continue;
+                    }
 
                     for (int nuci1 = 0; nuci1 < 4; nuci1++) {
                         for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
@@ -243,6 +299,25 @@ Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
     if (verbose) {
         fprintf(stderr, "Total Energy: %.2f\n\n", total_energy * kT);
     }
+
+    // Add X_grad to gradient
+    for (auto& [idx, grads]: gradient) {
+        auto& [i, j] = idx;
+
+        if (i == j) {
+            for (int x = 0; x < 4; x++) {
+                grads[x] += X_grad[j][x];
+            }
+        } else {
+            grads[CG] += X_grad[i][C] + X_grad[j][G];
+            grads[GC] += X_grad[i][G] + X_grad[j][C];
+            grads[GU] += X_grad[i][G] + X_grad[j][U];
+            grads[UG] += X_grad[i][U] + X_grad[j][G];
+            grads[AU] += X_grad[i][A] + X_grad[j][U];
+            grads[UA] += X_grad[i][U] + X_grad[j][A];
+        }
+    }
+
 
     return {total_energy, gradient};
 }

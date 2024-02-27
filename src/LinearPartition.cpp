@@ -432,7 +432,9 @@ double LinearPartition::parse(string& seq) {
     }  // end of for-loo j
 
     double score = bestC[seq_length-1].alpha;
-    cout << score * -kT / 100.0 << endl;
+    
+    // DEBUG: print in 
+    // cout << score * -kT / 100.0 << endl;
 
     postprocess();
     return score;
@@ -454,7 +456,8 @@ LinearPartition::LinearPartition(int beam_size,
 #endif
 }
 
-double linear_partition(string rna_seq, int beamsize, bool sharpturn, bool is_verbose, int dangles) {
-    LinearPartition parser(beamsize, !sharpturn, is_verbose, dangles);
+double BeamCKYParser::linear_partition(string rna_seq) {
+    int dangles = 2; // TODO: change this into a parameter
+    LinearPartition parser(beamsize, nosharpturn, is_verbose, dangles);
     return parser.parse(rna_seq);
 }

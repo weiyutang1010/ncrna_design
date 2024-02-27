@@ -43,6 +43,7 @@ using namespace std;
   #define VALUE_MIN numeric_limits<double>::lowest()
 #endif
 
+// TODO: used in jensen's approach (need debug)
 vector<pair<int, int>> nucs_pairs = {{1,2}, {2,1}, {0,3}, {3,0}, {2,3}, {3,2}}; // CG, GC, AU, UA, GU, UG
 
 // A hash function used to hash a pair of any kind 
@@ -94,6 +95,21 @@ struct State {
 struct Objective {
     double score;
     unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
+
+    Objective operator+(Objective& other) const {
+        Objective result;
+        result.score = this->score + other.score;
+
+        result.gradient = this->gradient;
+
+        for (auto& [idx, grad]: result.gradient) {
+            for (int i = 0; i < grad.size(); i++) {
+                grad[i] += other.gradient[idx][i];
+            }
+        }
+
+        return result;
+    }
 };
 
 
@@ -112,6 +128,7 @@ public:
 
     // paired: dist[i, j] = [p(CG), p(GC), p(GU), p(UG), p(AU), p(UA)]
     // unpaired: dist[j, j] = [p(A), p(C), p(G), p(U)]
+    vector<pair<int, int>> paired_idx; // [i, j] for paired, [j, j] for unpaired positions
     unordered_map<pair<int, int>, vector<double>, hash_pair> dist;
     vector<vector<double>> X; // n x 4 distribution after marginalization
 
@@ -164,8 +181,8 @@ private:
     void M_outside(int j, vector<array<double, 4>>& dist);
     void C_outside(int j, vector<array<double, 4>>& dist);
 
-    void update(vector<array<double, 4>> &dist);
-    void projection(vector<array<double, 4>> &dist);
+    void update(Objective obj);
+    void projection();
 
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
@@ -192,7 +209,8 @@ private:
     pf_type beam_prune_P(std::unordered_map<pair<int, int>, State, hash_pair> &beamstep);
 
     // sampling
-    void get_k_samples();
+    void resample();
+    double linear_partition(string rna_seq);
 
     vector<string> samples;
     vector<double> samples_partition;

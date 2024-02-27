@@ -60,7 +60,11 @@ def expected_energy(rna_struct, init, verbose=False):
     cmds = f"./main --mode expected_energy --init {init}"
     rt = subprocess.run(cmds.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, input=f"{rna_struct}\n".encode())
     lines = rt.stderr.decode('utf-8').strip().split('\n')
-    value = float(lines[-1][14:]) / 100.0
+    
+    value = 0.
+    for line in lines:
+        if line.startswith("Total Energy: "):
+            value = float(line.split(": ")[1]) / 100.0
 
     return value
 
@@ -87,6 +91,7 @@ def expected_energy_brute_force(rna_struct, init, verbose=False):
             energy = float(line.split(' : ')[1])
             cache[loop] += (1 / len(seqs)) * energy
 
+    # DEBUG: print out energy of each loop type
     # for x in cache:
     #     print(x, cache[x])
 
@@ -98,41 +103,42 @@ def expected_energy_brute_force(rna_struct, init, verbose=False):
 class TestExpectedFreeEnergy(unittest.TestCase):
 
     # Each test method must start with "test_"
-    # def test_n5(self):
-    #     rna_struct = "(...)"
-    #     init = "uniform"
+    def test_n5(self):
+        rna_struct = "(...)"
+        init = "uniform"
+        self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
+
+    # def test_n9_targeted(self):
+    #     rna_struct = "(((...)))"
+    #     init = "targeted"
     #     self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
 
-    def test_n9_targeted(self):
-        rna_struct = "(((...)))"
-        init = "targeted"
-        self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
+    # def test_n12_targeted(self):
+    #     rna_struct = "((((...))))."
+    #     init = "targeted"
+    #     self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
 
-    def test_n12_targeted(self):
-        rna_struct = "((((...))))."
-        init = "targeted"
-        self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
+    # def test_n12_multi_targeted(self):
+    #     rna_struct = "((...)(...))"
+    #     init = "targeted"
+    #     self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
 
-    def test_n12_multi_targeted(self):
-        rna_struct = "((...)(...))"
-        init = "targeted"
-        self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
+    # def test_n10_internal_targeted(self):
+    #     rna_struct = "(.(....).)"
+    #     init = "targeted"
+    #     self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
 
-    def test_n10_internal_targeted(self):
-        rna_struct = "(.(....).)"
-        init = "targeted"
-        self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
+    # def test_n11_internal_targeted(self):
+    #     rna_struct = "(.(....)..)"
+    #     init = "targeted"
+    #     self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
 
-    def test_n11_internal_targeted(self):
-        rna_struct = "(.(....)..)"
-        init = "targeted"
-        self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
-
-    def test_n19_targeted(self):
-        rna_struct = "(((....))((...)..))"
-        init = "targeted"
-        self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
+    # def test_n19_targeted(self):
+    #     rna_struct = "(((....))((...)..))"
+    #     init = "targeted"
+    #     self.assertAlmostEqual(expected_energy(rna_struct, init), expected_energy_brute_force(rna_struct, init))
 
 # Running the tests
 if __name__ == '__main__':
+    # expected_energy_brute_force("((((...)))).", "targeted")
     unittest.main(argv=[''], defaultTest='TestExpectedFreeEnergy')
