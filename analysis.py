@@ -81,7 +81,10 @@ def process_result_file(rna_id, result_file, args):
 
     lr = float(lines[2].split(', ')[0].split(': ')[1])
     init = lines[1].split(', ')[1].split(': ')[1]
-    time = float(lines[-2].split(': ')[1])
+
+    time = 0.0
+    if lines[-2].startswith("Total Time: "):
+        time = float(lines[-2].split(': ')[1])
 
     objs, seqs, pyx = [], [], []
     for line in lines:
@@ -141,9 +144,6 @@ def main():
 
     # find best solutions
     if args.mode == "best":
-        arr = []
-        sol = {}
-
         rna_struct = args.y
         n = len(rna_struct)
 

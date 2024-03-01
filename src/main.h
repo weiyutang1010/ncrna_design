@@ -73,6 +73,12 @@ enum nucpairs {
     UA,
 };
 
+// convert nucs to idx
+unordered_map<string, int> nucs_to_idx {
+    {"AA", 0}, {"CC", 1}, {"GG", 2}, {"UU", 3},
+    {"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}
+};
+
 struct comp
 {
     template<typename T>
@@ -109,6 +115,16 @@ struct Objective {
         }
 
         return result;
+    }
+
+    void operator+=(Objective& other) {
+        this->score += other.score;
+
+        for (auto& [idx, grad]: this->gradient) {
+            for (int i = 0; i < grad.size(); i++) {
+                grad[i] += other.gradient[idx][i];
+            }
+        }
     }
 };
 
@@ -155,6 +171,7 @@ public:
     Objective objective_function(int step);
     Objective expected_free_energy(bool verbose);
     Objective sampling_approx(int step);
+    Objective partition_exact();
 
 private:
     void print_state(unordered_map<pair<int, int>, State, hash_pair> *best, FILE* fp);
@@ -183,7 +200,6 @@ private:
 
     void update(Objective obj);
     void projection();
-
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
     unordered_map<int, State> *bestH, *bestM2, *bestM, *bestMulti;
@@ -215,6 +231,10 @@ private:
     vector<string> samples;
     vector<double> samples_partition;
 
+    // brute force
+    vector<string> seqs;
+    vector<double> seqs_partition;
+    void read_partition();
 };
 
 // log space: borrowed from CONTRAfold

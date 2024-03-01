@@ -96,18 +96,18 @@ Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
                             double left_product = dist[{i, j}][nucij];
                             for (int x = i + 1; x < j; x++) {
                                 grad[{x, x}] = left_product;
-                                left_product *= dist[{x, x}][GET_ACGU_NUM(seq[x])];
+                                left_product *= dist[{x, x}][GET_ACGU_NUM(seq[x-i])];
                             }
 
                             double right_product = 1.;
                             for (int x = j - 1; x > i; x--) {
                                 grad[{x, x}] *= right_product;
-                                right_product *= dist[{x, x}][GET_ACGU_NUM(seq[x])];
+                                right_product *= dist[{x, x}][GET_ACGU_NUM(seq[x-i])];
                             }
                             grad[{i, j}] = right_product;
 
                             for (int x = i + 1; x < j; x++) {
-                                gradient[{x, x}][GET_ACGU_NUM(seq[x])] += grad[{x, x}] * newscore;
+                                gradient[{x, x}][GET_ACGU_NUM(seq[x-i])] += grad[{x, x}] * newscore;
                             }
                             gradient[{i, j}][nucij] += grad[{i, j}] * newscore;
 
@@ -176,12 +176,12 @@ Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
                                                                                 nucp_1, nucp, nucq, nucq1) / kT;
                                             single_score += probability * newscore;
 
-                                            gradient[{i, j}][nucij] += dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1];
-                                            gradient[{p, q}][nucpq] += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1];
-                                            gradient[{i+1, i+1}][nuci1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1];
-                                            gradient[{p-1, p-1}][nucp_1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1];
-                                            gradient[{q+1, q+1}][nucq1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{j-1, j-1}][nucj_1];
-                                            gradient[{j-1, j-1}][nucj_1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1];
+                                            gradient[{i, j}][nucij] += dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{p, q}][nucpq] += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{i+1, i+1}][nuci1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{p-1, p-1}][nucp_1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{q+1, q+1}][nucq1] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{q+1, q+1}][nucq1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{j-1, j-1}][nucj_1] += dist[{i, j}][nucij] * dist[{p, q}][nucpq] * dist[{i+1, i+1}][nuci1] * dist[{p-1, p-1}][nucp_1] * dist[{q+1, q+1}][nucq1] * newscore;
                                         }
                                     }
                                 }
@@ -207,20 +207,14 @@ Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
                         int nucp = PAIR_TO_LEFT_NUC(nucpq+1), nucq = PAIR_TO_RIGHT_NUC(nucpq+1);
                         for (int nucp_1 = 0; nucp_1 < 4; nucp_1++) {
                             for (int nucq1 = 0; nucq1 < 4; nucq1++) {
-                                // TODO: marginalize
                                 double probability = dist[{p, q}][nucpq] * X[p-1][nucp_1] * X[q+1][nucq1];
                                 long double newscore = v_score_M1(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
                                 // long double newscore = v_score_M1_without_dangle(p, q, -1, nucp_1, nucp, nucq, nucq1, seq_length) / kT;
                                 multi_score += probability * newscore;
 
-                                gradient[{p, q}][nucpq] += X[p+1][nucp_1] * X[q+1][nucq1] * newscore;
+                                gradient[{p, q}][nucpq] += X[p-1][nucp_1] * X[q+1][nucq1] * newscore;
                                 X_grad[p-1][nucp_1] += dist[{p, q}][nucpq] * X[q+1][nucq1] * newscore;
-                                X_grad[q+1][nucp_1] += dist[{p, q}][nucpq] * X[p-1][nucq1] * newscore;
-                                
-                                // gradient[q][nucq] += dist[p][nucp] * prob_p_1 * prob_q1 * newscore;
-
-                                // if (p > 0) outside[p-1][nucp_1] += prob_pq * prob_q1 * newscore;
-                                // if (q < seq_length-1) outside[q+1][nucq1] += prob_pq * prob_p_1 * newscore;
+                                X_grad[q+1][nucq1] += dist[{p, q}][nucpq] * X[p-1][nucp_1] * newscore;
                             }
                         }
                     }
@@ -238,7 +232,7 @@ Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
                             // long double newscore = v_score_multi_without_dangle(i, j, nuci, nuci1, nucj_1, nucj, seq_length) / kT;
                             multi_score += probability * newscore;
 
-                            gradient[{i, j}][nucij] = X[i+1][nuci1] * X[j-1][nucj_1] * newscore;
+                            gradient[{i, j}][nucij] += X[i+1][nuci1] * X[j-1][nucj_1] * newscore;
                             X_grad[i+1][nuci1] += dist[{i, j}][nucij] * X[j-1][nucj_1] * newscore;
                             X_grad[j-1][nucj_1] += dist[{i, j}][nucij] * X[i+1][nuci1] * newscore;
                         }

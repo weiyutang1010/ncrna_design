@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# echo "((((...))))." | ./main --mode ncrna_design --objective pyx_sampling --init uniform --verbose --lr 0.01 -k 1000 --step 2500 > results/temp/2.txt &
-# echo "((((...))))." | ./main --mode ncrna_design --objective pyx_sampling --init targeted --verbose --lr 0.005 -k 1000 --step 2500 > results/temp/3.txt &
-# echo "(((...)))" | ./main --mode ncrna_design --objective pyx_sampling --init targeted --verbose -k 1000 --step 5 > result.txt &
-# echo "(((((((........)))))))" | ./main --mode ncrna_design --objective pyx_sampling --init uniform --verbose -k 10000 --step 5 > result.txt &
+
+# echo "((((...))))." | ./main --mode ncrna_design --obj pyx_exact --step 1500 --lr 0.005 --verbose --init targeted > results/exact_targeted/8.txt &
+# echo "(((((.....)))))" | ./main --mode ncrna_design --obj pyx_exact --step 1500 --lr 0.005 --verbose --init targeted > results/exact_targeted/1.txt &
 
 # Check if file argument is provided
 if [ $# -eq 0 ]; then
@@ -12,20 +11,58 @@ if [ $# -eq 0 ]; then
 fi
 
 # Check if file exists
-if [ ! -f "$1" ]; then
+if [ ! -f "data/eterna/$1.txt" ]; then
     echo "File $1 not found!"
     exit 1
 fi
 
 # Read file line by line
+# while IFS= read -r line; do
+#     # Split line by space
+#     puzzles=($line)
+
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init uniform --verbose --lr 0.005 -k 1000 --step 2500 > results/sampling_uniform/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init targeted --verbose --lr 0.005 -k 1000 --step 2500 > results/sampling_targeted/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init uniform --verbose --lr 0.005 -k 2500 --step 2500 > results/sampling_uniform_k2500/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init uniform --verbose --lr 0.01 -k 2500 --step 3500 > results/sampling_uniform_ex/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init uniform --verbose --lr 0.005 -k 2500 --step 2500 > results/sampling_uniform_k2500_fixed/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init targeted --verbose --lr 0.005 -k 2500 --step 2500 > results/sampling_targeted_k2500/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init targeted --verbose --lr 0.01 -k 2500 --step 3500 > results/sampling_targeted_ex/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init targeted --verbose --lr 0.005 -k 2500 --step 2500 > results/sampling_targeted_k2500_fixed/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective deltaG --init uniform --verbose --lr 0.005 --step 5000 > results/deltaG_uniform/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective deltaG --init targeted --verbose --lr 0.005 --step 5000 > results/deltaG_targeted/${puzzles[0]}.txt &
+
+#     # echo "${puzzles[1]}" | ./main --mode test_gradient --objective deltaG --init targeted
+# done < "data/eterna/$1.txt"
+
+# varying k
+# sample_sizes=(200 400 800 1600 3200 6400)
+
+# while IFS= read -r line; do
+#     # Split line by space
+#     puzzles=($line)
+
+#     if [ ! -d "./results/sample_size_p${puzzles[0]}" ]; then
+#         mkdir "./results/sample_size_p${puzzles[0]}"
+#     fi
+
+#     for k in "${sample_sizes[@]}"; do
+#         echo "${puzzles[1]}" | ./main --mode ncrna_design --obj pyx_sampling --step 2500 --lr 0.005 --k $k --init uniform > results/sample_size_p${puzzles[0]}/k$k.txt &
+#     done
+# done < "data/eterna/$1.txt"
+
+# varying resampling iteration
+resample_iter=(1 2 4 8 16 32)
+
 while IFS= read -r line; do
     # Split line by space
     puzzles=($line)
 
-    # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init uniform --verbose --lr 0.005 -k 1000 --step 2500 > results/sampling_uniform/${puzzles[0]}.txt &
-    # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init targeted --verbose --lr 0.005 -k 1000 --step 2500 > results/sampling_targeted/${puzzles[0]}.txt &
-    # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init uniform --verbose --lr 0.005 -k 2500 --step 2500 > results/sampling_uniform_k2500/${puzzles[0]}.txt &
-    # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init targeted --verbose --lr 0.005 -k 2500 --step 2500 > results/sampling_targeted_k2500/${puzzles[0]}.txt &
-    echo "${puzzles[1]}" | ./main --mode ncrna_design --objective deltaG --init uniform --verbose --lr 0.005 --step 2500 > results/deltaG_uniform/${puzzles[0]}.txt &
-    echo "${puzzles[1]}" | ./main --mode ncrna_design --objective deltaG --init targeted --verbose --lr 0.005 --step 2500 > results/deltaG_targeted/${puzzles[0]}.txt &
-done < "$1"
+    if [ ! -d "./results/resample_iter_p${puzzles[0]}" ]; then
+        mkdir "./results/resample_iter_p${puzzles[0]}"
+    fi
+
+    for it in "${resample_iter[@]}"; do
+        echo "${puzzles[1]}" | ./main --mode ncrna_design --obj pyx_sampling --step 2500 --lr 0.005 --k 2500 --iter $it --init uniform > results/resample_iter_p${puzzles[0]}/iter$it.txt &
+    done
+done < "data/eterna/$1.txt"

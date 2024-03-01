@@ -30,6 +30,7 @@
 // #include "Eval.cpp"
 #include "EvalFull.cpp"
 #include "Sampling.cpp"
+#include "Exact.cpp"
 #include "LinearPartition.cpp"
 
 
@@ -268,13 +269,13 @@ void BeamCKYParser:: initialize() {
 void BeamCKYParser::print_dist(string label, unordered_map<pair<int, int>, vector<double>, hash_pair>& dist) {
     cout << label << endl;
 
-    for (auto& [idx, probs]: dist) {
-        auto& [i, j] = idx;
+    for (auto& [i, j]: paired_idx) {
+        auto& probs = dist[{i, j}];
 
         if (i == j) {
             cout << i << ": " << fixed << setprecision(4) << "A " << probs[A] << " C " << probs[C] << " G " << probs[G] << " U " << probs[U] << "\n";
         } else {
-            cout << "(" << i << ", " << j << "): " << fixed << setprecision(4) << "CG " << probs[CG] << " GC " << probs[GC] << " AU " << probs[AU] << " UA " << probs[UA] << " GU " << probs[GU] << " UG " << probs[UG] << "\n";
+            cout << "(" << i << ", " << j << "): " << fixed << setprecision(4) << "CG " << probs[CG] << " GC " << probs[GC] << " GU " << probs[GU] << " UG " << probs[UG] << " AU " << probs[AU] << " UA " << probs[UA] << "\n";
         }
     }
     cout << endl;
@@ -343,9 +344,17 @@ Objective BeamCKYParser::objective_function(int step) {
         Objective E_Delta_G = expected_free_energy();
 
         return E_log_Q + E_Delta_G;
+    } else if (objective == "pyx_exact") {
+        Objective E_log_Q = partition_exact();
+        Objective E_Delta_G = expected_free_energy();
+        
+        return E_log_Q + E_Delta_G;
     } else if (objective == "deltaG") {
         Objective E_Delta_G = expected_free_energy();
         return E_Delta_G;
+    } else if (objective == "E_log_Q") {
+        Objective E_log_Q = partition_exact();
+        return E_log_Q;
     } else {
         throw std::runtime_error("Objective not implemented!");
     }
@@ -434,15 +443,53 @@ int main(int argc, char** argv){
                 BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter);
                 parser.initialize();
                 parser.marginalize();
-                Objective obj1 = parser.expected_free_energy(true);
-                Objective obj2 = parser.sampling_approx(0);
-                Objective obj = obj1 + obj2;
+                Objective obj = parser.expected_free_energy(true);
 
-                cout << obj.score << " " << obj1.score << " " << obj2.score << endl;
+                cout << obj.score << endl;
                 // Debug: print gradient
-                parser.print_dist("E[Delta_G (D_y, y)] + E[log Q(D_y)]", obj.gradient);
-                parser.print_dist("E[Delta_G (D_y, y)]", obj1.gradient);
-                parser.print_dist("E[log Q(D_y)]", obj2.gradient);
+                parser.print_dist("E[Delta_G (D_y, y)]", obj.gradient);
+            }
+        }
+    } else if (mode == "test_gradient") {
+        srand(time(NULL));
+        for (string rna_struct; getline(cin, rna_struct);) {
+            if (rna_struct.size() > 0) {
+                cout << rna_struct << endl;
+                cout << "Initialization: " << initialization << endl << endl;
+
+                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter);
+                parser.initialize();
+                parser.marginalize();
+
+                Objective obj1 = parser.objective_function(0);
+                // parser.print_dist("Gradient", obj1.gradient);
+
+                vector<string> nucs {"A", "C", "G", "U"};
+                vector<string> nucpairs {"CG", "GC", "GU", "UG", "AU", "UA"};
+
+                bool passed = true;
+                double delta = 0.00001;
+                for (auto& [i, j] : parser.paired_idx) {
+                    for (int nucij = 0; nucij < parser.dist[{i, j}].size(); nucij++) {
+                        parser.dist[{i, j}][nucij] += delta;
+                        parser.marginalize();
+                        Objective obj2 = parser.objective_function(1);
+
+                        double approx_grad = (obj2.score - obj1.score) / delta;
+                        double calc_grad = obj1.gradient[{i, j}][nucij];
+                        if (abs(approx_grad - calc_grad) > 0.0001) {
+                            cout << "Test Failed" << endl;
+                            cout << "dist[{" << i << ", " << j << "}][" << ((i == j) ? nucs[nucij] : nucpairs[nucij]) << "] += " << delta << endl;
+                            cout << "Approx Gradient: " << (obj2.score - obj1.score) / delta << endl;
+                            cout << "Calculated Gradient: " << obj1.gradient[{i, j}][nucij] << endl << endl;
+                            passed = false;
+                        }
+                        parser.dist[{i, j}][nucij] -= delta;
+                    }
+                }
+
+                if (passed)
+                    cout << "Test Passed: " << rna_struct << endl << endl;
             }
         }
     } else if (mode == "ncrna_design") {

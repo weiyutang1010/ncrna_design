@@ -27,9 +27,9 @@ void BeamCKYParser::resample() {
             int i = idx.first, j = idx.second;
 
             if (i != j) {
-                int nucij = selectRandomIndex(probs) + 1; // PAIR_TO_LEFT_NUC uses 1-index (see utility_v.h)
-                seq[i] = nucs[PAIR_TO_LEFT_NUC(nucij)];
-                seq[j] = nucs[PAIR_TO_RIGHT_NUC(nucij)];
+                int nucij = selectRandomIndex(probs); // PAIR_TO_LEFT_NUC uses 1-index (see utility_v.h)
+                seq[i] = nucs[PAIR_TO_LEFT_NUC(nucij+1)];
+                seq[j] = nucs[PAIR_TO_RIGHT_NUC(nucij+1)];
             } else {
                 int nucj = selectRandomIndex(probs);
                 seq[j] = nucs[nucj];
@@ -45,25 +45,19 @@ Objective BeamCKYParser::sampling_approx(int step) {
         resample();
     }
 
-    // convert nucs to idx
-    unordered_map<string, int> nucs_to_idx {
-        {"AA", 0}, {"CC", 1}, {"GG", 2}, {"UU", 3},
-        {"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}
-    };
-
     // DEBUG: prints out all sampled sequences
-    // for (int k = 0; k < sample_size; k++) {
-    //     double sample_prob = 1.;
-    //     for (auto& [i, j]: paired_idx) {
-    //         string nucij {samples[k][i], samples[k][j]};
-    //         sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
-    //     }
+    for (int k = 0; k < sample_size; k++) {
+        double sample_prob = 1.;
+        for (auto& [i, j]: paired_idx) {
+            string nucij {samples[k][i], samples[k][j]};
+            sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
+        }
 
-    //     cerr << samples[k] << " " << samples_partition[k] << " " << sample_prob << endl;
-    // }
+        cerr << samples[k] << " " << samples_partition[k] << " " << sample_prob << endl;
+    }
 
     double obj_val = std::accumulate(samples_partition.begin(), samples_partition.end(), 0.) / sample_size;
-    
+
     // compute gradient
     unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
     for (auto& [i, j]: paired_idx) {
@@ -74,6 +68,7 @@ Objective BeamCKYParser::sampling_approx(int step) {
         }
     }
 
+    // #pragma omp parallel for
     for (int k = 0; k < sample_size; k++) {
         // temporary storage
         unordered_map<pair<int, int>, double, hash_pair> grad;
@@ -108,9 +103,12 @@ Objective BeamCKYParser::sampling_approx(int step) {
             sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
         }
 
-        for (auto& [i, j]: paired_idx) {
-            string nucij {samples[k][i], samples[k][j]};
-            gradient[{i, j}][nucs_to_idx[nucij]] += samples_partition[k] * (grad[{i, j}]/ sample_prob) / sample_size; 
+        // #pragma omp critical 
+        {
+            for (auto& [i, j]: paired_idx) {
+                string nucij {samples[k][i], samples[k][j]};
+                gradient[{i, j}][nucs_to_idx[nucij]] += (samples_partition[k] * (grad[{i, j}] / sample_prob)) / sample_size; 
+            }
         }
     }
 
