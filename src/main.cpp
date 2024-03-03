@@ -116,7 +116,9 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
                              int beamsize,
                              bool nosharpturn,
                              int sample_size,
-                             int resample_iter)
+                             int resample_iter,
+                             int seed,
+                             double eps)
     : rna_struct(rna_struct),
       objective(objective),
       initialization(initialization),
@@ -126,11 +128,20 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
       beamsize(beamsize),
       nosharpturn(nosharpturn),
       sample_size(sample_size),
-      resample_iter(resample_iter) {
+      resample_iter(resample_iter),
+      seed(seed),
+      eps(eps) {
 
     if (objective == "pyx_jensen") {
         initialize();
         stacking_energy();
+    }
+
+    this->gen.seed(seed);
+
+    if (eps < 0. || eps > 1.) {
+        std::uniform_real_distribution<> dis(0, 1);
+        this->eps = dis(gen);
     }
 }
 
@@ -250,6 +261,36 @@ void BeamCKYParser:: initialize() {
                 dist[{i, j}][GC] = .5;
             }
         }
+    } else if (initialization == "random") {
+        std::uniform_real_distribution<> dis(0, 1);
+
+        for (auto& [i, j]: paired_idx) {
+            if (i == j) {
+                vector<double> rand {0.0, 1.0};
+                for (int k = 0; k < 3; k++) rand.push_back(dis(gen));
+                sort(rand.begin(), rand.end());
+
+                dist[{i, j}] = {rand[1] - rand[0], rand[2] - rand[1], rand[3] - rand[2], rand[4] - rand[3]};
+            } else {
+                vector<double> rand {0.0, 1.0};
+                for (int k = 0; k < 5; k++) rand.push_back(dis(gen));
+                sort(rand.begin(), rand.end());
+
+                dist[{i, j}] = {rand[1] - rand[0], rand[2] - rand[1], rand[3] - rand[2], rand[4] - rand[3], rand[5] - rand[4], rand[6] - rand[5]};
+            }
+        }
+    } else if (initialization == "epsilon") {
+        // eps * uniform + (1 - eps) * targeted
+        for (auto& [i, j]: paired_idx) {
+            if (i == j) {
+                dist[{i, j}] = vector<double> (4, 1./4. * eps);
+                dist[{i, j}][A] += 1. * (1. - eps);
+            } else {
+                dist[{i, j}] = vector<double> (6, 1./6. * eps);
+                dist[{i, j}][CG] += 0.5 * (1. - eps);
+                dist[{i, j}][GC] += 0.5 * (1. - eps);
+            }
+        }
     } else {
         // read distribution from input
         for (auto& [i, j]: paired_idx) {
@@ -327,10 +368,14 @@ void BeamCKYParser::marginalize() {
 void BeamCKYParser::print_mode() {
     cout << rna_struct << endl;
     cout << "objective: " << objective << ", initializaiton: " << initialization << "\n";
-    cout << "learning rate: " << learning_rate << ", number of steps: " << num_steps << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false");
+    cout << "learning rate: " << learning_rate << ", number of steps: " << num_steps << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false") << ", seed: " << seed;
     
     if (objective == "pyx_sampling")
         cout << ", sample_size: " << sample_size << ", resample iteration: " << resample_iter;
+
+    if (initialization == "epsilon")
+        cout << ", eps: " << eps;
+
     cout << "\n" << endl;
     return;
 }
@@ -382,7 +427,7 @@ void BeamCKYParser::gradient_descent() {
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
 
         // cerr: len(struct), step, time
-        cerr << "n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;
+        cerr << "seed: " << seed << ", n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;
 
         // cout: step, obj val, best seq, time
         string curr_seq = get_integral_solution();
@@ -408,7 +453,6 @@ void BeamCKYParser::gradient_descent() {
 }
 
 int main(int argc, char** argv){
-    srand(42);
 
     // initializations
     string mode = "ncrna_design";
@@ -419,10 +463,13 @@ int main(int argc, char** argv){
     bool is_verbose = false;
     int beamsize = 100;
     bool sharpturn = false;
+    double eps = -1.0;
 
     // used for sampling method
     int sample_size = 1000;
     int resample_iter = 1; // how many iterations before resampling
+
+    int seed = 42;
 
     if (argc > 1) {
         mode = argv[1];
@@ -435,12 +482,15 @@ int main(int argc, char** argv){
         sharpturn = atoi(argv[8]) == 1;
         sample_size = atoi(argv[9]);
         resample_iter = atoi(argv[10]);
+        seed = atoi(argv[11]);
+        eps = atof(argv[12]);
     }
+
 
     if (mode == "expected_energy") {
         for (string rna_struct; getline(cin, rna_struct);) {
             if (rna_struct.size() > 0) {
-                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter);
+                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps);
                 parser.initialize();
                 parser.marginalize();
                 Objective obj = parser.expected_free_energy(true);
@@ -451,13 +501,12 @@ int main(int argc, char** argv){
             }
         }
     } else if (mode == "test_gradient") {
-        srand(time(NULL));
         for (string rna_struct; getline(cin, rna_struct);) {
             if (rna_struct.size() > 0) {
                 cout << rna_struct << endl;
                 cout << "Initialization: " << initialization << endl << endl;
 
-                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter);
+                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps);
                 parser.initialize();
                 parser.marginalize();
 
@@ -497,7 +546,7 @@ int main(int argc, char** argv){
             // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter);
+                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;

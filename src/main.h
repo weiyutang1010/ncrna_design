@@ -138,9 +138,13 @@ public:
     bool is_verbose;
     int beamsize;
     bool nosharpturn;
+    int seed;
     
     // for sampling method
     int sample_size, resample_iter;
+
+    // for epsilon initialization
+    double eps;
 
     // paired: dist[i, j] = [p(CG), p(GC), p(GU), p(UG), p(AU), p(UA)]
     // unpaired: dist[j, j] = [p(A), p(C), p(G), p(U)]
@@ -158,7 +162,9 @@ public:
                   int beamsize=100,
                   bool nosharpturn=true,
                   int sample_size=1000,
-                  int resample_iter=1);
+                  int resample_iter=1,
+                  int seed=42,
+                  double eps=-1.0);
 
     void print_mode(); // print settings [lr, num_steps, ...]
     void print_dist(string label, unordered_map<pair<int, int>, vector<double>, hash_pair>& dist); // print distribution or gradient
@@ -223,6 +229,10 @@ private:
 
     vector<pair<pf_type, pair<int, int>>> scores_P;
     pf_type beam_prune_P(std::unordered_map<pair<int, int>, State, hash_pair> &beamstep);
+
+    // random
+    std::mt19937 gen;
+    int selectRandomIndex(const std::vector<double>& weights);
 
     // sampling
     void resample();

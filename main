@@ -18,6 +18,8 @@ def setgflags():
     flags.DEFINE_boolean('sharpturn', False, "set sharpturn")
     flags.DEFINE_integer('sample_size', 1000, "number of samples", short_name='k')
     flags.DEFINE_integer('resample_iter', 1, "resampling every iter step", short_name='iter')
+    flags.DEFINE_integer('seed', 42, "random seed")
+    flags.DEFINE_float('eps', -1.0, "eps * uniform + (1 - eps) * targeted")
 
     argv = FLAGS(sys.argv)
 
@@ -32,11 +34,13 @@ def main():
     sharpturn = '1' if FLAGS.sharpturn else '0'
     sample_size = str(FLAGS.k)
     resample_iter = str(FLAGS.iter)
+    seed = str(FLAGS.seed)
+    eps = str(FLAGS.eps)
 
     # TODO: error handling
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, 'bin/main'), mode, objective, initialization, learning_rate, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter]
+    cmd = ["%s/%s" % (path, 'bin/main'), mode, objective, initialization, learning_rate, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, seed, eps]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

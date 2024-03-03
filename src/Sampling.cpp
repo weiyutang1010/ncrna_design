@@ -1,9 +1,6 @@
 #include "main.h"
 
-int selectRandomIndex(const std::vector<double>& weights) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-
+int BeamCKYParser::selectRandomIndex(const std::vector<double>& weights) {
     // Create a discrete distribution based on the weights
     std::discrete_distribution<> dist(weights.begin(), weights.end());
 
@@ -19,7 +16,7 @@ void BeamCKYParser::resample() {
         samples_partition.resize(sample_size);
     }
 
-    // get k samples
+    // get k samples and their partition value
     #pragma omp parallel for
     for (int i = 0; i < sample_size; i++) {
         string seq = string(rna_struct.size(), 'A');
@@ -46,15 +43,14 @@ Objective BeamCKYParser::sampling_approx(int step) {
     }
 
     // DEBUG: prints out all sampled sequences
-    for (int k = 0; k < sample_size; k++) {
-        double sample_prob = 1.;
-        for (auto& [i, j]: paired_idx) {
-            string nucij {samples[k][i], samples[k][j]};
-            sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
-        }
-
-        cerr << samples[k] << " " << samples_partition[k] << " " << sample_prob << endl;
-    }
+    // for (int k = 0; k < sample_size; k++) {
+    //     double sample_prob = 1.;
+    //     for (auto& [i, j]: paired_idx) {
+    //         string nucij {samples[k][i], samples[k][j]};
+    //         sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
+    //     }
+    //     cerr << samples[k] << " " << samples_partition[k] << " " << sample_prob << endl;
+    // }
 
     double obj_val = std::accumulate(samples_partition.begin(), samples_partition.end(), 0.) / sample_size;
 
