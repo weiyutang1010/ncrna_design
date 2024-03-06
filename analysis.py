@@ -77,6 +77,10 @@ def get_boltz_prob(seq, ss, scale=True):
 
 def process_result_file(rna_id, result_file, args):
     lines = result_file.read().split('\n')
+
+    if len(lines) < 5:
+        exit(0)
+
     n, rna_struct = len(lines[0]), lines[0]
 
     lr = float(lines[2].split(', ')[0].split(': ')[1])
@@ -91,6 +95,10 @@ def process_result_file(rna_id, result_file, args):
         if line.startswith("step:"):
             objs.append(float(line.split(', ')[1].split(': ')[1]))
             seqs.append(line.split(', ')[2].split(': ')[1])
+    
+    if len(objs) < 1:
+        exit(0)
+    
     objs_exp = [np.exp(-1 * obj) for obj in objs]
 
     best_seq, best_score = '', 0.

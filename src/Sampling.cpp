@@ -44,13 +44,15 @@ Objective BeamCKYParser::sampling_approx(int step) {
 
     // DEBUG: prints out all sampled sequences
     // for (int k = 0; k < sample_size; k++) {
-    //     double sample_prob = 1.;
-    //     for (auto& [i, j]: paired_idx) {
-    //         string nucij {samples[k][i], samples[k][j]};
-    //         sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
-    //     }
-    //     cerr << samples[k] << " " << samples_partition[k] << " " << sample_prob << endl;
+    //     // double sample_prob = 1.;
+    //     // for (auto& [i, j]: paired_idx) {
+    //     //     string nucij {samples[k][i], samples[k][j]};
+    //     //     sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
+    //     // }
+    //     // cerr << samples[k] << " " << samples_partition[k] << " " << sample_prob << endl;
+    //     cerr << samples[k] << endl;
     // }
+    // cerr << endl;
 
     double obj_val = std::accumulate(samples_partition.begin(), samples_partition.end(), 0.) / sample_size;
 

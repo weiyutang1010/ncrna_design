@@ -33,6 +33,10 @@ fi
 #     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective deltaG --init targeted --verbose --lr 0.005 --step 5000 > results/deltaG_targeted/${puzzles[0]}.txt &
 
 #     # echo "${puzzles[1]}" | ./main --mode test_gradient --objective deltaG --init targeted
+#     echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init sequence --lr 0.01 -k 1600 --step 2500 --eps 0.00 --seq ${puzzles[2]} --verbose > results/sampling_sequence_00/${puzzles[0]}.txt &
+#     echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init sequence --lr 0.01 -k 1600 --step 2500 --eps 0.05 --seq ${puzzles[2]} > results/sampling_sequence_05/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init sequence --lr 0.01 -k 1600 --step 2500 --eps 0.10 --seq ${puzzles[2]} > results/sampling_sequence_10/${puzzles[0]}.txt &
+#     # echo "${puzzles[1]}" | ./main --mode ncrna_design --objective pyx_sampling --init sequence --lr 0.01 -k 1600 --step 2500 --eps 0.15 --seq ${puzzles[2]} > results/sampling_sequence_15/${puzzles[0]}.txt &
 # done < "data/eterna/$1.txt"
 
 # varying k
@@ -68,10 +72,10 @@ fi
 # done < "data/eterna/$1.txt"
 
 # Random Initializations
-start=10
-end=99
 
-max_concurrent=12
+
+# Run with seed random initializations (using xargs)
+max_concurrent=16
 
 execute_program() {
     read id struct seed <<< "${1}"
@@ -80,9 +84,17 @@ execute_program() {
         mkdir "./results/sampling_random_$seed"
     fi
 
-    if [ ! -f "./results/sampling_random_$seed/${puzzles[0]}.txt" ]; then
+    # if [ ! -d "./results/sampling_epsilon_$seed" ]; then
+    #     mkdir "./results/sampling_epsilon_$seed"
+    # fi
+
+    # if [ ! -f "./results/sampling_random_$seed/${id}.txt" ]; then
         echo "${struct}" | ./main --mode ncrna_design --obj pyx_sampling --init random --step 2500 --lr 0.01 --k 1600 --seed "${seed}" > "./results/sampling_random_${seed}/${id}.txt"
-    fi
+    # fi
+
+    # if [ ! -f "./results/sampling_epsilon_$seed/${id}.txt" ]; then
+    #     echo "${struct}" | ./main --mode ncrna_design --obj pyx_sampling --init epsilon --step 2500 --lr 0.01 --k 1600 --seed "${seed}" > "./results/sampling_epsilon_${seed}/${id}.txt"
+    # fi
 }
 
 export -f execute_program
@@ -96,21 +108,3 @@ printf "%s\0" "${lines[@]}" | xargs -0 -n 1 -P "$max_concurrent" bash -c 'execut
 
 
 
-# for (( seed=start; seed<=end; seed++ )); do
-#     if [ ! -d "./results/sampling_random_$seed" ]; then
-#         mkdir "./results/sampling_random_$seed"
-#     fi
-
-
-    
-#     while IFS= read -r line; do
-#         # Split line by space
-#         puzzles=($line)
-
-#         if [ ! -f "./results/sampling_random_$seed/${puzzles[0]}.txt" ]; then
-#             # printf "%s\0%s\0%s" "${puzzles[0]}" "${puzzles[1]}" "$seed" | xargs -0 -P "$max_concurrent" bash -c 'execute_program "$@"' _
-#             printf "%s\0" "${puzzles[@]}" | xargs -d '\n' -P "$max_concurrent" bash -c 'execute_program "$@"' _
-#             # echo "${puzzles[1]}" | ./main --mode ncrna_design --obj pyx_sampling --init random --step 2500 --lr 0.01 --k 1600 --seed $seed > ./results/sampling_random_$seed/${puzzles[0]}.txt &
-#         fi
-#     done < "data/eterna/$1.txt"
-# done

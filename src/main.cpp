@@ -118,7 +118,8 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
                              int sample_size,
                              int resample_iter,
                              int seed,
-                             double eps)
+                             double eps,
+                             string init_seq)
     : rna_struct(rna_struct),
       objective(objective),
       initialization(initialization),
@@ -130,7 +131,8 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
       sample_size(sample_size),
       resample_iter(resample_iter),
       seed(seed),
-      eps(eps) {
+      eps(eps),
+      init_seq(init_seq) {
 
     if (objective == "pyx_jensen") {
         initialize();
@@ -291,6 +293,17 @@ void BeamCKYParser:: initialize() {
                 dist[{i, j}][GC] += 0.5 * (1. - eps);
             }
         }
+    } else if (initialization == "sequence") {
+        // eps * uniform + (1 - eps) * sequence
+        for (auto& [i, j]: paired_idx) {
+            if (i == j) {
+                dist[{i, j}] = vector<double> (4, 1./4. * eps);
+            } else {
+                dist[{i, j}] = vector<double> (6, 1./6. * eps);
+            }
+            string nucij {init_seq[i], init_seq[j]};
+            dist[{i, j}][nucs_to_idx[nucij]] += 1. * (1. - eps);
+        }
     } else {
         // read distribution from input
         for (auto& [i, j]: paired_idx) {
@@ -305,6 +318,12 @@ void BeamCKYParser:: initialize() {
             }
         }
     }
+
+    // DEBUG: print sum of every row (should be 1.)
+    // cerr << "Sum of distribution row" << endl;
+    // for (auto& [i, j]: paired_idx) {
+    //     cerr << "(i, j): " << accumulate(dist[{i, j}].begin(), dist[{i, j}].end(), 0.) << endl;
+    // }
 }
 
 void BeamCKYParser::print_dist(string label, unordered_map<pair<int, int>, vector<double>, hash_pair>& dist) {
@@ -427,7 +446,7 @@ void BeamCKYParser::gradient_descent() {
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
 
         // cerr: len(struct), step, time
-        cerr << "seed: " << seed << ", n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;
+        // cerr << "seed: " << seed << ", n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;
 
         // cout: step, obj val, best seq, time
         string curr_seq = get_integral_solution();
@@ -453,7 +472,6 @@ void BeamCKYParser::gradient_descent() {
 }
 
 int main(int argc, char** argv){
-
     // initializations
     string mode = "ncrna_design";
     string objective = "pyx_sampling"; // implement pyx_sampling and pyx_jensen
@@ -464,6 +482,7 @@ int main(int argc, char** argv){
     int beamsize = 100;
     bool sharpturn = false;
     double eps = -1.0;
+    string init_seq = "";
 
     // used for sampling method
     int sample_size = 1000;
@@ -484,13 +503,13 @@ int main(int argc, char** argv){
         resample_iter = atoi(argv[10]);
         seed = atoi(argv[11]);
         eps = atof(argv[12]);
+        init_seq = argv[13];
     }
-
 
     if (mode == "expected_energy") {
         for (string rna_struct; getline(cin, rna_struct);) {
             if (rna_struct.size() > 0) {
-                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps);
+                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq);
                 parser.initialize();
                 parser.marginalize();
                 Objective obj = parser.expected_free_energy(true);
@@ -506,7 +525,7 @@ int main(int argc, char** argv){
                 cout << rna_struct << endl;
                 cout << "Initialization: " << initialization << endl << endl;
 
-                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps);
+                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq);
                 parser.initialize();
                 parser.marginalize();
 
@@ -546,7 +565,7 @@ int main(int argc, char** argv){
             // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps);
+                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;
