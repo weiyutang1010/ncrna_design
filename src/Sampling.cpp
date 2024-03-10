@@ -13,10 +13,12 @@ void BeamCKYParser::resample() {
 
     if (samples.size() < sample_size){
         samples.resize(sample_size);
-        samples_partition.resize(sample_size);
     }
 
     // get k samples and their partition value
+    set<string> seen;
+    best_samples = priority_queue<pair<double, string>> ();
+
     #pragma omp parallel for
     for (int i = 0; i < sample_size; i++) {
         string seq = string(rna_struct.size(), 'A');
@@ -32,9 +34,23 @@ void BeamCKYParser::resample() {
                 seq[j] = nucs[nucj];
             }
         }
-        samples[i] = seq;
-        samples_partition[i] = linear_partition(seq); 
+        double log_Q = linear_partition(seq);
+        long deltaG = eval(seq, rna_struct, false, 2); // TODO: convert dangle mode into a parameter
+        double boltz_prob = exp((deltaG / kT) - log_Q);
+        samples[i] = {seq, log_Q, deltaG, boltz_prob};
+
+        #pragma omp critical
+        {
+            if (seen.find(samples[i].seq) == seen.end()) {
+                if (best_samples.size() > best_k)
+                    best_samples.pop();
+                best_samples.push({-boltz_prob, seq});
+                seen.insert(samples[i].seq);
+            }
+        }
     }
+
+    
 }
 
 Objective BeamCKYParser::sampling_approx(int step) {
@@ -54,10 +70,15 @@ Objective BeamCKYParser::sampling_approx(int step) {
     // }
     // cerr << endl;
 
-    double obj_val = std::accumulate(samples_partition.begin(), samples_partition.end(), 0.) / sample_size;
+    double obj_val = 0.;
+    for (const Sample& sample: samples) {
+        obj_val += sample.log_Q;
+    }
+    obj_val /= sample_size;
 
     // compute gradient
     unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
+
     for (auto& [i, j]: paired_idx) {
         if (i == j) {
             gradient[{i, j}] = vector<double> (4, 0.);
@@ -76,7 +97,7 @@ Objective BeamCKYParser::sampling_approx(int step) {
         for (auto& [i, j]: paired_idx) {
             grad[{i, j}] = left_product;
 
-            string nucij {samples[k][i], samples[k][j]};
+            string nucij {samples[k].seq[i], samples[k].seq[j]};
             if (i == j)
                 left_product *= dist[{i, j}][nucs_to_idx[nucij]];
             else
@@ -88,24 +109,24 @@ Objective BeamCKYParser::sampling_approx(int step) {
             auto& [i, j] = *it;
             grad[{i, j}] *= right_product;
 
-            string nucij {samples[k][i], samples[k][j]};
+            string nucij {samples[k].seq[i], samples[k].seq[j]};
             if (i == j)
                 right_product *= dist[{i, j}][nucs_to_idx[nucij]];
             else
                 right_product *= dist[{i, j}][nucs_to_idx[nucij]];
         }
 
-        double sample_prob = 1.;
+        double sample_prob = 1.; // probability dist
         for (auto& [i, j]: paired_idx) {
-            string nucij {samples[k][i], samples[k][j]};
+            string nucij {samples[k].seq[i], samples[k].seq[j]};
             sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
         }
 
         // #pragma omp critical 
         {
             for (auto& [i, j]: paired_idx) {
-                string nucij {samples[k][i], samples[k][j]};
-                gradient[{i, j}][nucs_to_idx[nucij]] += (samples_partition[k] * (grad[{i, j}] / sample_prob)) / sample_size; 
+                string nucij {samples[k].seq[i], samples[k].seq[j]};
+                gradient[{i, j}][nucs_to_idx[nucij]] += (samples[k].log_Q * (grad[{i, j}] / sample_prob)) / sample_size; 
             }
         }
     }

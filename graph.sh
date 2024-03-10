@@ -19,33 +19,22 @@ fi
 # fi
 
 # Check if directory exists
-if [ ! -d "./analysis/$1" ]; then
-    echo "Directory ./analysis/$1 created."
-    mkdir analysis/$1
-fi
+# if [ ! -d "./analysis/$1" ]; then
+#     echo "Directory ./analysis/$1 created."
+#     mkdir analysis/$1
+# fi
 
+# for file in "./results/$1"/*; do
+#     if [ -f "$file" ]; then
+#         # Print the file name
+#         filename=$(basename "$file")
+#         filename_without_extension="${filename%.*}"
+#         # Print the filename
+#         echo "$filename_without_extension"
 
-# Read file line by line
-# while IFS= read -r line; do
-#     # Split line by space
-#     puzzles=($line)
-
-#     echo "${puzzles[0]} ${puzzles[1]}"
-#     python analysis.py --mode graph --folder $2 --file ${puzzles[0]} > ./analysis/$2/${puzzles[0]}.txt &
-
-# done < "data/eterna/$1.txt"
-
-for file in "./results/$1"/*; do
-    if [ -f "$file" ]; then
-        # Print the file name
-        filename=$(basename "$file")
-        filename_without_extension="${filename%.*}"
-        # Print the filename
-        echo "$filename_without_extension"
-
-        python analysis.py --mode graph --folder $1 --file $filename_without_extension > ./analysis/$1/$filename_without_extension.txt &
-    fi
-done
+#         python analysis.py --mode graph --folder $1 --file $filename_without_extension > ./analysis/$1/$filename_without_extension.txt &
+#     fi
+# done
 
 #     # varying sample size
 #     if [ ! -d "./results/$1_p$puzzle" ]; then
@@ -70,28 +59,28 @@ done
 #     done
 # done
 
-# start=14
-# end=24
+start=0
+end=0
 
-# for (( seed=start; seed<=end; seed++ )); do
-#     if [ ! -d "./results/$1_$seed" ]; then
-#         echo "./results/$1_$seed is missing"
-#         exit 1
-#     fi
+for (( seed=start; seed<=end; seed++ )); do
+    if [ ! -d "./results/$1_$seed" ]; then
+        echo "./results/$1_$seed is missing"
+        exit 1
+    fi
 
-#     if [ ! -d "./analysis/$1_$seed" ]; then
-#         mkdir "./analysis/$1_$seed"
-#     fi
+    if [ ! -d "./analysis/$1_$seed" ]; then
+        mkdir "./analysis/$1_$seed"
+    fi
 
-#     for file in "./results/$1_$seed"/*; do
-#         if [ -f "$file" ]; then
-#             # Print the file name
-#             filename=$(basename "$file")
-#             filename_without_extension="${filename%.*}"
-#             # Print the filename
-#             echo "$filename_without_extension"
+    for file in "./results/$1_$seed"/*; do
+        if [ -f "$file" ]; then
+            # Print the file name
+            filename=$(basename "$file")
+            filename_without_extension="${filename%.*}"
+            # Print the filename
+            echo "$filename_without_extension"
 
-#             python analysis.py --mode graph --folder "$1_$seed" --file $filename_without_extension > ./analysis/$1_$seed/$filename_without_extension.txt &
-#         fi
-#     done
-# done
+            python analysis.py --mode graph --folder "$1_$seed" --file $filename_without_extension > ./analysis/$1_$seed/$filename_without_extension.txt &
+        fi
+    done
+done

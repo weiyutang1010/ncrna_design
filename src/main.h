@@ -10,6 +10,7 @@
 #define FASTCKY_BEAMCKYPAR_H
 
 #include <string>
+#include <queue>
 #include <limits>
 #include <vector>
 #include <unordered_map>
@@ -140,6 +141,7 @@ public:
     bool nosharpturn;
     
     // for sampling method
+    int best_k = 30; // always print out the best 30 unique samples
     int sample_size, resample_iter;
 
     // for initialization modes
@@ -166,7 +168,8 @@ public:
                   int resample_iter=1,
                   int seed=42,
                   double eps=-1.0,
-                  string init_seq="");
+                  string init_seq="",
+                  int best_k=30);
 
     void print_mode(); // print settings [lr, num_steps, ...]
     void print_dist(string label, unordered_map<pair<int, int>, vector<double>, hash_pair>& dist); // print distribution or gradient
@@ -174,7 +177,7 @@ public:
     void marginalize();
     void gradient_descent();
     string get_integral_solution();
-    double eval(string& rna_seq, string& rna_struct, bool verbose, FILE* fp);
+    // double eval(string& rna_seq, string& rna_struct, bool verbose, FILE* fp);
     
     Objective objective_function(int step);
     Objective expected_free_energy(bool verbose);
@@ -237,11 +240,18 @@ private:
     int selectRandomIndex(const std::vector<double>& weights);
 
     // sampling
+    struct Sample {
+        string seq;
+        double log_Q;
+        long deltaG;
+        double boltz_prob;
+    };
+
     void resample();
     double linear_partition(string rna_seq);
 
-    vector<string> samples;
-    vector<double> samples_partition;
+    vector<Sample> samples;
+    priority_queue<pair<double, string>> best_samples;
 
     // brute force
     vector<string> seqs;

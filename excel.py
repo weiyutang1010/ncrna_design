@@ -23,12 +23,13 @@ results_seq = {line[0]: [] for line in lines}
 #         results_seq[rna_id].append((best_seen, best_seq))
 #         results[rna_id].append(best_seen)
 
-for seed in range(50):
+for seed in range(30):
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
 
         file_path = f'./analysis/{sys.argv[1]}_{seed}/{rna_id}.txt'
-        if not os.path.exists(file_path): 
+        if not os.path.exists(file_path):
+            print(f"{file_path} does not exist")
             continue
 
         with open(file_path, 'r') as file:
@@ -49,8 +50,6 @@ best_seen = []
 # print("rna_id, best, avg, var, best_seq")
 for line in lines:
     rna_id, rna_struct = line[0], line[1]
-    # if len(rna_struct) > 50:
-    #     continue
     print(f"{int(rna_id)}", end=",")
     print(f"", end=",")
     print(f"{len(line[1])}", end=",")

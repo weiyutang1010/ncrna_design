@@ -59,71 +59,97 @@ Objective BeamCKYParser::expected_free_energy(bool verbose=false) {
                     int nuci = PAIR_TO_LEFT_NUC(nucij+1), nucj = PAIR_TO_RIGHT_NUC(nucij+1);
                     int size = j - i - 1;
 
-                    // TODO: optimize iterations
-                    if (size == 3 || size == 4 || size == 6) {
-                        // special hairpins: triloops, tetraloops, hexaloops
-                        string nucs = "ACGU";
-                        string seq = string(size+2, 'A');
-                        seq[0] = nucs[nuci], seq[size+1] = nucs[nucj]; // i ... j
-
-                        do {
-                            vector<int> if_tetraloops;
-                            vector<int> if_hexaloops;
-                            vector<int> if_triloops;
-                            v_init_tetra_hex_tri(seq, seq.length(), if_tetraloops, if_hexaloops, if_triloops); // calculate if_tetraloops, if_hexaloops, if_triloops
-
-                            int tetra_hex_tri = -1;
-                            if (size == 4) // 6:tetra
-                                tetra_hex_tri = if_tetraloops[0];
-                            else if (size == 6) // 8:hexa
-                                tetra_hex_tri = if_hexaloops[0];
-                            else if (size == 3) // 5:tri
-                                tetra_hex_tri = if_triloops[0];
-
-                            double newscore = v_score_hairpin(i, j, nuci, GET_ACGU_NUM(seq[1]), GET_ACGU_NUM(seq[size]), nucj, tetra_hex_tri) / kT;
-                            
-                            double probability = dist[{i, j}][nucij];
-                            for (int x = i + 1; x < j; x++) {
-                                probability *= dist[{x, x}][GET_ACGU_NUM(seq[x-i])];
-                            }
-
-                            hairpin_score += probability * newscore;
-
-                            // temporary storage
-                            unordered_map<pair<int, int>, double, hash_pair> grad;
-
-                            // compute product except for self
-                            double left_product = dist[{i, j}][nucij];
-                            for (int x = i + 1; x < j; x++) {
-                                grad[{x, x}] = left_product;
-                                left_product *= dist[{x, x}][GET_ACGU_NUM(seq[x-i])];
-                            }
-
-                            double right_product = 1.;
-                            for (int x = j - 1; x > i; x--) {
-                                grad[{x, x}] *= right_product;
-                                right_product *= dist[{x, x}][GET_ACGU_NUM(seq[x-i])];
-                            }
-                            grad[{i, j}] = right_product;
-
-                            for (int x = i + 1; x < j; x++) {
-                                gradient[{x, x}][GET_ACGU_NUM(seq[x-i])] += grad[{x, x}] * newscore;
-                            }
-                            gradient[{i, j}][nucij] += grad[{i, j}] * newscore;
-
-                            next_seq(seq, size);
-                        } while (seq != "");
-                        continue;
-                    }
-
                     for (int nuci1 = 0; nuci1 < 4; nuci1++) {
                         for (int nucj_1 = 0; nucj_1 < 4; nucj_1++) {
                             double probability = dist[{i, j}][nucij] *
-                                                    dist[{i+1, i+1}][nuci1] *
-                                                    dist[{j-1, j-1}][nucj_1];
+                                                 dist[{i+1, i+1}][nuci1] *
+                                                 dist[{j-1, j-1}][nucj_1];
+
+                            // special hairpins: triloops, tetraloops, hexaloops
+                            string nucs = "ACGU";
+                            if (size == 3) {
+                                if ((nucij == CG && nuci1 == A && nucj_1 == C) ||
+                                    (nucij == GC && nuci1 == U && nucj_1 == A)) {
+                                    for (int nuci2 = 0; nuci2 < 4; nuci2++) {
+                                        double prob = probability * dist[{i+2, i+2}][nuci2];
+
+                                        char seq[6] = {0};
+                                        seq[0] = nucs[nuci]; seq[1] = nucs[nuci1], seq[2] = nucs[nuci2], seq[3] = nucs[nucj_1], seq[4] = nucs[nucj];
+                                        char *ts = strstr(Triloops, seq);
+                                        int triloop = (ts ? (ts - Triloops)/6 : -1);
+
+                                        double newscore = v_score_hairpin(i, j, nuci, nuci1, nucj_1, nucj, triloop) / kT;
+                                        hairpin_score += prob * newscore;
+
+                                        gradient[{i, j}][nucij]      += dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                        gradient[{i+1, i+1}][nuci1]  += dist[{i, j}][nucij] * dist[{i+2, i+2}][nuci2] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                        gradient[{i+2, i+2}][nuci2]  += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                        gradient[{j-1, j-1}][nucj_1] += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * newscore;
+                                    }
+                                    continue;
+                                }
+                            } else if (size == 4) {
+                                if ((nucij == CG && nuci1 == A && nucj_1 == G) ||
+                                    (nucij == CG && nuci1 == C && nucj_1 == G) ||
+                                    (nucij == CG && nuci1 == U && nucj_1 == G)) {
+                                    for (int nuci2 = 0; nuci2 < 4; nuci2++) {
+                                        for (int nuci3 = 0; nuci3 < 4; nuci3++) {
+                                            double prob = probability * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3];
+
+                                            char seq[7] = {0};
+                                            seq[0] = nucs[nuci], seq[1] = nucs[nuci1], seq[2] = nucs[nuci2], seq[3] = nucs[nuci3], seq[4] = nucs[nucj_1], seq[5] = nucs[nucj];
+                                            char *ts = strstr(Tetraloops, seq);
+                                            int tetraloop = (ts ? (ts - Tetraloops)/7 : -1);
+
+                                            double newscore;
+                                            newscore = v_score_hairpin(i, j, nuci, nuci1, nucj_1, nucj, tetraloop) / kT;
+                                            hairpin_score += prob * newscore;
+
+                                            gradient[{i, j}][nucij]      += dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{i+1, i+1}][nuci1]  += dist[{i, j}][nucij] * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{i+2, i+2}][nuci2]  += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+3, i+3}][nuci3] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{i+3, i+3}][nuci3]  += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                            gradient[{j-1, j-1}][nucj_1] += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * newscore;
+                                        }
+                                    }
+                                    continue;
+                                }
+                            } else if (size == 6) {
+                                if ((nucij == AU && nuci1 == C && nucj_1 == C) ||
+                                    (nucij == AU && nuci1 == C && nucj_1 == A) ||
+                                    (nucij == AU && nuci1 == C && nucj_1 == U)) {
+                                    for (int nuci2 = 0; nuci2 < 4; nuci2++) {
+                                        for (int nuci3 = 0; nuci3 < 4; nuci3++) {
+                                            for (int nuci4 = 0; nuci4 < 4; nuci4++) {
+                                                for (int nuci5 = 0; nuci5 < 4; nuci5++) {
+                                                    double prob = probability * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * dist[{i+4, i+4}][nuci4] * dist[{i+5, i+5}][nuci5];
+
+                                                    char seq[9] = {0};
+                                                    seq[0] = nucs[nuci], seq[1] = nucs[nuci1], seq[2] = nucs[nuci2], seq[3] = nucs[nuci3], seq[4] = nucs[nuci4], seq[5] = nucs[nuci5], seq[6] = nucs[nucj_1], seq[7] = nucs[nucj];
+                                                    char *ts = strstr(Hexaloops, seq);
+                                                    int hexaloop = (ts ? (ts - Hexaloops)/7 : -1);
+
+                                                    double newscore;
+                                                    newscore = v_score_hairpin(i, j, nuci, nuci1, nucj_1, nucj, hexaloop) / kT;
+                                                    hairpin_score += prob * newscore;
+
+                                                    gradient[{i, j}][nucij]      += dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * dist[{i+4, i+4}][nuci4] * dist[{i+5, i+5}][nuci5] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                                    gradient[{i+1, i+1}][nuci1]  += dist[{i, j}][nucij] * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * dist[{i+4, i+4}][nuci4] * dist[{i+5, i+5}][nuci5] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                                    gradient[{i+2, i+2}][nuci2]  += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+3, i+3}][nuci3] * dist[{i+4, i+4}][nuci4] * dist[{i+5, i+5}][nuci5] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                                    gradient[{i+3, i+3}][nuci3]  += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{i+4, i+4}][nuci4] * dist[{i+5, i+5}][nuci5] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                                    gradient[{i+4, i+4}][nuci4]  += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * dist[{i+5, i+5}][nuci5] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                                    gradient[{i+5, i+5}][nuci5]  += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * dist[{i+4, i+4}][nuci4] * dist[{j-1, j-1}][nucj_1] * newscore;
+                                                    gradient[{j-1, j-1}][nucj_1] += dist[{i, j}][nucij] * dist[{i+1, i+1}][nuci1] * dist[{i+2, i+2}][nuci2] * dist[{i+3, i+3}][nuci3] * dist[{i+4, i+4}][nuci4] * dist[{i+5, i+5}][nuci5] * newscore;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    continue;
+                                }
+                            }
 
                             double newscore;
-                            newscore = v_score_hairpin(i, j, nuci, nuci1, nucj_1, nucj) / kT;
+                            newscore = v_score_hairpin(i, j, nuci, nuci1, nucj_1, nucj, -1) / kT;
                             // newscore = (v_score_hairpin(i, j, -1) +
                             //                 v_score_hairpin_mismatch(i, j, nuci, nuci1, nucj_1, nucj)) / kT;
                             hairpin_score += probability * newscore;

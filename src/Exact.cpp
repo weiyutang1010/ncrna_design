@@ -2,7 +2,7 @@
 
 void BeamCKYParser::read_partition() {
     // Open the file
-    string file_path = "/nfs/guille/huang/users/tangwe/Qx/n" + to_string(rna_struct.length()) + "_y.txt";
+    string file_path = "./Qx/n" + to_string(rna_struct.length()) + "_Qx.txt";
     std::ifstream file(file_path);
 
     // Check if the file is open
@@ -12,10 +12,10 @@ void BeamCKYParser::read_partition() {
 
     // Read the file line by line
     std::string line;
-    std::getline(file, line);
+    // std::getline(file, line);
     
-    if (line != rna_struct)
-        throw std::runtime_error("RNA structure from partition file does not match!");
+    // if (line != rna_struct)
+    //     throw std::runtime_error("RNA structure from partition file does not match!");
 
     while (std::getline(file, line)) {
         if (line.size() <= 0) break;
@@ -33,7 +33,6 @@ Objective BeamCKYParser::partition_exact() {
         read_partition(); // read stored partition value
     }
 
-    
     double score = 0.;
     unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
     for (auto& [i, j]: paired_idx) {
@@ -56,7 +55,6 @@ Objective BeamCKYParser::partition_exact() {
 
     #pragma omp parallel for
     for (int k = 0; k < seqs.size(); k++) {
-        // temporary storage
         unordered_map<pair<int, int>, double, hash_pair> grad;
 
         // compute product except for self
