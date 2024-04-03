@@ -13,7 +13,9 @@
 #include <queue>
 #include <limits>
 #include <vector>
+#include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <math.h> 
 #include <iomanip>
 #include <set>
@@ -44,7 +46,7 @@ using namespace std;
   #define VALUE_MIN numeric_limits<double>::lowest()
 #endif
 
-// TODO: used in jensen's approach (need debug)
+// obsolete: used in jensen's approach (need debug)
 vector<pair<int, int>> nucs_pairs = {{1,2}, {2,1}, {0,3}, {3,0}, {2,3}, {3,2}}; // CG, GC, AU, UA, GU, UG
 
 // A hash function used to hash a pair of any kind 
@@ -58,27 +60,27 @@ struct hash_pair {
     } 
 };
 
-enum nucs {
-    A = 0,
-    C,
-    G,
-    U
-};
+// enum nucs {
+//     A = 0, C, G, U
+// };
 
-enum nucpairs {
-    CG = 0,
-    GC,
-    GU,
-    UG,
-    AU,
-    UA,
-};
+// enum nucpairs {
+//     CG = 0, GC, GU, UG, AU, UA,
+//     AA, AC, AG, CA, CC, CU, GA, GG, UC, UU
+// };
 
 // convert nucs to idx
-unordered_map<string, int> nucs_to_idx {
-    {"AA", 0}, {"CC", 1}, {"GG", 2}, {"UU", 3},
-    {"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}
-};
+// unordered_map<string, int> nucs_to_idx {
+//     {"A", 0}, {"C", 1}, {"G", 2}, {"U", 3}, 
+//     {"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5},
+//     {"AA", 6}, {"AC", 7}, {"AG", 8}, {"CA", 9}, {"CC", 10}, {"CU", 11}, {"GA", 12}, {"GG", 13}, {"UC", 14}, {"UU", 15}
+// };
+
+// unordered_map<int, string> idx_to_nucs {
+//     {0, "CG"}, {1, "GC"}, {2, "GU"}, {3, "UG"}, {4, "AU"}, {5, "UA"},
+//     {6, "AA"}, {7, "AC"}, {8, "AG"}, {9, "CA"}, {10, "CC"}, {11, "CU"}, {12, "GA"}, {13, "GG"}, {14, "UC"}, {15, "UU"}
+// };
+
 
 struct comp
 {
@@ -101,7 +103,8 @@ struct State {
 
 struct Objective {
     double score;
-    unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
+    // unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
+    map<vector<int>, vector<double>> gradient;
 
     Objective operator+(Objective& other) const {
         Objective result;
@@ -129,6 +132,39 @@ struct Objective {
     }
 };
 
+unordered_map<string, int> pairs_to_idx {
+    {"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}
+};
+
+int nucs_to_idx(string st) {
+    unordered_map<char, int> mp {{'A', 0}, {'C', 1}, {'G', 2}, {'U', 3}};
+    int res = 0;
+
+    for (char& c: st) {
+        res *= 4;
+        res += mp[c];
+    }
+
+    return res;
+}
+
+unordered_map<int, string> idx_to_pairs {
+    {0, "CG"}, {1, "GC"}, {2, "GU"}, {3, "UG"}, {4, "AU"}, {5, "UA"}
+};
+
+string idx_to_nucs(int i, int size) {
+    string nucs = "ACGU";
+    string res = "";
+
+    for (int j = 0; j < size; j++) {
+        res += nucs[i % 4];
+        i /= 4;
+    }
+
+    reverse(res.begin(), res.end());
+    return res;
+}
+
 
 class BeamCKYParser {
 public:
@@ -139,6 +175,8 @@ public:
     bool is_verbose;
     int beamsize;
     bool nosharpturn;
+
+    bool softmax;
     
     // for sampling method
     int best_k = 30; // always print out the best 30 unique samples
@@ -149,11 +187,11 @@ public:
     double eps;
     string init_seq;
 
-    // paired: dist[i, j] = [p(CG), p(GC), p(GU), p(UG), p(AU), p(UA)]
-    // unpaired: dist[j, j] = [p(A), p(C), p(G), p(U)]
-    vector<pair<int, int>> paired_idx; // [i, j] for paired, [j, j] for unpaired positions
-    unordered_map<pair<int, int>, vector<double>, hash_pair> dist;
-    vector<vector<double>> X; // n x 4 distribution after marginalization
+    map<vector<int>, vector<double>> dist;
+    map<vector<int>, vector<double>> logits;
+
+    vector<vector<int>> base_pairs_pos;
+    vector<vector<int>> unpaired_pos; // [i] for unpaired, [i, j] and [i, j, k] for coupled terminal mismatches
 
     BeamCKYParser(
                   string rna_struct="",
@@ -169,20 +207,25 @@ public:
                   int seed=42,
                   double eps=-1.0,
                   string init_seq="",
-                  int best_k=30);
+                  int best_k=5,
+                  bool softmax=false);
 
     void print_mode(); // print settings [lr, num_steps, ...]
-    void print_dist(string label, unordered_map<pair<int, int>, vector<double>, hash_pair>& dist); // print distribution or gradient
+    void print_dist(string label, map<vector<int>, vector<double>>& dist); // print distribution or gradient
     void initialize();
-    void marginalize();
+    void initialize_sm();
     void gradient_descent();
     string get_integral_solution();
     // double eval(string& rna_seq, string& rna_struct, bool verbose, FILE* fp);
     
     Objective objective_function(int step);
-    Objective expected_free_energy(bool verbose);
+    // Objective expected_free_energy(bool verbose);
     Objective sampling_approx(int step);
-    Objective partition_exact();
+    // Objective partition_exact();
+
+    void softmax_func(const vector<vector<int>>& positions);
+    void logits_to_dist();
+    Objective logits_grad(const Objective& grad);
 
 private:
     void print_state(unordered_map<pair<int, int>, State, hash_pair> *best, FILE* fp);
@@ -209,7 +252,7 @@ private:
     void M_outside(int j, vector<array<double, 4>>& dist);
     void C_outside(int j, vector<array<double, 4>>& dist);
 
-    void update(Objective obj);
+    void update(Objective& obj);
     void projection();
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
@@ -224,10 +267,6 @@ private:
     vector<int> if_triloops;
 
     int *nucs;
-
-    void stacking_energy();
-    void prepare(unsigned len);
-    void postprocess();
 
     vector<pair<pf_type, int>> scores;
     pf_type beam_prune(unordered_map<int, State>& beamstep);
@@ -244,7 +283,9 @@ private:
         string seq;
         double log_Q;
         long deltaG;
-        double boltz_prob;
+        double log_boltz_prob;
+        double sample_prob;
+        double obj;
     };
 
     void resample();
@@ -252,6 +293,9 @@ private:
 
     vector<Sample> samples;
     priority_queue<pair<double, string>> best_samples;
+
+    double calculate_mean();
+    double calculate_variance();
 
     // brute force
     vector<string> seqs;

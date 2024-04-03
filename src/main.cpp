@@ -25,90 +25,19 @@
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
 
+// obsolete
 // #include "Inside.cpp"
 // #include "Outside.cpp"
 // #include "Eval.cpp"
+// #include "EvalFull.cpp"
+// #include "Exact.cpp"
 
-// TODO: change to include .h but need to change MAKEFILE
-#include "EvalFull.cpp"
+// TODO: change to include .h but need to update MAKEFILE
 #include "LinearFoldEval.h"
 #include "Sampling.cpp"
-#include "Exact.cpp"
 #include "LinearPartition.cpp"
 
-
 using namespace std;
-
-void BeamCKYParser::prepare(unsigned len) {
-    // Use for computing E[log Q(x)] 
-    // seq_length = len;
-    // bestC = new State[seq_length];
-    // bestH = new unordered_map<int, State>[seq_length];
-    // bestP = new unordered_map<pair<int, int>, State, hash_pair>[seq_length]; // bestP[j][{index, nucpair}] = score
-    // bestM = new unordered_map<int, State>[seq_length];
-    // bestM2 = new unordered_map<int, State>[seq_length];
-    // bestMulti = new unordered_map<int, State>[seq_length];
-    // // scores.reserve(seq_length);
-
-    // gradient = new array<double, 4> [seq_length];
-    // if (objective == 0)
-    //     for (int j = 0; j < seq_length; j++) gradient[j] = {VALUE_MIN, VALUE_MIN, VALUE_MIN, VALUE_MIN};
-    // else
-    //     for (int j = 0; j < seq_length; j++) gradient[j] = {0., 0., 0., 0.};
-
-}
-
-void BeamCKYParser::stacking_energy() {
-    stacking_score.resize(6, vector<int>(6));
-    bulge_score.resize(6, vector<vector<int>>(6, vector<int>(SINGLE_MAX_LEN+1)));
-
-    // stacking energy computation
-    int newscore;
-    for(int8_t outer_pair=1; outer_pair<=6; outer_pair++){
-        auto nuci_1 = PAIR_TO_LEFT_NUC(outer_pair);
-        auto nucq = PAIR_TO_RIGHT_NUC(outer_pair);
-        for(int8_t inner_pair=1; inner_pair<=6; inner_pair++){
-            auto nuci = PAIR_TO_LEFT_NUC(inner_pair);
-            auto nucj_1 = PAIR_TO_RIGHT_NUC(inner_pair);
-            newscore = - v_score_single_without_special_internal(0, 1, 1, 0,
-                                nuci_1, nuci, nucj_1, nucq,
-                                nuci_1, nuci, nucj_1, nucq);
-            stacking_score[outer_pair-1][inner_pair-1] = newscore;
-
-            for (int32_t l=0; l<=SINGLE_MAX_LEN; l++){
-                newscore = - v_score_single_without_special_internal(0, l+2, 1, 0,
-                              nuci_1, nuci, nucj_1, nucq,
-                              nuci_1, nuci, nucj_1, nucq); 
-
-                bulge_score[outer_pair-1][inner_pair-1][l] = newscore;
-            }
-        }   
-    }
-}
-
-void BeamCKYParser::postprocess() {
-
-    delete[] bestC;
-    delete[] bestH;
-    delete[] bestP;
-    delete[] bestM;
-    delete[] bestM2;
-    delete[] bestMulti;
-    // delete[] gradient;
-
-}
-
-void print_map(string st, int seq_length, unordered_map<int, State> *best) {
-    printf("%s\n", st.c_str());
-    for(int j = 0; j < seq_length; ++j) {
-        printf("%d: ", j);
-        for (auto& best_j: best[j]) {
-            printf("(%d, %.2f), ", best_j.first, best_j.second.alpha);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
 
 BeamCKYParser::BeamCKYParser(string rna_struct,
                              string objective,
@@ -123,7 +52,8 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
                              int seed,
                              double eps,
                              string init_seq,
-                             int best_k)
+                             int best_k,
+                             bool softmax)
     : rna_struct(rna_struct),
       objective(objective),
       initialization(initialization),
@@ -137,13 +67,10 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
       seed(seed),
       eps(eps),
       init_seq(init_seq),
-      best_k(best_k) {
+      best_k(best_k),
+      softmax(softmax) {
 
-    if (objective == "pyx_jensen") {
-        initialize();
-        stacking_energy();
-    }
-
+    // setting random seed
     this->gen.seed(seed);
 
     if (eps < 0. || eps > 1.) {
@@ -162,19 +89,18 @@ static inline void rtrim(std::string &s) {
 void BeamCKYParser::projection() {
     int n = dist.size(), z = 1;
 
-    unordered_map<pair<int, int>, vector<double>, hash_pair> sorted_dist (dist);
-    for (auto& [idx, probs]: sorted_dist) {
+    map<vector<int>, vector<double>> sorted_dist (dist);
+    for (auto& [pos, probs]: sorted_dist) {
         sort(probs.rbegin(), probs.rend());
     }
 
-    unordered_map<pair<int, int>, vector<double>, hash_pair> cumsum (sorted_dist);
-    for (auto& [idx, probs]: sorted_dist) {
-        std::partial_sum(probs.begin(), probs.end(), cumsum[idx].begin());
+    map<vector<int>, vector<double>> cumsum (sorted_dist);
+    for (auto& [pos, probs]: sorted_dist) {
+        std::partial_sum(probs.begin(), probs.end(), cumsum[pos].begin());
     }
 
-    unordered_map<pair<int, int>, vector<double>, hash_pair> theta (cumsum);
-
-    for (auto& [idx, probs]: theta) {
+    map<vector<int>, vector<double>> theta (cumsum);
+    for (auto& [pos, probs]: theta) {
         for (int j = 0; j < probs.size(); j++) {
             probs[j] = (probs[j] - z) / (j+1);
         }
@@ -182,10 +108,14 @@ void BeamCKYParser::projection() {
 
     vector<int> indices (n);
     for (int i = 0; i < n; i++) {
-        pair<int, int>& idx = paired_idx[i];
+        vector<int> pos;
+        if (i < unpaired_pos.size())
+            pos = unpaired_pos[i];
+        else
+            pos = base_pairs_pos[i - unpaired_pos.size()];
 
-        for (int j = 0; j < sorted_dist[idx].size(); j++) {
-            if (sorted_dist[idx][j] > theta[idx][j])
+        for (int j = 0; j < sorted_dist[pos].size(); j++) {
+            if (sorted_dist[pos][j] > theta[pos][j])
                 indices[i]++;
         }
 
@@ -193,23 +123,31 @@ void BeamCKYParser::projection() {
     }
 
     for (int i = 0; i < n; i++) {
-        pair<int, int>& idx = paired_idx[i];
+        vector<int> pos;
+        if (i < unpaired_pos.size())
+            pos = unpaired_pos[i];
+        else
+            pos = base_pairs_pos[i - unpaired_pos.size()];
 
-        for (int j = 0; j < dist[idx].size(); j++) {
-            dist[idx][j] = max(dist[idx][j] - theta[idx][indices[i]], 0.);
+        for (int j = 0; j < dist[pos].size(); j++) {
+            dist[pos][j] = max(dist[pos][j] - theta[pos][indices[i]], 0.);
         }
     }
 
     // DEBUG: check every row sums to one
-    // for (auto& [idx, probs]: dist) {
-    //     cerr << idx.first << " " << idx.second << " " << accumulate(probs.begin(), probs.end(), 0.) << endl;
+    // for (auto& [pos, probs]: dist) {
+    //     cerr << pos[0] << " " << accumulate(probs.begin(), probs.end(), 0.) << endl;
     // }
 }
 
-void BeamCKYParser::update(Objective obj) {
-    for (auto& [idx, probs]: dist) {
+void BeamCKYParser::update(Objective& obj) {
+    for (auto& [pos, probs]: dist) {
         for (int nucij = 0; nucij < probs.size(); nucij++) {
-            dist[idx][nucij] -= learning_rate * obj.gradient[idx][nucij];
+            if (softmax) {
+                logits[pos][nucij] -= learning_rate * obj.gradient[pos][nucij];
+            } else {
+                dist[pos][nucij] -= learning_rate * obj.gradient[pos][nucij];
+            }
         }
     }
 }
@@ -218,110 +156,242 @@ string BeamCKYParser::get_integral_solution() {
     string nucs = "ACGU";
     string seq = string(rna_struct.size(), 'A');
 
-    for (auto& [idx, probs]: dist) {
-        int i = idx.first, j = idx.second;
-
+    for (const vector<int>& pos: unpaired_pos) {
+        const vector<double>& probs = dist[pos];
         auto maxIterator = std::max_element(probs.begin(), probs.end());
 
-        if (i != j) {
-            int nucij = std::distance(probs.begin(), maxIterator) + 1; // +1 for 1-indexing (see utility_v.h for indexing)
-            seq[i] = nucs[PAIR_TO_LEFT_NUC(nucij)];
-            seq[j] = nucs[PAIR_TO_RIGHT_NUC(nucij)];
-        } else {
-            int nucj = std::distance(probs.begin(), maxIterator);
-            seq[j] = nucs[nucj];
-        }
+        int nucij = std::distance(probs.begin(), maxIterator);
+        for (int x = 0; x < pos.size(); x++)
+            seq[pos[x]] = idx_to_nucs(nucij, pos.size())[x];
+    }
+
+    for (const vector<int>& pos: base_pairs_pos) {
+        const vector<double>& probs = dist[pos];
+        auto maxIterator = std::max_element(probs.begin(), probs.end());
+
+        int nucij = std::distance(probs.begin(), maxIterator);
+        seq[pos[0]] = idx_to_pairs[nucij][0];
+        seq[pos[1]] = idx_to_pairs[nucij][1];
     }
 
     return seq;
 }
 
-void BeamCKYParser:: initialize() {
-    stack<int> st;
+void BeamCKYParser::initialize_sm() {
+    stack<pair<int, int>> stk;
+    tuple<int, int> inner_loop;
+    unordered_set<int> idx; 
 
+    // add coupled positions: base pairs and terminal mismatch
     for (int j = 0; j < rna_struct.size(); j++) {
         if (rna_struct[j] == '(') {
-            st.push(j);
+            if (!stk.empty()) { // +1 for outer loop page
+                stk.top().second ++;
+            }
+            stk.push(make_pair(j, 0)); // init page=0
         } else if (rna_struct[j] == ')') {
-            int i = st.top(); st.pop();
-            paired_idx.push_back({i, j});
-        } else {
-            paired_idx.push_back({j, j});
+            tuple<int, int> top = stk.top();
+            int i = get<0>(top), page = get<1>(top);
+            stk.pop();
+
+            if (page == 0) {
+                unpaired_pos.push_back({i+1, j-1});
+                idx.insert(i+1); idx.insert(j-1);
+            } else if (page == 1) {
+                int p = get<0>(inner_loop), q = get<1>(inner_loop);
+
+                // i ... p ... q ... j
+                if (p - i - 1 == 1 && j - q - 1 == 1) {
+                    // 1x1 internal loops
+                    unpaired_pos.push_back({i+1, j-1});
+                    idx.insert(i+1); idx.insert(j-1);
+                } else if (p - i - 1 == 1 && j - q - 1 > 0) {
+                    // 1x2, 1x3, 1xn internal loops
+                    unpaired_pos.push_back({i+1, q+1, j-1});
+                    idx.insert(i+1); idx.insert(q+1); idx.insert(j-1);
+                } else if (j - q - 1 == 1 && p - i - 1 > 0) {
+                    // 2x1, 3x1, nx1 internal loops
+                    unpaired_pos.push_back({i+1, p-1, j-1});
+                    idx.insert(i+1); idx.insert(p-1); idx.insert(j-1);
+                } else if (p - i - 1 > 1 && j - q - 1 > 1) {
+                    // 2x2, 2x3, generic internal loops
+                    unpaired_pos.push_back({i+1, j-1});
+                    unpaired_pos.push_back({p-1, q+1});
+                    idx.insert(i+1); idx.insert(j-1);
+                    idx.insert(p-1); idx.insert(q+1);
+                }
+            }
+            //update inner_loop
+            inner_loop = make_tuple(i, j);
+
+            base_pairs_pos.push_back({i, j});
+            idx.insert(i); idx.insert(j);
         }
     }
 
+    for (int j = 0; j < rna_struct.size(); j++) {
+        if (idx.find(j) == idx.end()) {
+            unpaired_pos.push_back({j});
+        }
+    }
+
+    sort(unpaired_pos.begin(), unpaired_pos.end());
+
+    if (initialization == "uniform_sm") {
+        for (const vector<int>& pos: unpaired_pos) {
+            int num = pow(4, pos.size());
+            if (softmax) {
+                logits[pos] = vector<double> (num, 0.);
+            } else {
+                dist[pos] = vector<double> (num, 1. / num);
+            }
+        }
+
+        for (const vector<int>& pos: base_pairs_pos) {
+            if (softmax) {
+                logits[pos] = vector<double> (6, 0.);
+            } else {
+                dist[pos] = vector<double> (6, 1. / 6.);
+            }
+        }
+    } else if (initialization == "targeted_sm") {
+        for (const vector<int>& pos: unpaired_pos) {
+            int num = pow(4, pos.size());
+            if (pos.size() == 1) {
+                if (softmax) {
+                    logits[pos] =  vector<double> (num, -20.0);
+                    logits[pos][nucs_to_idx("A")] = 0.;
+                } else {
+                    dist[pos] = vector<double> (num, 0.);
+                    dist[pos][nucs_to_idx("A")] = 1.;
+                }
+            } else {
+                if (softmax) {
+                    logits[pos] = vector<double> (num, 0.);
+                } else {
+                    dist[pos] = vector<double> (num, 1. / num);
+                }
+            }
+        }
+
+        for (const vector<int>& pos: base_pairs_pos) {
+            if (softmax) {
+                logits[pos] = vector<double> (6, -20.0);
+                logits[pos][pairs_to_idx["CG"]] = 0.;
+                logits[pos][pairs_to_idx["GC"]] = 0.;
+            } else {
+                dist[pos] = vector<double> (6, 0.);
+                dist[pos][pairs_to_idx["CG"]] = .5;
+                dist[pos][pairs_to_idx["GC"]] = .5;
+            }
+        }
+    } else if (initialization == "random_sm") {
+        // TODO: add softmax
+        std::uniform_real_distribution<> dis(0, 1);
+
+        for (const vector<int>& pos: unpaired_pos) {
+            int num = pow(4, pos.size());
+            vector<double> rand {0.0, 1.0};
+
+            for (int k = 0; k < num - 1; k++)
+                rand.push_back(dis(gen));
+
+            sort(rand.begin(), rand.end());
+            
+            for (int k = 1; k < rand.size(); k++) {
+                dist[pos].push_back(rand[k] - rand[k-1]);
+            }
+        }
+
+        for (const vector<int>& pos: base_pairs_pos) {
+            vector<double> rand {0.0, 1.0};
+
+            for (int k = 0; k < 5; k++)
+                rand.push_back(dis(gen));
+
+            sort(rand.begin(), rand.end());
+            
+            for (int k = 1; k < rand.size(); k++) {
+                dist[pos].push_back(rand[k] - rand[k-1]);
+            }
+        }
+    } else {
+        throw std::runtime_error("Initialization not implemented yet!");
+    }
+
+    return;
+}
+
+void BeamCKYParser::initialize() {
+    // if initialization ends with sm, then couple terminal mismatches
+    if (initialization.substr(initialization.size() - 2) == "sm") {
+        initialize_sm();
+        return;
+    }
+
+    // no coupled tm
+    stack<int> stk;
+    for (int j = 0; j < rna_struct.size(); j++) {
+        if (rna_struct[j] == '(') {
+            stk.push(j);
+        } else if (rna_struct[j] == ')') {
+            int i = stk.top(); stk.pop();
+            base_pairs_pos.push_back({i, j});
+        } else {
+            unpaired_pos.push_back({j});
+        }
+    }
+
+    // TODO: add softmax modes
     if (initialization == "uniform") {
-        for (auto& [i, j]: paired_idx) {
-            if (i == j)
-                dist[{i, j}] = vector<double> (4, 0.25);
-            else
-                dist[{i, j}] = vector<double> (6, 1./6.);
+        for (const vector<int>& pos: unpaired_pos) {
+            dist[pos] = vector<double> (4, 0.25);
+        }
+
+        for (const vector<int>& pos: base_pairs_pos) {
+            dist[pos] = vector<double> (6, 1./6.);
         }
     } else if (initialization == "targeted") {
-        for (auto& [i, j]: paired_idx) {
-            if (i == j) {
-                dist[{i, j}] = vector<double> (4, 0.);
-                dist[{i, j}][A] = 1.;
-            } else {
-                dist[{i, j}] = vector<double> (6, 0.);
-                dist[{i, j}][CG] = .5;
-                dist[{i, j}][GC] = .5;
-            }
+        for (const vector<int>& pos: unpaired_pos) {
+            dist[pos] = vector<double> (4, 0.);
+            dist[pos][nucs_to_idx("A")] = 1.;
+        }
+
+        for (const vector<int>& pos: base_pairs_pos) {
+            dist[pos] = vector<double> (6, 0.);
+            dist[pos][pairs_to_idx["CG"]] = .5;
+            dist[pos][pairs_to_idx["GC"]] = .5;
         }
     } else if (initialization == "random") {
         std::uniform_real_distribution<> dis(0, 1);
 
-        for (auto& [i, j]: paired_idx) {
-            if (i == j) {
-                vector<double> rand {0.0, 1.0};
-                for (int k = 0; k < 3; k++) rand.push_back(dis(gen));
-                sort(rand.begin(), rand.end());
+        for (const vector<int>& pos: unpaired_pos) {
+            vector<double> rand {0.0, 1.0};
 
-                dist[{i, j}] = {rand[1] - rand[0], rand[2] - rand[1], rand[3] - rand[2], rand[4] - rand[3]};
-            } else {
-                vector<double> rand {0.0, 1.0};
-                for (int k = 0; k < 5; k++) rand.push_back(dis(gen));
-                sort(rand.begin(), rand.end());
+            for (int k = 0; k < 3; k++)
+                rand.push_back(dis(gen));
 
-                dist[{i, j}] = {rand[1] - rand[0], rand[2] - rand[1], rand[3] - rand[2], rand[4] - rand[3], rand[5] - rand[4], rand[6] - rand[5]};
+            sort(rand.begin(), rand.end());
+            
+            for (int k = 1; k < rand.size(); k++) {
+                dist[pos].push_back(rand[k] - rand[k-1]);
             }
         }
-    } else if (initialization == "epsilon") {
-        // eps * uniform + (1 - eps) * targeted
-        for (auto& [i, j]: paired_idx) {
-            if (i == j) {
-                dist[{i, j}] = vector<double> (4, 1./4. * eps);
-                dist[{i, j}][A] += 1. * (1. - eps);
-            } else {
-                dist[{i, j}] = vector<double> (6, 1./6. * eps);
-                dist[{i, j}][CG] += 0.5 * (1. - eps);
-                dist[{i, j}][GC] += 0.5 * (1. - eps);
+
+        for (const vector<int>& pos: base_pairs_pos) {
+            vector<double> rand {0.0, 1.0};
+
+            for (int k = 0; k < 5; k++)
+                rand.push_back(dis(gen));
+
+            sort(rand.begin(), rand.end());
+            
+            for (int k = 1; k < rand.size(); k++) {
+                dist[pos].push_back(rand[k] - rand[k-1]);
             }
-        }
-    } else if (initialization == "sequence") {
-        // eps * uniform + (1 - eps) * sequence
-        for (auto& [i, j]: paired_idx) {
-            if (i == j) {
-                dist[{i, j}] = vector<double> (4, 1./4. * eps);
-            } else {
-                dist[{i, j}] = vector<double> (6, 1./6. * eps);
-            }
-            string nucij {init_seq[i], init_seq[j]};
-            dist[{i, j}][nucs_to_idx[nucij]] += 1. * (1. - eps);
         }
     } else {
-        // read distribution from input
-        for (auto& [i, j]: paired_idx) {
-            if (i == j) {
-                dist[{i, j}] = vector<double> (4, 0.);
-                for (int k = 0; k < 4; k++)
-                    cin >> dist[{i, j}][k];
-            } else {
-                dist[{i, j}] = vector<double> (6, 0.);
-                for (int k = 0; k < 6; k++)
-                    cin >> dist[{i, j}][k];
-            }
-        }
+        throw std::runtime_error("Initialization not implemented yet!");
     }
 
     // DEBUG: print sum of every row (should be 1.)
@@ -331,117 +401,124 @@ void BeamCKYParser:: initialize() {
     // }
 }
 
-void BeamCKYParser::print_dist(string label, unordered_map<pair<int, int>, vector<double>, hash_pair>& dist) {
+void BeamCKYParser::print_dist(string label, map<vector<int>, vector<double>>& dist) {
     cout << label << endl;
 
-    for (auto& [i, j]: paired_idx) {
-        auto& probs = dist[{i, j}];
+    int dc = 4; // decimal place
+    for (const vector<int>& pos: unpaired_pos) {
+        auto& probs = dist[pos];
 
-        if (i == j) {
-            cout << i << ": " << fixed << setprecision(8) << "A " << probs[A] << " C " << probs[C] << " G " << probs[G] << " U " << probs[U] << "\n";
+        if (pos.size() == 1) {
+            cout << pos[0];
         } else {
-            cout << "(" << i << ", " << j << "): " << fixed << setprecision(8) << "CG " << probs[CG] << " GC " << probs[GC] << " GU " << probs[GU] << " UG " << probs[UG] << " AU " << probs[AU] << " UA " << probs[UA] << "\n";
+            cout << "(";
+            for (int i = 0; i < pos.size(); i++)
+                cout << pos[i] << (i == pos.size() - 1 ? "" : ", ");
+            cout << ")";
         }
+        cout << ": " << fixed << setprecision(dc);
+
+        for (int i = 0; i < probs.size(); i++) {
+            cout << idx_to_nucs(i, pos.size()) << " " 
+                 << probs[i] << (i == probs.size() - 1 ? "" : ", ");
+        }
+        cout << "\n";
     }
+
+    for (const vector<int>& pos: base_pairs_pos) {
+        auto& probs = dist[pos];
+
+        cout << "(" << pos[0] << ", " << pos[1] << ")";
+        cout << ": " << fixed << setprecision(dc);
+
+        for (int i = 0; i < probs.size(); i++) {
+            cout << idx_to_pairs[i] << " " 
+                 << probs[i] << (i == probs.size() - 1 ? "" : ", ");
+        }
+        cout << "\n";
+    }
+
     cout << endl;
-}
-
-void BeamCKYParser::marginalize() {
-    int n = rna_struct.size();
-    
-    X = vector<vector<double>> (n, vector<double> (6, 0.));
-    stack<int> st;
-
-    for (int j = 0; j < rna_struct.size(); j++) {
-        if (rna_struct[j] == '(') {
-            st.push(j);
-        } else if (rna_struct[j] == ')') {
-            int i = st.top(); st.pop();
-
-            X[i] = {
-                dist[{i, j}][AU],
-                dist[{i, j}][CG],
-                dist[{i, j}][GC] + dist[{i, j}][GU],
-                dist[{i, j}][UG] + dist[{i, j}][UA],
-            };
-
-            X[j] = {
-                dist[{i, j}][UA],
-                dist[{i, j}][GC],
-                dist[{i, j}][CG] + dist[{i, j}][UG],
-                dist[{i, j}][GU] + dist[{i, j}][AU],
-            };
-        } else {
-            X[j] = dist[{j, j}];
-        }
-    }
-
-    // Debug: print marginalized distribution
-    // cout << "Marginalized Distribution" << endl;
-    // for (int i = 0; i < rna_struct.size(); i++) {
-    //     cout << i << ":" << fixed << setprecision(4);
-    //     cout << " A " << X[i][A];
-    //     cout << " C " << X[i][C];
-    //     cout << " G " << X[i][G];
-    //     cout << " U " << X[i][U];
-    //     cout << endl;
-    // }
-
+    cout << defaultfloat;
 }
 
 void BeamCKYParser::print_mode() {
     cout << rna_struct << endl;
     cout << "objective: " << objective << ", initializaiton: " << initialization << "\n";
-    cout << "learning rate: " << learning_rate << ", number of steps: " << num_steps << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false") << ", seed: " << seed;
+    cout << "learning rate: " << learning_rate << ", number of steps: " << num_steps
+         << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false")
+         << ", seed: " << seed << ", softmax: " << softmax;
     
-    if (objective == "pyx_sampling")
-        cout << ", sample_size: " << sample_size << ", resample iteration: " << resample_iter;
+    // if (objective == "pyx_sampling")
+    cout << ", sample_size: " << sample_size << ", resample iteration: " << resample_iter << ", best samples: " << best_k;
 
-    if (initialization == "epsilon")
-        cout << ", eps: " << eps;
+    // if (initialization == "epsilon")
+    cout << ", eps: " << eps;
 
     cout << "\n" << endl;
-    return;
 }
 
 
 Objective BeamCKYParser::objective_function(int step) {
-    marginalize();
-
     if (objective == "pyx_sampling") {
-        // struct timeval parse_starttime, parse_endtime;
-        // gettimeofday(&parse_starttime, NULL);
-        Objective E_log_Q = sampling_approx(step);
-        // gettimeofday(&parse_endtime, NULL);
-        // double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-        // cerr << "Sampling E[log Q(x)] = " << parse_elapsed_time << " sec" << endl;
-
-        // gettimeofday(&parse_starttime, NULL);
-        Objective E_Delta_G = expected_free_energy();
-        // gettimeofday(&parse_endtime, NULL);
-        // parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-        // cerr << "E[Delta G(x, y)] = " << parse_elapsed_time << " sec" << endl;
-
-        return E_log_Q + E_Delta_G;
-    } else if (objective == "pyx_exact") {
-        Objective E_log_Q = partition_exact();
-        Objective E_Delta_G = expected_free_energy();
+        Objective pyx = sampling_approx(step); // optimize E[-log p(y|x)]
         
-        return E_log_Q + E_Delta_G;
-    } else if (objective == "deltaG") {
-        Objective E_Delta_G = expected_free_energy();
-        return E_Delta_G;
-    } else if (objective == "E_log_Q") {
-        Objective E_log_Q = partition_exact();
-        return E_log_Q;
+        return pyx;
     } else {
         throw std::runtime_error("Objective not implemented!");
     }
     
-    unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
+    map<vector<int>, vector<double>> gradient;
     return {0., gradient};
 }
 
+double round_number(double num, int dc) {
+    return round(num * pow(10, dc)) / pow(10, dc);
+}
+
+struct ExpFunc {
+    double operator()(double x) const { return std::exp(x); }
+};
+
+void BeamCKYParser::softmax_func(const vector<vector<int>>& positions) {
+    for (const vector<int>& pos: positions) {
+        double max_logit = *max_element(logits[pos].begin(), logits[pos].end());
+
+        vector<double> exp_logits(logits[pos].size());
+        std::transform(logits[pos].begin(), logits[pos].end(), exp_logits.begin(), [&] (double x) { 
+            return std::exp(x - max_logit);
+        });
+        double sum_exp_logits = std::accumulate(exp_logits.begin(), exp_logits.end(), 0.);
+        
+        for (double& logit: exp_logits) {
+            dist[pos].push_back(logit / sum_exp_logits);
+        }
+    }
+}
+
+void BeamCKYParser::logits_to_dist() {
+    dist.clear();
+    softmax_func(unpaired_pos);
+    softmax_func(base_pairs_pos);
+}
+
+Objective BeamCKYParser::logits_grad(const Objective& obj) {
+    // ref: https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
+    Objective new_obj;
+    new_obj.score = obj.score;
+    for (const auto& [pos, grad]: obj.gradient) {
+        int n = grad.size();
+        new_obj.gradient[pos] = vector<double> (n, 0.);
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                new_obj.gradient[pos][i] += (dist[pos][j] * ((i == j) - dist[pos][i])) * grad[j];
+            }
+        }
+    }
+
+    return new_obj;
+}
 
 void BeamCKYParser::gradient_descent() {
     struct timeval parse_starttime, parse_endtime;
@@ -452,51 +529,147 @@ void BeamCKYParser::gradient_descent() {
     print_mode();
     initialize();
 
-    double prev_score = 0.;
-    for (int step = 0; step < num_steps; step++) {
+    if (softmax) {
+        logits_to_dist();
+        print_dist("Initial Logits", logits);
+    }
+
+    print_dist("Initial Distribution", dist);
+
+    // adaptive steps
+    double moving_avg_10 = 0.;
+    queue<double> last_10_sample_prob;
+
+    pair<double, int> last_best_seq = {-1.0, -1};
+    pair<double, int> last_best_avg = {-1.0, -1};
+
+    bool adaptive_step = false;
+    if (num_steps == -1) {
+        adaptive_step = true;
+        num_steps = 500;
+    }
+
+    // TODO: Adam learning rate
+
+    for (int step = 0; step < num_steps || adaptive_step; step++) {
         gettimeofday(&parse_starttime, NULL);
+
+        if (softmax) {
+            logits_to_dist();
+        }
+
         Objective obj = objective_function(step);
-        gettimeofday(&parse_endtime, NULL);
-        double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
 
-        // cerr: len(struct), step, time
-        cerr << "seed: " << seed << ", n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;
+        if (softmax) {
+            obj = logits_grad(obj);
+        }
 
-        // cout: step, obj val, best seq, time
+        // get integral solution x* and its probability p(y | x*)
         string curr_seq = get_integral_solution();
         double boltz_prob = exp((eval(curr_seq, rna_struct, false, 2) / kT) - linear_partition(curr_seq));
-        cout << "step: " << step << ", objective value: " << obj.score << ", seq: " << curr_seq << ", prob: " << boltz_prob << ", time: " << parse_elapsed_time << "\n";
-        cout << "best samples" << "\n";
-        while (!best_samples.empty()) {
-            cout << best_samples.top().second << " " << -best_samples.top().first << "\n";
-            best_samples.pop();
+
+        // approximate mean from samples: E[p(y | x)]
+        double mean_prob = 0.;
+        if (sample_size > 0.) {
+            for (int k = 0; k < sample_size; k++)
+                mean_prob += exp(samples[k].log_boltz_prob);
+            mean_prob /= sample_size;
         }
-        cout << endl;
+
+        gettimeofday(&parse_endtime, NULL);
+        double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
+        cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", seq: " << curr_seq << ", prob: " << boltz_prob << ", time: " << parse_elapsed_time << "\n";
+        
+        // print out best k samples and stats
+        sort(samples.begin(), samples.end(), [&](const Sample& a, const Sample& b) {
+            return a.log_boltz_prob > b.log_boltz_prob;
+        });
+
+        cout << "Boxplot: " << std::scientific << std::setprecision(3);
+        for (const Sample& sample: samples) {
+            cout << exp(sample.log_boltz_prob) << " ";
+        }
+        cout << "\n" << defaultfloat;
+
+        // print best k unique sample
+        cout << "best samples" << "\n";
+        int i = 0, count = 0;
+        string last_sample = "";
+        while (count < best_k && i < sample_size) {
+            if (samples[i].seq != last_sample) {
+                cout << samples[i].seq << " " << exp(samples[i].log_boltz_prob) << "\n";
+                last_sample = samples[i].seq;
+                count++;
+            }
+            i++;
+        }
+        cout << "\n";
+
+        // calculate 10 moving avg of sampled E[p(y | x)]
+        moving_avg_10 += mean_prob;
+        last_10_sample_prob.push(mean_prob);
+        if (last_10_sample_prob.size() > 10) {
+            moving_avg_10 -= last_10_sample_prob.front(); 
+            last_10_sample_prob.pop();
+        }
+
+        // cout << "10 Moving Average: " << moving_avg_10 / 10 << "\n";
+
+        // adaptive step conditions:
+        //  1. 100 steps from last best sequence found
+        //  2. if 10 moving avg hasn't improved since last 100 steps
+        if (adaptive_step){
+            boltz_prob = round_number(boltz_prob, 3);
+            double best_sample_prob = round_number(exp(samples[sample_size-1].log_boltz_prob), 3);
+            
+            if (boltz_prob > last_best_seq.first) {
+                last_best_seq = {boltz_prob, step};
+            }
+            
+            if (best_sample_prob > last_best_seq.first) {
+                last_best_seq = {best_sample_prob, step};
+            }
+
+            if (moving_avg_10 / 10 > last_best_avg.first) {
+                last_best_avg = {moving_avg_10 / 10, step};
+            }
+
+            if (step >= 500 && step >= last_best_seq.second + 100 && step >= last_best_avg.second + 100) {
+                adaptive_step = false;
+            }
+            // cout << last_best_seq.second << " " << last_best_avg.second << "\n";
+        }
 
         if (is_verbose) {
+            if (softmax) {
+                print_dist("Logits", logits);
+            }
             print_dist("Distribution", dist);
             print_dist("Gradient", obj.gradient);
         }
 
-        // stop condition
-        if (step > 0 && abs(obj.score - prev_score) < 1e-12) break;
-        prev_score = obj.score;
-
-        // update step
+        // update and projection step
         update(obj);
-        projection();
+        
+        if (!softmax)
+            projection();
+        
+        cout << endl;
+
+        gettimeofday(&parse_endtime, NULL);
+        parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
+        cerr << "seed: " << seed << ", n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;
     }
 
     gettimeofday(&total_endtime, NULL);
     double total_elapsed_time = total_endtime.tv_sec - total_starttime.tv_sec + (total_endtime.tv_usec-total_starttime.tv_usec)/1000000.0;
     cout << "Total Time: " << total_elapsed_time << endl;
-    
 }
 
 int main(int argc, char** argv){
     string mode = "ncrna_design";
     string objective = "pyx_sampling";
-    string initialization = "targeted";
+    string initialization = "targeted_sm";
     double learning_rate = 0.01;
     int num_steps = 1000;
     bool is_verbose = false;
@@ -505,6 +678,7 @@ int main(int argc, char** argv){
     double eps = -1.0;
     string init_seq = "";
     int best_k = 30;
+    bool softmax = false;
 
     // used for sampling method
     int sample_size = 1000;
@@ -527,69 +701,15 @@ int main(int argc, char** argv){
         eps = atof(argv[12]);
         init_seq = argv[13];
         best_k = atoi(argv[14]);
+        softmax = atoi(argv[15]) == 1;
     }
 
-    if (mode == "expected_energy") {
-        for (string rna_struct; getline(cin, rna_struct);) {
-            if (rna_struct.size() > 0) {
-                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq, best_k);
-                parser.initialize();
-                parser.marginalize();
-                parser.print_dist("Distribution", parser.dist);
-                Objective obj = parser.expected_free_energy(true);
-
-                cout << obj.score << endl;
-                // Debug: print gradient
-                parser.print_dist("E[Delta_G (D_y, y)] gradient", obj.gradient);
-            }
-        }
-    } else if (mode == "test_gradient") {
-        for (string rna_struct; getline(cin, rna_struct);) {
-            if (rna_struct.size() > 0) {
-                cout << rna_struct << endl;
-                cout << "Initialization: " << initialization << endl << endl;
-
-                BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq, best_k);
-                parser.initialize();
-                parser.marginalize();
-
-                Objective obj1 = parser.objective_function(0);
-                // parser.print_dist("Gradient", obj1.gradient);
-
-                vector<string> nucs {"A", "C", "G", "U"};
-                vector<string> nucpairs {"CG", "GC", "GU", "UG", "AU", "UA"};
-
-                bool passed = true;
-                double delta = 0.00001;
-                for (auto& [i, j] : parser.paired_idx) {
-                    for (int nucij = 0; nucij < parser.dist[{i, j}].size(); nucij++) {
-                        parser.dist[{i, j}][nucij] += delta;
-                        parser.marginalize();
-                        Objective obj2 = parser.objective_function(1);
-
-                        double approx_grad = (obj2.score - obj1.score) / delta;
-                        double calc_grad = obj1.gradient[{i, j}][nucij];
-                        if (abs(approx_grad - calc_grad) > 0.0001) {
-                            cout << "Test Failed" << endl;
-                            cout << "dist[{" << i << ", " << j << "}][" << ((i == j) ? nucs[nucij] : nucpairs[nucij]) << "] += " << delta << endl;
-                            cout << "Approx Gradient: " << (obj2.score - obj1.score) / delta << endl;
-                            cout << "Calculated Gradient: " << obj1.gradient[{i, j}][nucij] << endl << endl;
-                            passed = false;
-                        }
-                        parser.dist[{i, j}][nucij] -= delta;
-                    }
-                }
-
-                if (passed)
-                    cout << "Test Passed: " << rna_struct << endl << endl;
-            }
-        }
-    } else if (mode == "ncrna_design") {
+    if (mode == "ncrna_design") {
         for (string rna_struct; getline(cin, rna_struct);){
             // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq, best_k);
+                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq, best_k, softmax);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;

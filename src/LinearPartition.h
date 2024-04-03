@@ -26,12 +26,14 @@ public:
     bool no_sharp_turn;
     bool is_verbose;
     int dangle_mode;
+    bool pf_only;
 
 
     LinearPartition(int beam_size=100,
                   bool nosharpturn=true,
                   bool is_verbose=false,
-		          int dangles=1);
+		          int dangles=1,
+                  bool pf_only=true);
 
     // DecoderResult parse(string& seq);
     double parse(string& seq);
@@ -56,6 +58,8 @@ private:
 
     vector<pair<pf_type, int>> scores;
 
+    void cal_PairProb(State& viterbi);
+    void outside(vector<int> next_pair[]);
     unordered_map<pair<int,int>, pf_type, hash_pair> Pij;
 
 };

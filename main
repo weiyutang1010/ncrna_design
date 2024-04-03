@@ -10,19 +10,20 @@ FLAGS = flags.FLAGS
 def setgflags():
     flags.DEFINE_string('mode', "ncrna_design", "ncrna_design/expected_energy/")
     flags.DEFINE_string('objective', "pyx_sampling", "pyx_sampling/pyx_jensen", short_name='o')
-    flags.DEFINE_string('initializations', "uniform", "uniform/targeted/input", short_name='init')
-    flags.DEFINE_float('learning_rate', 0.01, "learning rate", short_name='lr')
-    flags.DEFINE_integer('num_steps', 2500, "set number of iterations", short_name='step')
+    flags.DEFINE_string('initializations', "targeted_sm", "uniform/targeted/input", short_name='init')
+    flags.DEFINE_float('learning_rate', 0.001, "learning rate", short_name='lr')
+    flags.DEFINE_integer('num_steps', -1, "set number of iterations", short_name='step')
     flags.DEFINE_boolean('verbose', False, "print out more information")
     flags.DEFINE_integer('beamsize', 100, "set beam size", short_name='b')
     flags.DEFINE_boolean('sharpturn', False, "set sharpturn")
-    flags.DEFINE_integer('sample_size', 1600, "number of samples", short_name='k')
+    flags.DEFINE_integer('sample_size', 2500, "number of samples", short_name='k')
     flags.DEFINE_integer('resample_iter', 1, "resampling every iter step", short_name='iter')
     flags.DEFINE_integer('seed', 42, "random seed")
     flags.DEFINE_float('eps', -1.0, "eps * uniform + (1 - eps) * targeted")
     flags.DEFINE_string('sequence', "", "initialization sequence", short_name='seq')
     flags.DEFINE_boolean('test', False, "test mode")
-    flags.DEFINE_integer('best_k', 30, "Best k samples")
+    flags.DEFINE_integer('best_k', 5, "Best k samples")
+    flags.DEFINE_boolean('softmax', False, "Use softmax instead of projection")
 
     argv = FLAGS(sys.argv)
 
@@ -41,16 +42,17 @@ def main():
     eps = str(FLAGS.eps)
     seq = str(FLAGS.seq)
     best_k = str(FLAGS.best_k)
+    softmax = '1' if FLAGS.softmax else '0'
 
     # TODO: error handling
 
     if FLAGS.test:
         path = os.path.dirname(os.path.abspath(__file__))
-        cmd = ["%s/%s" % (path, 'bin/main_test'), mode, objective, initialization, learning_rate, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, seed, eps, seq, best_k]
+        cmd = ["%s/%s" % (path, 'bin/main_test'), mode, objective, initialization, learning_rate, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, seed, eps, seq, best_k, softmax]
         subprocess.call(cmd, stdin=sys.stdin)
     else:
         path = os.path.dirname(os.path.abspath(__file__))
-        cmd = ["%s/%s" % (path, 'bin/main'), mode, objective, initialization, learning_rate, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, seed, eps, seq, best_k]
+        cmd = ["%s/%s" % (path, 'bin/main'), mode, objective, initialization, learning_rate, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, seed, eps, seq, best_k, softmax]
         subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

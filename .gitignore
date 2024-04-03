@@ -1,7 +1,6 @@
 __pycache__/
 bin/
-eval_input
-input
+input.txt
 result1.txt
 result2.txt
 LinearFold/

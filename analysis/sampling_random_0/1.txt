@@ -1,3 +1,2 @@
-0, GAAGCAUUAAGGCUUC, 0.957217
-initial, final objective:  0.26195566685915134 0.3061592155776584
-best seq, best score, #unique seq:  GAAGCAUUAAGGCUUC 0.9572169553299436 1
+Best Integral Solution (seq, score):  GCGGCACUAAAGCCGC 0.9738775384220542
+Best Sampled Solution (seq, score):  GGCCCGAAAAAGGGCC 0.975944476818876
