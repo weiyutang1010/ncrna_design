@@ -46,10 +46,10 @@ def process_result_file(rna_id, result_file, args):
     init = lines[1].split(', ')[1].split(': ')[1]
 
     learning_rate = lines[2].split(', ')[0].split(': ')[1]
-    sample_size = lines[2].split(', ')[6].split(': ')[1]
+    sample_size = lines[3].split(', ')[0].split(': ')[1]
 
-    best_k = 1
-    best_k = int(lines[2].split(', ')[8].split(': ')[1])
+    best_k = 3
+    # best_k = int(lines[3].split(', ')[2].split(': ')[1])
 
     time = 0.0
     if lines[-2].startswith("Total Time: "):

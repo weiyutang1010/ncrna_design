@@ -24,7 +24,7 @@
 
 // #define MIN_CUBE_PRUNING_SIZE 20
 #define kT 61.63207755
-#define SMALL_NUM 1e-18
+#define SMALL_NUM 1e-8
 
 #define NEG_INF -2e20 
 // #define testtime
@@ -135,8 +135,9 @@ struct Objective {
 unordered_map<string, int> pairs_to_idx {
     {"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}
 };
+unordered_map<string, int> nucs_to_idx;
 
-int nucs_to_idx(string st) {
+int nucs_to_idx_init() {
     unordered_map<char, int> mp {{'A', 0}, {'C', 1}, {'G', 2}, {'U', 3}};
     int res = 0;
 
@@ -148,21 +149,24 @@ int nucs_to_idx(string st) {
     return res;
 }
 
-unordered_map<int, string> idx_to_pairs {
-    {0, "CG"}, {1, "GC"}, {2, "GU"}, {3, "UG"}, {4, "AU"}, {5, "UA"}
-};
+array<string, 6> idx_to_pairs {"CG", "GC", "GU", "UG", "AU", "UA"};
+unordered_map<pair<int, int>, string, hash_pair> idx_to_nucs;
 
-string idx_to_nucs(int i, int size) {
+void idx_to_nucs_init() {
     string nucs = "ACGU";
-    string res = "";
+    for (int size = 0; size < 3; size++) {    
+        for (int i = 0; i < pow(4, i); i++) {
+            string res = "";
 
-    for (int j = 0; j < size; j++) {
-        res += nucs[i % 4];
-        i /= 4;
+            for (int j = 0; j < size; j++) {
+                res += nucs[i % 4];
+                i /= 4;
+            }
+            
+            reverse(res.begin(), res.end());
+            idx_to_nucs[{i, size}] = res;
+        }
     }
-
-    reverse(res.begin(), res.end());
-    return res;
 }
 
 
@@ -193,6 +197,12 @@ public:
     vector<vector<int>> base_pairs_pos;
     vector<vector<int>> unpaired_pos; // [i] for unpaired, [i, j] and [i, j, k] for coupled terminal mismatches
 
+    // Adam optimizer
+    bool adam;
+    pair<double, double> beta = {0.9, 0.999};
+    map<vector<int>, vector<double>> first_moment;
+    map<vector<int>, vector<double>> second_moment;
+    
     BeamCKYParser(
                   string rna_struct="",
                   string objective="",
@@ -208,7 +218,8 @@ public:
                   double eps=-1.0,
                   string init_seq="",
                   int best_k=5,
-                  bool softmax=false);
+                  bool softmax=false,
+                  bool adam=false);
 
     void print_mode(); // print settings [lr, num_steps, ...]
     void print_dist(string label, map<vector<int>, vector<double>>& dist); // print distribution or gradient
@@ -253,6 +264,7 @@ private:
     void C_outside(int j, vector<array<double, 4>>& dist);
 
     void update(Objective& obj);
+    void adam_update(Objective& obj, int step);
     void projection();
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
@@ -284,6 +296,7 @@ private:
         double log_Q;
         long deltaG;
         double log_boltz_prob;
+        double boltz_prob;
         double sample_prob;
         double obj;
     };

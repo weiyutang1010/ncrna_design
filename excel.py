@@ -28,9 +28,12 @@ def main(sample):
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
 
-        x = [-1, -2]
+        # x = [-1, -2]
         # file_path_list = [f'./analysis/{sys.argv[1]}_uniform_sm/{rna_id}.txt', f'./analysis/{sys.argv[1]}_targeted_sm/{rna_id}.txt']
-        file_path_list = [f'./analysis/{sys.argv[1]}_targeted_sm/{rna_id}.txt']
+        # x = [-2]
+        # file_path_list = [f'./analysis/{sys.argv[1]}_targeted_sm/{rna_id}.txt']
+        x = [-1]
+        file_path_list = [f'./analysis/{sys.argv[1]}_uniform_sm_softmax_adam/{rna_id}.txt']
         for x_seed, file_path in zip(x, file_path_list):
             if not os.path.exists(file_path):
                 print(f"{file_path} does not exist")
@@ -83,6 +86,9 @@ def main(sample):
     print("rna_id, best, avg, var, best_seq")
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
+        if rna_id == '22':
+            print()
+            continue
         print(f"{int(rna_id)}", end=",")
         print(f"", end=",")
         print(f"{len(line[1])}", end=",")

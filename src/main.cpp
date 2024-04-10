@@ -53,7 +53,8 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
                              double eps,
                              string init_seq,
                              int best_k,
-                             bool softmax)
+                             bool softmax,
+                             bool adam)
     : rna_struct(rna_struct),
       objective(objective),
       initialization(initialization),
@@ -68,15 +69,20 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
       eps(eps),
       init_seq(init_seq),
       best_k(best_k),
-      softmax(softmax) {
+      softmax(softmax),
+      adam(adam) {
 
     // setting random seed
     this->gen.seed(seed);
 
+    // set random eps value
     if (eps < 0. || eps > 1.) {
         std::uniform_real_distribution<> dis(0, 1);
         this->eps = dis(gen);
     }
+
+    // initialize idx_to_nucs map
+    idx_to_nucs_init();
 }
 
 // trim from end (in place)
@@ -148,6 +154,31 @@ void BeamCKYParser::update(Objective& obj) {
             } else {
                 dist[pos][nucij] -= learning_rate * obj.gradient[pos][nucij];
             }
+        }
+    }
+}
+
+void BeamCKYParser::adam_update(Objective& obj, int step) {
+    // only for softmax
+    map<vector<int>, vector<double>>& grad = obj.gradient;
+    
+    // m_t = b_1 * m_{t-1} + (1 - b_1) * g_t
+    for (auto& [pos, arr]: logits) {
+        if (first_moment[pos].size() < arr.size()) {
+            first_moment[pos].resize(arr.size(), 0.);
+        }
+
+        if (second_moment[pos].size() < arr.size()) {
+            second_moment[pos].resize(arr.size(), 0.);
+        }
+
+        for (int i = 0; i < arr.size(); i++) {
+            first_moment[pos][i] = beta.first * first_moment[pos][i] + (1.0 - beta.first) * grad[pos][i];
+            second_moment[pos][i] = beta.second * second_moment[pos][i] + (1.0 - beta.second) * (grad[pos][i] * grad[pos][i]);
+            double first_mt_corrected = first_moment[pos][i] / (1.0 - pow(beta.first, step+1));
+            double second_mt_corrected = second_moment[pos][i] / (1.0 - pow(beta.second, step+1));
+
+            arr[i] = arr[i] - learning_rate * first_mt_corrected / (sqrt(second_mt_corrected) + SMALL_NUM);
         }
     }
 }
@@ -259,8 +290,8 @@ void BeamCKYParser::initialize_sm() {
             int num = pow(4, pos.size());
             if (pos.size() == 1) {
                 if (softmax) {
-                    logits[pos] =  vector<double> (num, -20.0);
-                    logits[pos][nucs_to_idx("A")] = 0.;
+                    logits[pos] =  vector<double> (num, 0.);
+                    logits[pos][nucs_to_idx("A")] = eps * 10.0;
                 } else {
                     dist[pos] = vector<double> (num, 0.);
                     dist[pos][nucs_to_idx("A")] = 1.;
@@ -276,9 +307,9 @@ void BeamCKYParser::initialize_sm() {
 
         for (const vector<int>& pos: base_pairs_pos) {
             if (softmax) {
-                logits[pos] = vector<double> (6, -20.0);
-                logits[pos][pairs_to_idx["CG"]] = 0.;
-                logits[pos][pairs_to_idx["GC"]] = 0.;
+                logits[pos] = vector<double> (6, 0.);
+                logits[pos][pairs_to_idx["CG"]] = 10. * eps;
+                logits[pos][pairs_to_idx["GC"]] = 10. * eps;
             } else {
                 dist[pos] = vector<double> (6, 0.);
                 dist[pos][pairs_to_idx["CG"]] = .5;
@@ -447,10 +478,10 @@ void BeamCKYParser::print_mode() {
     cout << "objective: " << objective << ", initializaiton: " << initialization << "\n";
     cout << "learning rate: " << learning_rate << ", number of steps: " << num_steps
          << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false")
-         << ", seed: " << seed << ", softmax: " << softmax;
+         << ", seed: " << seed << ", softmax: " << softmax << ", adam: " << adam << "\n";
     
     // if (objective == "pyx_sampling")
-    cout << ", sample_size: " << sample_size << ", resample iteration: " << resample_iter << ", best samples: " << best_k;
+    cout << "sample_size: " << sample_size << ", resample iteration: " << resample_iter << ", best samples: " << best_k;
 
     // if (initialization == "epsilon")
     cout << ", eps: " << eps;
@@ -537,8 +568,9 @@ void BeamCKYParser::gradient_descent() {
     print_dist("Initial Distribution", dist);
 
     // adaptive steps
-    double moving_avg_10 = 0.;
-    queue<double> last_10_sample_prob;
+    int k_ma = 30; // TODO: turn this into a parameter
+    double moving_avg = 0.;
+    queue<double> last_k_sample_prob;
 
     pair<double, int> last_best_seq = {-1.0, -1};
     pair<double, int> last_best_avg = {-1.0, -1};
@@ -549,19 +581,16 @@ void BeamCKYParser::gradient_descent() {
         num_steps = 500;
     }
 
-    // TODO: Adam learning rate
-
     for (int step = 0; step < num_steps || adaptive_step; step++) {
         gettimeofday(&parse_starttime, NULL);
 
+        Objective obj;
         if (softmax) {
             logits_to_dist();
-        }
-
-        Objective obj = objective_function(step);
-
-        if (softmax) {
+            obj = objective_function(step);
             obj = logits_grad(obj);
+        } else {
+            obj = objective_function(step);
         }
 
         // get integral solution x* and its probability p(y | x*)
@@ -572,7 +601,7 @@ void BeamCKYParser::gradient_descent() {
         double mean_prob = 0.;
         if (sample_size > 0.) {
             for (int k = 0; k < sample_size; k++)
-                mean_prob += exp(samples[k].log_boltz_prob);
+                mean_prob += samples[k].boltz_prob;
             mean_prob /= sample_size;
         }
 
@@ -587,7 +616,7 @@ void BeamCKYParser::gradient_descent() {
 
         cout << "Boxplot: " << std::scientific << std::setprecision(3);
         for (const Sample& sample: samples) {
-            cout << exp(sample.log_boltz_prob) << " ";
+            cout << sample.boltz_prob << " ";
         }
         cout << "\n" << defaultfloat;
 
@@ -597,7 +626,7 @@ void BeamCKYParser::gradient_descent() {
         string last_sample = "";
         while (count < best_k && i < sample_size) {
             if (samples[i].seq != last_sample) {
-                cout << samples[i].seq << " " << exp(samples[i].log_boltz_prob) << "\n";
+                cout << samples[i].seq << " " << samples[i].boltz_prob << "\n";
                 last_sample = samples[i].seq;
                 count++;
             }
@@ -605,39 +634,39 @@ void BeamCKYParser::gradient_descent() {
         }
         cout << "\n";
 
-        // calculate 10 moving avg of sampled E[p(y | x)]
-        moving_avg_10 += mean_prob;
-        last_10_sample_prob.push(mean_prob);
-        if (last_10_sample_prob.size() > 10) {
-            moving_avg_10 -= last_10_sample_prob.front(); 
-            last_10_sample_prob.pop();
+        // calculate k moving avg of sampled E[p(y | x)]
+        moving_avg += mean_prob;
+        last_k_sample_prob.push(mean_prob);
+        if (last_k_sample_prob.size() > k_ma) {
+            moving_avg -= last_k_sample_prob.front(); 
+            last_k_sample_prob.pop();
         }
-
-        // cout << "10 Moving Average: " << moving_avg_10 / 10 << "\n";
 
         // adaptive step conditions:
         //  1. 100 steps from last best sequence found
-        //  2. if 10 moving avg hasn't improved since last 100 steps
+        //  2. if k moving avg hasn't improved since last 100 steps
         if (adaptive_step){
-            boltz_prob = round_number(boltz_prob, 3);
-            double best_sample_prob = round_number(exp(samples[sample_size-1].log_boltz_prob), 3);
+            boltz_prob = round_number(boltz_prob, 4);
+            double best_sample_prob = round_number(exp(samples[sample_size-1].log_boltz_prob), 4);
             
             if (boltz_prob > last_best_seq.first) {
+                // update step of best integral solution
                 last_best_seq = {boltz_prob, step};
             }
             
             if (best_sample_prob > last_best_seq.first) {
+                // update step of best sampled solution
                 last_best_seq = {best_sample_prob, step};
             }
 
-            if (moving_avg_10 / 10 > last_best_avg.first) {
-                last_best_avg = {moving_avg_10 / 10, step};
+            if (moving_avg / k_ma > last_best_avg.first) {
+                // update step of best moving avg
+                last_best_avg = {moving_avg / k_ma, step};
             }
 
             if (step >= 500 && step >= last_best_seq.second + 100 && step >= last_best_avg.second + 100) {
                 adaptive_step = false;
             }
-            // cout << last_best_seq.second << " " << last_best_avg.second << "\n";
         }
 
         if (is_verbose) {
@@ -649,7 +678,11 @@ void BeamCKYParser::gradient_descent() {
         }
 
         // update and projection step
-        update(obj);
+        if (adam && softmax) {
+            adam_update(obj, step);
+        } else {
+            update(obj);
+        }
         
         if (!softmax)
             projection();
@@ -679,6 +712,7 @@ int main(int argc, char** argv){
     string init_seq = "";
     int best_k = 30;
     bool softmax = false;
+    bool adam = false;
 
     // used for sampling method
     int sample_size = 1000;
@@ -702,6 +736,7 @@ int main(int argc, char** argv){
         init_seq = argv[13];
         best_k = atoi(argv[14]);
         softmax = atoi(argv[15]) == 1;
+        adam = atoi(argv[16]) == 1;
     }
 
     if (mode == "ncrna_design") {
@@ -709,7 +744,7 @@ int main(int argc, char** argv){
             // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq, best_k, softmax);
+                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq, best_k, softmax, adam);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;

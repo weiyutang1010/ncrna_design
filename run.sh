@@ -1,9 +1,7 @@
 #!/bin/bash
 
-
 # echo "((((...))))." | ./main --mode ncrna_design --obj pyx_exact --step 1500 --lr 0.005 --verbose --init targeted > results/exact_targeted/8.txt &
 # echo "(((((.....)))))" | ./main --mode ncrna_design --obj pyx_exact --step 1500 --lr 0.005 --verbose --init targeted > results/exact_targeted/1.txt &
-
 
 # Check if file argument is provided
 if [ $# -eq 0 ]; then
@@ -49,20 +47,27 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --objective pyx_direct --init targeted --best_k 2500 -k 2500 --step 2000 --lr 0.01 > results/boxplot_targeted/${puzzles[0]}.txt &
 
     # 
-    echo "${puzzles[1]}" | ./main --init uniform_sm -k 2500 --step 2000 --lr 0.001 > results/sampling_pyx_uniform_sm/${puzzles[0]}.txt &
-    echo "${puzzles[1]}" | ./main --init uniform_sm -k 2500 --step 2000 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax/${puzzles[0]}.txt &
-    # echo "${puzzles[1]}" | ./main --init targeted_sm -k 2500 --lr 0.001 > results/sampling_pyx_targeted_sm/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init uniform_sm -k 2500 --step 2000 --lr 0.001 > results/sampling_pyx_uniform_sm/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.01 --softmax > results/sampling_pyx_uniform_sm_softmax/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.0001 --softmax --adam > results/sampling_pyx_uniform_sm_softmax_adam_0001/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.001 --softmax --adam > results/sampling_pyx_uniform_sm_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_1/${puzzles[0]}.txt &
+    echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.01 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_01/${puzzles[0]}.txt &
+    echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.05 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_05/${puzzles[0]}.txt &
+    echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.10 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_10/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init targeted_sm > results/sampling_pyx_targeted_sm/${puzzles[0]}.txt &
 done < "data/eterna/$1.txt"
 
 # varying k
 # sample_sizes=(200 400 800 1600 3200 6400)
+# eps=(0.01 0.05 0.1)
 
 # while IFS= read -r line; do
 #     # Split line by space
 #     puzzles=($line)
 
-#     if [ ! -d "./results/sample_size_p${puzzles[0]}" ]; then
-#         mkdir "./results/sample_size_p${puzzles[0]}"
+#     if [ ! -d "./results/eps/eps_p${puzzles[0]}" ]; then
+#         mkdir "./results/eps/eps_p${puzzles[0]}"
 #     fi
 
 #     for k in "${sample_sizes[@]}"; do

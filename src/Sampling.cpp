@@ -55,7 +55,7 @@ void BeamCKYParser::resample() {
         double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
 
         if (objective == "pyx_sampling")
-            samples[k] = {seq, log_Q, deltaG, log_boltz_prob, sample_prob, -log_boltz_prob};
+            samples[k] = {seq, log_Q, deltaG, log_boltz_prob, exp(log_boltz_prob), sample_prob, -log_boltz_prob};
     }
 
     // gettimeofday(&parse_endtime, NULL);
@@ -105,47 +105,20 @@ Objective BeamCKYParser::sampling_approx(int step) {
         gradient[pos] = vector<double> (probs.size(), 0.);
     }
 
-    int num_zero = 0;
     for (int k = 0; k < sample_size; k++) {
-        // calculate p(x;\theta)
-        double new_sample_prob = samples[k].sample_prob;
-
-        // // Obsolete: importance sampling
-        // if (!resample_cond) {
-        //     // if not sampled this turn, calculate the importance sampling
-        //     new_sample_prob = 1.;
-        //     for (auto& [i, j]: paired_idx) {
-        //         string nucij;
-        //         if (i == j) {
-        //             nucij = string {samples[k].seq[j]};
-        //         } else {
-        //             nucij = string {samples[k].seq[i], samples[k].seq[j]};
-        //         }
-        //         new_sample_prob *= dist[{i, j}][nucs_to_idx[nucij]];
-        //     }
-
-        //     if (new_sample_prob == 0.) {
-        //         num_zero++;
-        //         continue;
-        //     }
-        // }
-
         for (const vector<int>& pos: unpaired_pos) {
             string nucij = "";
             for (const int& x: pos) {
                 nucij += samples[k].seq[x];
             }
-
-            gradient[pos][nucs_to_idx(nucij)] += samples[k].obj * (new_sample_prob / samples[k].sample_prob) * (1 / dist[pos][nucs_to_idx(nucij)]);
+            gradient[pos][nucs_to_idx(nucij)] += samples[k].obj * (1 / dist[pos][nucs_to_idx(nucij)]);
         }
 
         for (const vector<int>& pos: base_pairs_pos) {
             string nucij {samples[k].seq[pos[0]], samples[k].seq[pos[1]]};
-            gradient[pos][pairs_to_idx[nucij]] += samples[k].obj * (new_sample_prob / samples[k].sample_prob) * (1 / dist[pos][pairs_to_idx[nucij]] );
+            gradient[pos][pairs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][pairs_to_idx[nucij]] );
         }
     }
-
-    // cout << "Number of zero samples: " << num_zero << endl;
 
     for (auto& [pos, grad]: gradient) {
         for (auto& x: grad) {
