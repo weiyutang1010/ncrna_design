@@ -1,2 +1,6 @@
-Best Integral Solution (seq, score):  GGGCCAGGCCCG 0.9836350826940059
-Best Sampled Solution (seq, score):  GGCCUAUGGCCA 0.9838273715507729
+Seq length:  146
+Seq stats length:  146
+Best p(y|x) solution:  GGCCUAUGGCCA 0.9838273715507729
+Best NED solution:  GGCCUAUGGCCA 0.00273884497610922
+MFE solution:  GGCCCCGGGCCG
+UMFE solution:  GGCCCCGGGCCG

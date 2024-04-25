@@ -1,40 +1,24 @@
 import os, sys
 import numpy as np
 
+from vienna import *
+
 lines = []
-with open(f'./data/eterna/{sys.argv[2]}.txt', 'r') as file:
+with open(f'./data/eterna/{sys.argv[1]}.txt', 'r') as file:
     lines = file.read().split('\n')
     lines = [(line.split(' ')[0], line.split(' ')[1]) for line in lines if len(line) > 0]
 
 lines = sorted(lines, key=lambda x: len(x[1]))
 
-# for line in lines:
-#     rna_id = line[0]
-#     with open(f'./analysis/{sys.argv[1]}/{rna_id}.txt', 'r') as file:
-#         r_lines = file.read().split('\n')
-
-#         best_seq = r_lines[-2].split(': ')[1].split(' ')[1]
-#         best_seen = float(r_lines[-2].split(': ')[1].split(' ')[2])
-#         init_obj = float(r_lines[-3].split(': ')[1].split(' ')[1])
-#         final_obj = float(r_lines[-3].split(': ')[1].split(' ')[2])
-
-#         results_seq[rna_id].append((best_seen, best_seq))
-#         results[rna_id].append(best_seen)
-
-def main(sample):
+def main():
     results = {line[0]: [] for line in lines}
-    results_seq = {line[0]: [] for line in lines}
 
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
 
-        # x = [-1, -2]
-        # file_path_list = [f'./analysis/{sys.argv[1]}_uniform_sm/{rna_id}.txt', f'./analysis/{sys.argv[1]}_targeted_sm/{rna_id}.txt']
-        # x = [-2]
-        # file_path_list = [f'./analysis/{sys.argv[1]}_targeted_sm/{rna_id}.txt']
-        x = [-1]
-        file_path_list = [f'./analysis/{sys.argv[1]}_uniform_sm_softmax_adam/{rna_id}.txt']
-        for x_seed, file_path in zip(x, file_path_list):
+        file_path_list = [f'./analysis/{sys.argv[i]}/{rna_id}.txt' for i in range(2, len(sys.argv))]
+
+        for file_path in file_path_list:
             if not os.path.exists(file_path):
                 print(f"{file_path} does not exist")
                 continue
@@ -42,77 +26,83 @@ def main(sample):
             with open(file_path, 'r') as file:
                 r_lines = file.read().split('\n')
 
-                if len(r_lines) < 2:
+                if len(r_lines) < 6:
+                    print(f"invalid file read: {file_path}")
                     continue
 
-                if not sample:
-                    best_integral_seq = r_lines[0].split(':  ')[1].split(' ')[0]
-                    best_integral_prob = float(r_lines[0].split(':  ')[1].split(' ')[1])
-                    results_seq[rna_id].append((best_integral_prob, best_integral_seq, x_seed))
-                    results[rna_id].append(best_integral_prob)
-                else:
-                    best_sample_seq = r_lines[1].split(':  ')[1].split(' ')[0]
-                    best_sample_prob = float(r_lines[1].split(':  ')[1].split(' ')[1])
-                    results_seq[rna_id].append((best_sample_prob, best_sample_seq, x_seed))
-                    results[rna_id].append(best_sample_prob)
+                best_pyx_seq, best_pyx = r_lines[2].split(': ')[1].split(' ')[1], float(r_lines[2].split(': ')[1].split(' ')[2])
+                best_ned_seq, best_ned = r_lines[3].split(': ')[1].split(' ')[1], float(r_lines[3].split(': ')[1].split(' ')[2])
+               
+                mfe_seq = ""
+                if len(r_lines[4].split(':  ')) > 1:
+                    mfe_seq = r_lines[4].split(':  ')[1]
 
-    for seed in range(int(sys.argv[3])):
-        for line in lines:
-            rna_id, rna_struct = line[0], line[1]
+                umfe_seq = ""
+                if len(r_lines[5].split(':  ')) > 1:
+                    umfe_seq = r_lines[5].split(':  ')[1]
 
-            file_path = f'./analysis/{sys.argv[1]}_random_sm_{seed}/{rna_id}.txt'
-            if not os.path.exists(file_path):
-                print(f"{file_path} does not exist")
-                continue
+                results[rna_id].append((best_pyx, best_pyx_seq, best_ned, best_ned_seq, mfe_seq, umfe_seq, file_path))
 
-            with open(file_path, 'r') as file:
-                r_lines = file.read().split('\n')
-
-                if len(r_lines) < 2:
-                    continue
-
-                if not sample:
-                    best_integral_seq = r_lines[0].split(':  ')[1].split(' ')[0]
-                    best_integral_prob = float(r_lines[0].split(':  ')[1].split(' ')[1])
-                    results_seq[rna_id].append((best_integral_prob, best_integral_seq, seed))
-                    results[rna_id].append(best_integral_prob)
-                else:
-                    best_sample_seq = r_lines[1].split(':  ')[1].split(' ')[0]
-                    best_sample_prob = float(r_lines[1].split(':  ')[1].split(' ')[1])
-                    results_seq[rna_id].append((best_sample_prob, best_sample_seq, seed))
-                    results[rna_id].append(best_sample_prob)
-
-    best_seen = []
-    print("rna_id, best, avg, var, best_seq")
+    avg_pyx = []
+    avg_ned = []
+    mfe_count = 0
+    umfe_count = 0
+    print("id, name, length, p(y | x), p(y | x) seq, ned, ned seq, is_mfe, mfe seq, is_umfe, umfe seq, init")
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
-        if rna_id == '22':
-            print()
+
+        if len(results[rna_id]) == 0:
             continue
+
+        result = max(results[rna_id], key=lambda x: x[0])
+
+        pyx = result[0]
+        pyx_seq = result[1]
+        ned = result[2]
+        ned_seq = result[3]
+        mfe_seq = result[4]
+        umfe_seq = result[5]
+        file_path = result[6]
+
         print(f"{int(rna_id)}", end=",")
         print(f"", end=",")
-        print(f"{len(line[1])}", end=",")
-        print(f"{np.max(results[rna_id]):.3f}", end=",")
-        print(f"{np.mean(results[rna_id]):.3f}", end=",")
-        print(f"{np.var(results[rna_id]):.3f}", end=",")
-        print(f"{max(results_seq[rna_id], key=lambda x: x[0])[1]}", end=",")
-        
-        seed = max(results_seq[rna_id], key=lambda x: x[0])[2]
-        if seed == -1:
-            print(f"uniform", end=",")
-        elif seed == -2:
-            print(f"targeted", end=",")
+        print(f"{len(rna_struct)}", end=",")
+
+        print(f"{pyx:.3f}", end=",")
+        print(f"{pyx_seq}", end=",")
+        print(f"{ned:.3f}", end=",")
+        print(f"{ned_seq}", end=",")
+
+        if mfe_seq != "":
+            print("is_mfe", end="")
+            mfe_count += 1
+        print(f",{mfe_seq}", end=",")
+
+        if umfe_seq != "":
+            print("is_umfe", end="")
+            umfe_count += 1
+        print(f",{umfe_seq}", end=",")
+
+        # check initialization
+        if "targeted" in file_path:
+            if "050" in file_path:
+                print("targeted (eps=0.5)")
+            elif "075" in file_path:
+                print("targeted (eps=0.75)")
+            else:
+                print("targeted")
+        elif "uniform" in file_path:
+            print("uniform")
         else:
-            print(f"random", end=",")
-        print(f"{seed}", end="")
-        print()
-        best_seen.append(np.max(results[rna_id]))
+            print("random")
+        
+        avg_pyx.append(pyx)
+        avg_ned.append(ned)
 
-
-    print(f"average best: {np.mean(best_seen):.3f}\n")
+    print(f"average pyx: {np.mean(avg_pyx):.3f}")
+    print(f"average ned: {np.mean(avg_ned):.3f}")
+    print(f"mfe count: {mfe_count}")
+    print(f"umfe count: {umfe_count}")
 
 if __name__ == '__main__':
-    print("Sample")
-    main(True)
-    print("Integral")
-    main(False)
+    main()

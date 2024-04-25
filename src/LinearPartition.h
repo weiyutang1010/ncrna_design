@@ -37,10 +37,10 @@ public:
 
     // DecoderResult parse(string& seq);
     double parse(string& seq);
+    double normalized_ensemble_defect(string& seq);
 
 private:
     unsigned seq_length;
-
     unordered_map<int, State> *bestH, *bestP, *bestM2, *bestMulti, *bestM;
 
     vector<int> if_tetraloops;

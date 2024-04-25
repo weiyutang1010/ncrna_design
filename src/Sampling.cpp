@@ -30,7 +30,7 @@ void BeamCKYParser::resample() {
         for(const vector<int>& pos: unpaired_pos) {
             const vector<double>& probs = dist[pos];
             int idx = selectRandomIndex(probs);
-            string nucij = idx_to_nucs(idx, pos.size());
+            string nucij = idx_to_nucs[{idx, pos.size()}];
 
             for (int x = 0; x < pos.size(); x++) {
                 seq[pos[x]] = nucij[x];
@@ -111,7 +111,7 @@ Objective BeamCKYParser::sampling_approx(int step) {
             for (const int& x: pos) {
                 nucij += samples[k].seq[x];
             }
-            gradient[pos][nucs_to_idx(nucij)] += samples[k].obj * (1 / dist[pos][nucs_to_idx(nucij)]);
+            gradient[pos][nucs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][nucs_to_idx[nucij]]);
         }
 
         for (const vector<int>& pos: base_pairs_pos) {

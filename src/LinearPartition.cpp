@@ -726,6 +726,10 @@ void LinearPartition::outside(vector<int> next_pair[]){
     return;
 }
 
+double LinearPartition::normalized_ensemble_defect(string& seq) {
+    return 0.;
+}
+
 double BeamCKYParser::linear_partition(string rna_seq) {
     int dangles = 2; // TODO: change this into a parameter
 
@@ -733,6 +737,10 @@ double BeamCKYParser::linear_partition(string rna_seq) {
         bool pf_only = true;
         LinearPartition parser(beamsize, nosharpturn, is_verbose, dangles, pf_only);
         return parser.parse(rna_seq);
+    } else if (objective == "ned") {
+        bool pf_only = false;
+        LinearPartition parser(beamsize, nosharpturn, is_verbose, dangles, pf_only);
+        return parser.normalized_ensemble_defect(rna_seq);
     }
     return 0.;
 }

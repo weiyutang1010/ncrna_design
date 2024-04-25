@@ -52,9 +52,19 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.0001 --softmax --adam > results/sampling_pyx_uniform_sm_softmax_adam_0001/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.001 --softmax --adam > results/sampling_pyx_uniform_sm_softmax_adam/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_1/${puzzles[0]}.txt &
-    echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.01 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_01/${puzzles[0]}.txt &
-    echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.05 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_05/${puzzles[0]}.txt &
-    echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.10 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_10/${puzzles[0]}.txt &
+    
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.50 --lr 0.01 --softmax > results/sampling_pyx_targeted_sm_softmax_eps_050/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 --softmax > results/sampling_pyx_targeted_sm_softmax_eps_075/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.90 --lr 0.01 --softmax > results/sampling_pyx_targeted_sm_softmax_eps_090/${puzzles[0]}.txt &
+    
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 --softmax --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_no_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 --softmax --adam > results/sampling_pyx_targeted_sm_softmax_eps_075_adam/${puzzles[0]}.txt &
+    echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.1 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_adam_lr_1/${puzzles[0]}.txt &
+    echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.001 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_adam_lr_001/${puzzles[0]}.txt &
+
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.05 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_05/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.10 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_10/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.20 --lr 0.1 --softmax > results/sampling_pyx_uniform_sm_softmax_eps_20/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --init targeted_sm > results/sampling_pyx_targeted_sm/${puzzles[0]}.txt &
 done < "data/eterna/$1.txt"
 

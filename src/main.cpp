@@ -76,7 +76,7 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
     this->gen.seed(seed);
 
     // set random eps value
-    if (eps < 0. || eps > 1.) {
+    if (eps < 0. || eps >= 1.) {
         std::uniform_real_distribution<> dis(0, 1);
         this->eps = dis(gen);
     }
@@ -175,8 +175,12 @@ void BeamCKYParser::adam_update(Objective& obj, int step) {
         for (int i = 0; i < arr.size(); i++) {
             first_moment[pos][i] = beta.first * first_moment[pos][i] + (1.0 - beta.first) * grad[pos][i];
             second_moment[pos][i] = beta.second * second_moment[pos][i] + (1.0 - beta.second) * (grad[pos][i] * grad[pos][i]);
-            double first_mt_corrected = first_moment[pos][i] / (1.0 - pow(beta.first, step+1));
-            double second_mt_corrected = second_moment[pos][i] / (1.0 - pow(beta.second, step+1));
+            // double first_mt_corrected = first_moment[pos][i] / (1.0 - pow(beta.first, step+1));
+            // double second_mt_corrected = second_moment[pos][i] / (1.0 - pow(beta.second, step+1));
+            double first_mt_corrected = first_moment[pos][i] / (1.0 - beta_pow.first);
+            double second_mt_corrected = second_moment[pos][i] / (1.0 - beta_pow.second);
+            beta_pow.first *= beta.first;
+            beta_pow.second *= beta.second;
 
             arr[i] = arr[i] - learning_rate * first_mt_corrected / (sqrt(second_mt_corrected) + SMALL_NUM);
         }
@@ -193,7 +197,7 @@ string BeamCKYParser::get_integral_solution() {
 
         int nucij = std::distance(probs.begin(), maxIterator);
         for (int x = 0; x < pos.size(); x++)
-            seq[pos[x]] = idx_to_nucs(nucij, pos.size())[x];
+            seq[pos[x]] = idx_to_nucs[{nucij, pos.size()}][x];
     }
 
     for (const vector<int>& pos: base_pairs_pos) {
@@ -290,11 +294,11 @@ void BeamCKYParser::initialize_sm() {
             int num = pow(4, pos.size());
             if (pos.size() == 1) {
                 if (softmax) {
-                    logits[pos] =  vector<double> (num, 0.);
-                    logits[pos][nucs_to_idx("A")] = eps * 10.0;
+                    logits[pos] =  vector<double> (num, log((0. * eps) + (.25 * (1 - eps))));
+                    logits[pos][nucs_to_idx["A"]] = log((1. * eps) + (.25 * (1 - eps)));
                 } else {
                     dist[pos] = vector<double> (num, 0.);
-                    dist[pos][nucs_to_idx("A")] = 1.;
+                    dist[pos][nucs_to_idx["A"]] = 1.;
                 }
             } else {
                 if (softmax) {
@@ -307,9 +311,10 @@ void BeamCKYParser::initialize_sm() {
 
         for (const vector<int>& pos: base_pairs_pos) {
             if (softmax) {
-                logits[pos] = vector<double> (6, 0.);
-                logits[pos][pairs_to_idx["CG"]] = 10. * eps;
-                logits[pos][pairs_to_idx["GC"]] = 10. * eps;
+                logits[pos] = vector<double> (6, log((0. * eps) + (1./6. * (1 - eps))));
+
+                logits[pos][pairs_to_idx["CG"]] = log((.5 * eps) + (1./6. * (1. - eps)));
+                logits[pos][pairs_to_idx["GC"]] = log((.5 * eps) + (1./6. * (1. - eps)));
             } else {
                 dist[pos] = vector<double> (6, 0.);
                 dist[pos][pairs_to_idx["CG"]] = .5;
@@ -385,7 +390,7 @@ void BeamCKYParser::initialize() {
     } else if (initialization == "targeted") {
         for (const vector<int>& pos: unpaired_pos) {
             dist[pos] = vector<double> (4, 0.);
-            dist[pos][nucs_to_idx("A")] = 1.;
+            dist[pos][nucs_to_idx["A"]] = 1.;
         }
 
         for (const vector<int>& pos: base_pairs_pos) {
@@ -450,7 +455,7 @@ void BeamCKYParser::print_dist(string label, map<vector<int>, vector<double>>& d
         cout << ": " << fixed << setprecision(dc);
 
         for (int i = 0; i < probs.size(); i++) {
-            cout << idx_to_nucs(i, pos.size()) << " " 
+            cout << idx_to_nucs[{i, pos.size()}] << " " 
                  << probs[i] << (i == probs.size() - 1 ? "" : ", ");
         }
         cout << "\n";
@@ -479,13 +484,8 @@ void BeamCKYParser::print_mode() {
     cout << "learning rate: " << learning_rate << ", number of steps: " << num_steps
          << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false")
          << ", seed: " << seed << ", softmax: " << softmax << ", adam: " << adam << "\n";
-    
-    // if (objective == "pyx_sampling")
     cout << "sample_size: " << sample_size << ", resample iteration: " << resample_iter << ", best samples: " << best_k;
-
-    // if (initialization == "epsilon")
     cout << ", eps: " << eps;
-
     cout << "\n" << endl;
 }
 
@@ -493,7 +493,6 @@ void BeamCKYParser::print_mode() {
 Objective BeamCKYParser::objective_function(int step) {
     if (objective == "pyx_sampling") {
         Objective pyx = sampling_approx(step); // optimize E[-log p(y|x)]
-        
         return pyx;
     } else {
         throw std::runtime_error("Objective not implemented!");
@@ -568,17 +567,16 @@ void BeamCKYParser::gradient_descent() {
     print_dist("Initial Distribution", dist);
 
     // adaptive steps
-    int k_ma = 30; // TODO: turn this into a parameter
+    int k_ma = 50; // TODO: turn this into a parameter
     double moving_avg = 0.;
-    queue<double> last_k_sample_prob;
+    queue<double> last_k_obj;
 
     pair<double, int> last_best_seq = {-1.0, -1};
-    pair<double, int> last_best_avg = {-1.0, -1};
+    pair<double, int> last_best_avg = {10000, -1};
 
     bool adaptive_step = false;
     if (num_steps == -1) {
         adaptive_step = true;
-        num_steps = 500;
     }
 
     for (int step = 0; step < num_steps || adaptive_step; step++) {
@@ -635,19 +633,18 @@ void BeamCKYParser::gradient_descent() {
         cout << "\n";
 
         // calculate k moving avg of sampled E[p(y | x)]
-        moving_avg += mean_prob;
-        last_k_sample_prob.push(mean_prob);
-        if (last_k_sample_prob.size() > k_ma) {
-            moving_avg -= last_k_sample_prob.front(); 
-            last_k_sample_prob.pop();
+        moving_avg += obj.score;
+        last_k_obj.push(obj.score);
+        if (last_k_obj.size() > k_ma) {
+            moving_avg -= last_k_obj.front(); 
+            last_k_obj.pop();
         }
 
         // adaptive step conditions:
         //  1. 100 steps from last best sequence found
         //  2. if k moving avg hasn't improved since last 100 steps
         if (adaptive_step){
-            boltz_prob = round_number(boltz_prob, 4);
-            double best_sample_prob = round_number(exp(samples[sample_size-1].log_boltz_prob), 4);
+            double best_sample_prob = samples[sample_size-1].boltz_prob;
             
             if (boltz_prob > last_best_seq.first) {
                 // update step of best integral solution
@@ -659,7 +656,7 @@ void BeamCKYParser::gradient_descent() {
                 last_best_seq = {best_sample_prob, step};
             }
 
-            if (moving_avg / k_ma > last_best_avg.first) {
+            if (step >= k_ma && moving_avg / k_ma < last_best_avg.first) {
                 // update step of best moving avg
                 last_best_avg = {moving_avg / k_ma, step};
             }
@@ -693,6 +690,13 @@ void BeamCKYParser::gradient_descent() {
         parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
         cerr << "seed: " << seed << ", n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;
     }
+
+    if (softmax) {
+        logits_to_dist();
+        print_dist("Final Logits", logits);
+    }
+
+    print_dist("Final Distribution", dist);
 
     gettimeofday(&total_endtime, NULL);
     double total_elapsed_time = total_endtime.tv_sec - total_starttime.tv_sec + (total_endtime.tv_usec-total_starttime.tv_usec)/1000000.0;

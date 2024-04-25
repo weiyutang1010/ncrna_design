@@ -23,16 +23,25 @@ if [ ! -d "./analysis/$1" ]; then
     mkdir analysis/$1
 fi
 
-while IFS= read -r line; do
-    puzzles=($line)
-    file="${puzzles[0]}"
+# while IFS= read -r line; do
+#     puzzles=($line)
+#     file="${puzzles[0]}"
+
+#     if [ -f "./results/$1/$file.txt" ]; then
+#         # Print the file name
+#         echo "./results/$1/$file.txt"
+#         python analysis.py --folder "$1" --file $file.txt > ./analysis/$1/$file.txt &
+#     fi
+# done < "data/eterna/$2.txt"
+
+cat "data/eterna/$2.txt" | xargs -n 1 -P 10 -I {} bash -c '
+    file=$(echo "{}" | cut -d " " -f 1)
 
     if [ -f "./results/$1/$file.txt" ]; then
-        # Print the file name
         echo "./results/$1/$file.txt"
-        python analysis.py --folder "$1" --file $file > ./analysis/$1/$file.txt &
+        python analysis.py --folder "$1" --file "$file.txt" > "./analysis/$1/$file.txt" &
     fi
-done < "data/eterna/$2.txt"
+' bash "$1"
 
 #     # varying sample size
 #     if [ ! -d "./results/$1_p$puzzle" ]; then

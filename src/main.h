@@ -132,39 +132,26 @@ struct Objective {
     }
 };
 
-unordered_map<string, int> pairs_to_idx {
-    {"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}
-};
+unordered_map<string, int> pairs_to_idx {{"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}};
 unordered_map<string, int> nucs_to_idx;
-
-int nucs_to_idx_init() {
-    unordered_map<char, int> mp {{'A', 0}, {'C', 1}, {'G', 2}, {'U', 3}};
-    int res = 0;
-
-    for (char& c: st) {
-        res *= 4;
-        res += mp[c];
-    }
-
-    return res;
-}
-
 array<string, 6> idx_to_pairs {"CG", "GC", "GU", "UG", "AU", "UA"};
 unordered_map<pair<int, int>, string, hash_pair> idx_to_nucs;
 
 void idx_to_nucs_init() {
     string nucs = "ACGU";
-    for (int size = 0; size < 3; size++) {    
-        for (int i = 0; i < pow(4, i); i++) {
+    for (int size = 0; size <= 3; size++) {    
+        for (int i = 0; i < pow(4, size); i++) {
+            int x = i;
             string res = "";
 
             for (int j = 0; j < size; j++) {
-                res += nucs[i % 4];
-                i /= 4;
+                res += nucs[x % 4];
+                x /= 4;
             }
             
             reverse(res.begin(), res.end());
             idx_to_nucs[{i, size}] = res;
+            nucs_to_idx[res] = i;
         }
     }
 }
@@ -200,6 +187,7 @@ public:
     // Adam optimizer
     bool adam;
     pair<double, double> beta = {0.9, 0.999};
+    pair<double, double> beta_pow = {0.9, 0.999};
     map<vector<int>, vector<double>> first_moment;
     map<vector<int>, vector<double>> second_moment;
     
