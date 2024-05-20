@@ -50,12 +50,23 @@ void BeamCKYParser::resample() {
             sample_prob *= probs[idx];
         }
 
-        double log_Q = linear_partition(seq); // log Q(x)
-        long deltaG = eval(seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
-        double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
+        if (samples_cache.find(seq) != samples_cache.end()) {
+            samples[k] = samples_cache[seq];
+        } else {
+            double log_Q = linear_partition(seq); // log Q(x)
+            long deltaG = eval(seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
+            double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
 
-        if (objective == "pyx_sampling")
-            samples[k] = {seq, log_Q, deltaG, log_boltz_prob, exp(log_boltz_prob), sample_prob, -log_boltz_prob};
+            if (objective == "pyx_sampling")
+                samples[k] = {seq, log_Q, deltaG, log_boltz_prob, exp(log_boltz_prob), sample_prob, -log_boltz_prob};
+
+            #pragma omp critical
+            {
+                if (samples_cache.size() < CACHE_LIMIT) {
+                    samples_cache[seq] = samples[k];
+                }
+            }
+        }
     }
 
     // gettimeofday(&parse_endtime, NULL);

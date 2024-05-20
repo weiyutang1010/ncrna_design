@@ -42,35 +42,49 @@ using namespace std;
 BeamCKYParser::BeamCKYParser(string rna_struct,
                              string objective,
                              string initialization,
-                             double learning_rate,
+                             double eps,
+                             string init_seq,
+                             bool softmax,
+                             bool adam,
+                             bool nesterov,
+                             double beta_1,
+                             double beta_2,
+                             double initial_lr,
+                             bool lr_decay,
+                             double lr_decay_rate,
+                             bool staircase,
+                             int lr_decay_step,
                              int num_steps,
-                             bool is_verbose,
+                             bool verbose,
                              int beamsize,
                              bool nosharpturn,
                              int sample_size,
                              int resample_iter,
-                             int seed,
-                             double eps,
-                             string init_seq,
                              int best_k,
-                             bool softmax,
-                             bool adam)
+                             int seed)
     : rna_struct(rna_struct),
       objective(objective),
       initialization(initialization),
-      learning_rate(learning_rate),
+      eps(eps),
+      init_seq(init_seq),
+      softmax(softmax),
+      adam(adam),
+      nesterov(nesterov),
+      beta_1(beta_1),
+      beta_2(beta_2),
+      initial_lr(initial_lr),
+      lr_decay(lr_decay),
+      lr_decay_rate(lr_decay_rate),
+      staircase(staircase),
+      lr_decay_step(lr_decay_step),
       num_steps(num_steps),
-      is_verbose(is_verbose),
+      is_verbose(verbose),
       beamsize(beamsize),
       nosharpturn(nosharpturn),
       sample_size(sample_size),
       resample_iter(resample_iter),
-      seed(seed),
-      eps(eps),
-      init_seq(init_seq),
       best_k(best_k),
-      softmax(softmax),
-      adam(adam) {
+      seed(seed) {
 
     // setting random seed
     this->gen.seed(seed);
@@ -83,6 +97,10 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
 
     // initialize idx_to_nucs map
     idx_to_nucs_init();
+
+    lr = initial_lr;
+    beta = {beta_1, beta_2};
+    beta_pow = {beta_1, beta_2};
 }
 
 // trim from end (in place)
@@ -150,9 +168,9 @@ void BeamCKYParser::update(Objective& obj) {
     for (auto& [pos, probs]: dist) {
         for (int nucij = 0; nucij < probs.size(); nucij++) {
             if (softmax) {
-                logits[pos][nucij] -= learning_rate * obj.gradient[pos][nucij];
+                logits[pos][nucij] -= lr * obj.gradient[pos][nucij];
             } else {
-                dist[pos][nucij] -= learning_rate * obj.gradient[pos][nucij];
+                dist[pos][nucij] -= lr * obj.gradient[pos][nucij];
             }
         }
     }
@@ -182,9 +200,28 @@ void BeamCKYParser::adam_update(Objective& obj, int step) {
             beta_pow.first *= beta.first;
             beta_pow.second *= beta.second;
 
-            arr[i] = arr[i] - learning_rate * first_mt_corrected / (sqrt(second_mt_corrected) + SMALL_NUM);
+            arr[i] = arr[i] - lr * first_mt_corrected / (sqrt(second_mt_corrected) + SMALL_NUM);
         }
     }
+}
+
+void BeamCKYParser::nesterov_update() {
+    // TODO: implement softmax version
+    map<vector<int>, vector<double>> temp = dist;
+
+    // compute extrapolated point
+    // y_{r+1} = (1 + t_r) * dist - t_r * old_dist
+    double t_r = (nesterov_seq.first - 1) / nesterov_seq.second;
+    for (auto& [pos, probs]: dist) {
+        for (int nucij = 0; nucij < probs.size(); nucij++) {
+            probs[nucij] = (1 + t_r) * probs[nucij] - t_r * old_dist[pos][nucij];
+        }
+    }
+
+    // compute next nesterov sequence
+    nesterov_seq.first = nesterov_seq.second;
+    nesterov_seq.second = (1 + sqrt(4 * nesterov_seq.first * nesterov_seq.first + 1)) / 2;
+    old_dist = temp;
 }
 
 string BeamCKYParser::get_integral_solution() {
@@ -294,7 +331,7 @@ void BeamCKYParser::initialize_sm() {
             int num = pow(4, pos.size());
             if (pos.size() == 1) {
                 if (softmax) {
-                    logits[pos] =  vector<double> (num, log((0. * eps) + (.25 * (1 - eps))));
+                    logits[pos] = vector<double> (num, log((0. * eps) + (.25 * (1 - eps))));
                     logits[pos][nucs_to_idx["A"]] = log((1. * eps) + (.25 * (1 - eps)));
                 } else {
                     dist[pos] = vector<double> (num, 0.);
@@ -389,14 +426,26 @@ void BeamCKYParser::initialize() {
         }
     } else if (initialization == "targeted") {
         for (const vector<int>& pos: unpaired_pos) {
-            dist[pos] = vector<double> (4, 0.);
-            dist[pos][nucs_to_idx["A"]] = 1.;
+            if (softmax) {
+                logits[pos] = vector<double> (4, log((0. * eps) + (.25 * (1 - eps))));
+                logits[pos][nucs_to_idx["A"]] = log((1. * eps) + (.25 * (1 - eps)));
+            } else {
+                dist[pos] = vector<double> (4, 0.);
+                dist[pos][nucs_to_idx["A"]] = 1.;
+            }
+            
         }
 
         for (const vector<int>& pos: base_pairs_pos) {
-            dist[pos] = vector<double> (6, 0.);
-            dist[pos][pairs_to_idx["CG"]] = .5;
-            dist[pos][pairs_to_idx["GC"]] = .5;
+            if (softmax) {
+                logits[pos] = vector<double> (6, log((0. * eps) + (1./6. * (1 - eps))));
+                logits[pos][pairs_to_idx["CG"]] = log((.5 * eps) + (1./6. * (1. - eps)));
+                logits[pos][pairs_to_idx["GC"]] = log((.5 * eps) + (1./6. * (1. - eps)));
+            } else {
+                dist[pos] = vector<double> (6, 0.);
+                dist[pos][pairs_to_idx["CG"]] = .5;
+                dist[pos][pairs_to_idx["GC"]] = .5;
+            }
         }
     } else if (initialization == "random") {
         std::uniform_real_distribution<> dis(0, 1);
@@ -480,15 +529,22 @@ void BeamCKYParser::print_dist(string label, map<vector<int>, vector<double>>& d
 
 void BeamCKYParser::print_mode() {
     cout << rna_struct << endl;
-    cout << "objective: " << objective << ", initializaiton: " << initialization << "\n";
-    cout << "learning rate: " << learning_rate << ", number of steps: " << num_steps
-         << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false")
-         << ", seed: " << seed << ", softmax: " << softmax << ", adam: " << adam << "\n";
-    cout << "sample_size: " << sample_size << ", resample iteration: " << resample_iter << ", best samples: " << best_k;
-    cout << ", eps: " << eps;
-    cout << "\n" << endl;
-}
+    cout << "objective: " << objective << ", initializaiton: " << initialization << ", verbose: " << is_verbose << "\n";
 
+    cout << "initial lr: " << initial_lr << ", number of steps: " << num_steps
+         << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false")
+         << ", seed: " << seed
+         << ", softmax: " << softmax << ", adam: " << adam << ", nesterov: " << nesterov
+         << ", beta_1: " << beta.first << ", beta_2: " << beta.second << "\n";
+
+    cout << "sample_size: " << sample_size << ", resample iteration: "
+         << resample_iter << ", best samples: " << best_k;
+    cout << ", eps: " << eps << "\n";
+
+    cout << "lr decay: " << lr_decay << ", lr_decay_rate: " << lr_decay_rate
+         << ", staircase: " << staircase << ", lr_decay_step: " << lr_decay_step << "\n";
+    cout << endl;
+}
 
 Objective BeamCKYParser::objective_function(int step) {
     if (objective == "pyx_sampling") {
@@ -550,6 +606,53 @@ Objective BeamCKYParser::logits_grad(const Objective& obj) {
     return new_obj;
 }
 
+void BeamCKYParser::kmers_analysis(const vector<Sample>& samples) {
+    int n = samples[0].seq.size();
+    // unordered_map<string, int> freq_cnt;
+    // vector<int> kmers_count (n+1);
+
+    if (kmers_count.size() < n + 1) {
+        kmers_count.resize(n+1);
+    }
+
+    if (freq_cnt.size() < n + 1) {
+        freq_cnt.resize(n+1);
+    }
+
+    for (double x = 0.4; x <= 1.0; x += 0.1) {
+        int k = x * n;
+        int cnt = 0;
+        for (const Sample& sample: samples) {
+            for (int i = 0; i <= n - k; i++) {
+                freq_cnt[k][sample.seq.substr(i, k)]++;
+                kmers_count[k]++;
+            }
+        }
+        cout << "k: " << k << ", uniq_kmers: " << freq_cnt[k].size() << ", total count: " << kmers_count[k] << endl;
+    }
+
+    // compute average positional entropy
+    double entropy = 0;
+    for (const vector<int>& pos: unpaired_pos) {
+        auto& probs = dist[pos];
+
+        for (auto& prob: probs) {
+            entropy += prob * log2(prob + SMALL_NUM);
+        }
+    }
+
+    for (const vector<int>& pos: base_pairs_pos) {
+        auto& probs = dist[pos];
+
+        for (auto& prob: probs) {
+            entropy += prob * log2(prob + SMALL_NUM);
+        }
+    }
+
+    entropy = -entropy / (unpaired_pos.size() + base_pairs_pos.size());
+    cout << "entropy: " << entropy << endl;
+}
+
 void BeamCKYParser::gradient_descent() {
     struct timeval parse_starttime, parse_endtime;
     struct timeval total_starttime, total_endtime;
@@ -558,6 +661,7 @@ void BeamCKYParser::gradient_descent() {
 
     print_mode();
     initialize();
+    if (nesterov) old_dist = dist;
 
     if (softmax) {
         logits_to_dist();
@@ -566,13 +670,13 @@ void BeamCKYParser::gradient_descent() {
 
     print_dist("Initial Distribution", dist);
 
-    // adaptive steps
-    int k_ma = 50; // TODO: turn this into a parameter
-    double moving_avg = 0.;
-    queue<double> last_k_obj;
+    // adaptive steps and lr
+    int k_ma = 50, k_ma_lr = 10; // TODO: turn this into a parameter
+    double moving_avg = 0., moving_avg_lr = 0.;
+    queue<double> last_k_obj, last_k_obj_lr;
 
     pair<double, int> last_best_seq = {-1.0, -1};
-    pair<double, int> last_best_avg = {10000, -1};
+    pair<double, int> last_best_avg = {1000000, -1}, last_best_avg_lr = {1000000, -1};
 
     bool adaptive_step = false;
     if (num_steps == -1) {
@@ -581,6 +685,10 @@ void BeamCKYParser::gradient_descent() {
 
     for (int step = 0; step < num_steps || adaptive_step; step++) {
         gettimeofday(&parse_starttime, NULL);
+
+        if (nesterov) {
+            nesterov_update();
+        }
 
         Objective obj;
         if (softmax) {
@@ -605,7 +713,7 @@ void BeamCKYParser::gradient_descent() {
 
         gettimeofday(&parse_endtime, NULL);
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-        cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", seq: " << curr_seq << ", prob: " << boltz_prob << ", time: " << parse_elapsed_time << "\n";
+        cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", seq: " << curr_seq << ", prob: " << boltz_prob << ", learning rate: " << lr << ", time: " << parse_elapsed_time << "\n";
         
         // print out best k samples and stats
         sort(samples.begin(), samples.end(), [&](const Sample& a, const Sample& b) {
@@ -632,12 +740,22 @@ void BeamCKYParser::gradient_descent() {
         }
         cout << "\n";
 
+        // For analysis
+        // kmers_analysis(samples);
+
         // calculate k moving avg of sampled E[p(y | x)]
         moving_avg += obj.score;
         last_k_obj.push(obj.score);
         if (last_k_obj.size() > k_ma) {
             moving_avg -= last_k_obj.front(); 
             last_k_obj.pop();
+        }
+
+        moving_avg_lr += obj.score;
+        last_k_obj_lr.push(obj.score);
+        if (last_k_obj_lr.size() > k_ma_lr) {
+            moving_avg_lr -= last_k_obj_lr.front(); 
+            last_k_obj_lr.pop();
         }
 
         // adaptive step conditions:
@@ -666,6 +784,27 @@ void BeamCKYParser::gradient_descent() {
             }
         }
 
+        // learning rate decay
+        bool decay = false;
+        if (lr_decay) {
+            if (staircase) {
+                // integer division
+                lr = initial_lr * pow(lr_decay_rate, step / lr_decay_step);
+            } else {
+                // adaptive learning rate
+                if (moving_avg_lr / last_k_obj_lr.size() < last_best_avg_lr.first) {
+                    // update step of best moving avg
+                    last_best_avg_lr = {moving_avg_lr / last_k_obj_lr.size(), step};
+                }
+
+                if (step >= last_best_avg_lr.second + 10) {
+                    lr *= lr_decay_rate;
+                    // reset step and best obj seen
+                    last_best_avg_lr = {moving_avg_lr / last_k_obj_lr.size(), step};
+                }
+            }
+        }
+
         if (is_verbose) {
             if (softmax) {
                 print_dist("Logits", logits);
@@ -680,7 +819,7 @@ void BeamCKYParser::gradient_descent() {
         } else {
             update(obj);
         }
-        
+
         if (!softmax)
             projection();
         
@@ -706,41 +845,62 @@ void BeamCKYParser::gradient_descent() {
 int main(int argc, char** argv){
     string mode = "ncrna_design";
     string objective = "pyx_sampling";
+
     string initialization = "targeted_sm";
-    double learning_rate = 0.01;
-    int num_steps = 1000;
-    bool is_verbose = false;
+    double eps = 0.75;
+    string init_seq = "";
+
+    bool softmax = false, adam = false, nesterov = false;
+    float beta_1 = 0.9, beta_2 = 0.999;
+
+    double initial_lr = 0.01, lr_decay_rate = 0.96;
+    bool lr_decay = false, staircase = false;
+    int lr_decay_step = 200;
+
+    int num_steps = -1;
+    bool verbose = false;
+
     int beamsize = 100;
     bool sharpturn = false;
-    double eps = -1.0;
-    string init_seq = "";
-    int best_k = 30;
-    bool softmax = false;
-    bool adam = false;
 
     // used for sampling method
-    int sample_size = 1000;
-    int resample_iter = 1; // how many iterations before resampling
+    int sample_size = 2500;
+    int resample_iter = 1; // importance sampling: obsolete
+    int best_k = 1;
 
     int seed = 42;
 
     if (argc > 1) {
         mode = argv[1];
         objective = argv[2];
+        
         initialization = argv[3];
-        learning_rate = atof(argv[4]);
-        num_steps = atoi(argv[5]);
-        is_verbose = atoi(argv[6]) == 1;
-        beamsize = atoi(argv[7]);
-        sharpturn = atoi(argv[8]) == 1;
-        sample_size = atoi(argv[9]);
-        resample_iter = atoi(argv[10]);
-        seed = atoi(argv[11]);
-        eps = atof(argv[12]);
-        init_seq = argv[13];
-        best_k = atoi(argv[14]);
-        softmax = atoi(argv[15]) == 1;
-        adam = atoi(argv[16]) == 1;
+        eps = atof(argv[4]);
+        init_seq = argv[5];
+
+        softmax = atoi(argv[6]) == 1;
+        adam = atoi(argv[7]) == 1;
+        nesterov = atoi(argv[8]) == 1;
+        beta_1 = atof(argv[9]);
+        beta_2 = atof(argv[10]);
+
+        initial_lr = atof(argv[11]);
+        lr_decay = atoi(argv[12]) == 1;
+        lr_decay_rate = atof(argv[13]);
+        staircase = atoi(argv[14]) == 1;
+        lr_decay_step = atoi(argv[15]);
+
+        num_steps = atoi(argv[16]);
+        verbose = atoi(argv[17]) == 1;
+
+        beamsize = atoi(argv[18]);
+        sharpturn = atoi(argv[19]) == 1;
+
+        sample_size = atoi(argv[20]);
+        resample_iter = atoi(argv[21]);
+        best_k = atoi(argv[22]);
+
+        seed = atoi(argv[23]);
     }
 
     if (mode == "ncrna_design") {
@@ -748,7 +908,7 @@ int main(int argc, char** argv){
             // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    BeamCKYParser parser(rna_struct, objective, initialization, learning_rate, num_steps, is_verbose, beamsize, !sharpturn, sample_size, resample_iter, seed, eps, init_seq, best_k, softmax, adam);
+                    BeamCKYParser parser(rna_struct, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, !sharpturn, sample_size, resample_iter, best_k, seed);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;

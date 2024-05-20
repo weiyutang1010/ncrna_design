@@ -1,2 +1,0 @@
-Best Integral Solution (seq, score):  GCGACAGCACCGAAGGG 0.5960118472551216
-Best Sampled Solution (seq, score):  GCGUCAGCAGCCUCGGC 0.7727725069215123

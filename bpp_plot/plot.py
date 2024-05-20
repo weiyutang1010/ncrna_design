@@ -219,7 +219,7 @@ def draw_rna_circle(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
 
         # Draw the arc
         color = 'blue' if pair_matched else 'red'
-        alpha = 1 if not pair_prob else (0.2 + (0.80) * pair_prob)
+        alpha = 1 if not pair_prob else pair_prob
         arc = Arc(center, 2*radius, 2*radius, angle=0, theta1=theta1, theta2=theta2, color=color, alpha=alpha)
         plt.gca().add_patch(arc)
     
@@ -231,6 +231,8 @@ def draw_rna_circle(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     save_path = f"./plots/{folder}/circular_plots/{puzzle_id}.png"
     plt.savefig(save_path, dpi=400, bbox_inches="tight")
     print(f"Circular plot saved to {save_path}")
+
+    plt.close()
 
 def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, num_index_labels=10, text_offset = 1.025, label_offset = 0.05):
     """
@@ -275,7 +277,7 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
 
         # Draw the arc
         color = 'blue' if pair_matched else 'red'
-        alpha = 1 if not pair_prob else (0.2 + (0.80) * pair_prob)
+        alpha = 1 if not pair_prob else pair_prob
 
         # equation for ellipses
         # ref: https://en.wikipedia.org/wiki/Ellipse
@@ -286,6 +288,9 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
 
         x = np.linspace(start_index, end_index, max(400, seq_len * 4))
         y = np.sqrt((1. - ((x - center[0]) ** 2 / (width * width))) * (height * height)) + center[1]
+
+        if not pair_matched:
+            y *= -1
 
         plt.plot(x, y, color=color, alpha=alpha)
     
@@ -298,8 +303,10 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     plt.savefig(save_path, dpi=400, bbox_inches='tight')
     print(f"Linear plot saved to {save_path}", file=sys.stderr)
 
+    plt.close()
+
 def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False):
-    command = f"echo -e \"{seq}\\n{struct}\" | RNAplot -t {layout} --id-start={puzzle_id}"
+    command = f"echo -e \">{puzzle_id}\\n{seq}\\n{struct}\" | RNAplot -t {layout}"
     command += " --pre \""
 
     for j, x in enumerate(defect):
@@ -349,17 +356,16 @@ def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False)
 
     command += "\""
 
-    subprocess.call(command, shell=True)
-
     norm = "_norm" if norm else ""
-    save_ps_path = f"./sequence_{puzzle_id.zfill(4)}_ss.ps"
+    save_pdf_path = f"./plots/{folder}/pos_defects/{puzzle_id}{norm}.pdf"
 
-    # convert ps to png
-    save_png_path = f"./plots/{folder}/pos_defects/{puzzle_id}{norm}.png"
-    img = Image.open(save_ps_path)
-    img.save(save_png_path, format='PNG', quality=100, dpi=(1600, 1600))
+    subprocess.call(command, shell=True)
+    subprocess.call(f"ps2pdf -dEPSCrop {puzzle_id}_ss.ps", shell=True)
+    # subprocess.call(f"pdfcrop {puzzle_id}_ss.pdf", shell=True)
+    subprocess.call(f"mv {puzzle_id}_ss.pdf {save_pdf_path}", shell=True)
+    subprocess.call(f"rm {puzzle_id}_ss.p*", shell=True)
 
-    print(f"Positional defects plot saved to {save_png_path}", file=sys.stderr)
+    print(f"Positional defects plot saved to {save_pdf_path}", file=sys.stderr)
 
 def create_folders(folder_name):
     if not os.path.exists(f"./plots"):
@@ -381,10 +387,6 @@ def create_folders(folder_name):
     if not os.path.exists(f"./plots/{folder_name}/pos_defects"):
         print(f"Created directory \"./plots/{folder_name}/pos_defects\"", file=sys.stderr)
         os.makedirs(f"./plots/{folder_name}/pos_defects")
-
-    if not os.path.exists(f"./ps/{folder_name}"):
-        print(f"Created directory \"./ps/{folder_name}\"", file=sys.stderr)
-        os.makedirs(f"./ps/{folder_name}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Draw RNA plots')
@@ -415,7 +417,7 @@ if __name__ == '__main__':
         bpp = format_bpp(bpp)
         # pairs = [(i, j), ...]
         pairs = get_pairs(struct)
-
+        
         # circular plot
         if args.circular:
             draw_rna_circle(bpp, len(seq), pairs, args.folder, puzzle_id)

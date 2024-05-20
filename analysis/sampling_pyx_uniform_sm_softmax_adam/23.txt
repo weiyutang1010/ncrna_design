@@ -1,2 +1,6 @@
-Best Integral Solution (seq, score):  GCGAAAGCACCGAAAGG 0.6381436268308146
-Best Sampled Solution (seq, score):  GCGCAAGCACCCUCGGG 0.7818113588235007
+Total steps:  2296
+Number of unique sequence:  77
+Best p(y|x) solution:  GCGUAAGCACCCUCGGG 0.7813512088007999 50
+Best NED solution:  GCGUAAGCACCCUCGGG 0.05494246951188848 50
+MFE solution:  GCGAAAGCACCCUCGGG
+UMFE solution:  GCGAAAGCACCCUCGGG

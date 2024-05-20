@@ -27,6 +27,7 @@
 #define SMALL_NUM 1e-8
 
 #define NEG_INF -2e20 
+#define CACHE_LIMIT 1e8
 // #define testtime
 
 using namespace std;
@@ -80,7 +81,6 @@ struct hash_pair {
 //     {0, "CG"}, {1, "GC"}, {2, "GU"}, {3, "UG"}, {4, "AU"}, {5, "UA"},
 //     {6, "AA"}, {7, "AC"}, {8, "AG"}, {9, "CA"}, {10, "CC"}, {11, "CU"}, {12, "GA"}, {13, "GG"}, {14, "UC"}, {15, "UU"}
 // };
-
 
 struct comp
 {
@@ -160,54 +160,72 @@ void idx_to_nucs_init() {
 class BeamCKYParser {
 public:
     string rna_struct;
-    string objective, initialization;
-    double learning_rate;
-    int num_steps;
-    bool is_verbose;
-    int beamsize;
-    bool nosharpturn;
-
-    bool softmax;
+    string objective;
     
-    // for sampling method
-    int best_k = 30; // always print out the best 30 unique samples
-    int sample_size, resample_iter;
-
-    // for initialization modes
-    int seed;
+    string initialization;
     double eps;
     string init_seq;
 
+    bool softmax, adam, nesterov;
+    float beta_1, beta_2;
+
+    double initial_lr, lr, lr_decay_rate;
+    bool lr_decay, staircase;
+    int lr_decay_step;
+
+    int num_steps;
+    bool is_verbose;
+
+    int beamsize;
+    bool nosharpturn;
+
+    // for sampling method
+    int sample_size, resample_iter;
+    int best_k = 1;
+
+    // for initialization modes
+    int seed;
+
+    map<vector<int>, vector<double>> old_dist; // used in nesterov
     map<vector<int>, vector<double>> dist;
+
     map<vector<int>, vector<double>> logits;
 
     vector<vector<int>> base_pairs_pos;
     vector<vector<int>> unpaired_pos; // [i] for unpaired, [i, j] and [i, j, k] for coupled terminal mismatches
 
     // Adam optimizer
-    bool adam;
-    pair<double, double> beta = {0.9, 0.999};
-    pair<double, double> beta_pow = {0.9, 0.999};
+    pair<double, double> beta;
+    pair<double, double> beta_pow;
     map<vector<int>, vector<double>> first_moment;
     map<vector<int>, vector<double>> second_moment;
+
+    // Nesterov
+    pair<double, double> nesterov_seq = {0, 1};
     
-    BeamCKYParser(
-                  string rna_struct="",
-                  string objective="",
-                  string initialization="",
-                  double learning_rate=0.01,
-                  int num_steps=1000,
-                  bool is_verbose=false,
-                  int beamsize=100,
-                  bool nosharpturn=true,
-                  int sample_size=1000,
-                  int resample_iter=1,
-                  int seed=42,
-                  double eps=-1.0,
-                  string init_seq="",
-                  int best_k=5,
-                  bool softmax=false,
-                  bool adam=false);
+    BeamCKYParser(string rna_struct,
+                    string objective,
+                    string initialization,
+                    double eps,
+                    string init_seq,
+                    bool softmax,
+                    bool adam,
+                    bool nesterov,
+                    double beta_1,
+                    double beta_2,
+                    double initial_lr,
+                    bool lr_decay,
+                    double lr_decay_rate,
+                    bool staircase,
+                    int lr_decay_step,
+                    int num_steps,
+                    bool verbose,
+                    int beamsize,
+                    bool nosharpturn,
+                    int sample_size,
+                    int resample_iter,
+                    int best_k,
+                    int seed);
 
     void print_mode(); // print settings [lr, num_steps, ...]
     void print_dist(string label, map<vector<int>, vector<double>>& dist); // print distribution or gradient
@@ -253,6 +271,7 @@ private:
 
     void update(Objective& obj);
     void adam_update(Objective& obj, int step);
+    void nesterov_update();
     void projection();
 
     unordered_map<pair<int, int>, State, hash_pair> *bestP;
@@ -295,8 +314,14 @@ private:
     vector<Sample> samples;
     priority_queue<pair<double, string>> best_samples;
 
+    // for analysis
     double calculate_mean();
     double calculate_variance();
+
+    void kmers_analysis(const vector<Sample>& samples);
+    vector<unordered_map<string, int>> freq_cnt;
+    vector<int> kmers_count;
+    unordered_map<string, Sample> samples_cache;
 
     // brute force
     vector<string> seqs;
