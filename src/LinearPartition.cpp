@@ -435,12 +435,11 @@ double LinearPartition::parse(string& seq) {
     double score = viterbi.alpha;
     
     // DEBUG: print in 
-    // cout << score * -kT / 100.0 << endl;
 
-    // if(!pf_only){
-    //     outside(next_pair);
-    //     cal_PairProb(viterbi);
-    // }
+    if(!pf_only){
+        outside(next_pair);
+        cal_PairProb(viterbi);
+    }
 
     postprocess();
     return score;
@@ -472,12 +471,11 @@ void LinearPartition::cal_PairProb(State& viterbi) {
             State state = item.second;
             
             pf_type temp_prob_inside = state.alpha + state.beta - viterbi.alpha;
-            if (temp_prob_inside > pf_type(-9.91152)) {
-                pf_type prob = Fast_Exp(temp_prob_inside);
-                if(prob > pf_type(1.0)) prob = pf_type(1.0);
+            pf_type prob = exp(temp_prob_inside);
+            if(prob > pf_type(1.0)) prob = pf_type(1.0);
                 // if(prob < pf_type(bpp_cutoff)) continue;
-                Pij[make_pair(i+1, j+1)] = prob;
-            }
+            Pij[make_pair(i, j)] = prob;
+            Pij[make_pair(j, i)] = prob;
         }
     }
 
@@ -726,21 +724,48 @@ void LinearPartition::outside(vector<int> next_pair[]){
     return;
 }
 
-double LinearPartition::normalized_ensemble_defect(string& seq) {
-    return 0.;
+double LinearPartition::ned(string& rna_struct) {
+    // assume that Pij is filled before calling ned
+    int n = rna_struct.size();
+    double ned_value = n;
+
+    stack<int> st;
+    for (int j = 0; j < n; j++) {
+        if (rna_struct[j] == '(') {
+            st.push(j);
+        } else if (rna_struct[j] == ')') {
+            int i = st.top();
+            st.pop();
+
+            ned_value -= 2 * Pij[make_pair(i, j)];
+        } else if (rna_struct[j] == '.') {
+            double q_j = 1.;
+            for (int i = 0; i < n; i++) {
+                if (i != j) {
+                    q_j -= Pij[make_pair(i, j)];
+                }
+            }
+            ned_value -= q_j;
+        }
+    }
+
+    return ned_value / n;
 }
 
-double BeamCKYParser::linear_partition(string rna_seq) {
+double BeamCKYParser::normalized_ensemble_defect(string& rna_seq, string& rna_struct) {
+    // compute bpp
     int dangles = 2; // TODO: change this into a parameter
+    bool pf_only = false;
+    LinearPartition parser(beamsize, nosharpturn, is_verbose, dangles, pf_only);
+    double log_Q = parser.parse(rna_seq);
 
-    if (objective == "pyx_sampling") {
-        bool pf_only = true;
-        LinearPartition parser(beamsize, nosharpturn, is_verbose, dangles, pf_only);
-        return parser.parse(rna_seq);
-    } else if (objective == "ned") {
-        bool pf_only = false;
-        LinearPartition parser(beamsize, nosharpturn, is_verbose, dangles, pf_only);
-        return parser.normalized_ensemble_defect(rna_seq);
-    }
-    return 0.;
+    // compute NED
+    return parser.ned(rna_struct);
+}
+
+double BeamCKYParser::linear_partition(string& rna_seq) {
+    int dangles = 2; // TODO: change this into a parameter
+    bool pf_only = true;
+    LinearPartition parser(beamsize, nosharpturn, is_verbose, dangles, pf_only);
+    return parser.parse(rna_seq);
 }

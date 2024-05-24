@@ -1,5 +1,7 @@
 import os, sys
 import numpy as np
+from scipy.stats import gmean
+import matplotlib.pyplot as plt
 
 from vienna import *
 
@@ -119,9 +121,19 @@ def main():
     print(f"avg p(y|x) step: {np.average(steps)}")
     print(f"avg total step: {np.average(total_steps)}")
     print(f"average pyx: {np.mean(avg_pyx):.3f}")
+    print(f"average pyx (geometric): {gmean(avg_pyx):.5f}")
     print(f"average ned: {np.mean(avg_ned):.3f}")
     print(f"mfe count: {mfe_count}")
     print(f"umfe count: {umfe_count}")
+
+    # plot p(y | x) against NED
+    # avg_ned = np.array(avg_ned)
+    # plt.plot(np.log(1 - avg_ned), np.log(avg_pyx), marker='x', linestyle='', label='puzzle')
+    # plt.xlabel('log(1 - NED)')
+    # plt.ylabel('log p(y | x)')
+    # plt.title('p(y | x) vs. NED of Eterna100 Solutions')
+    # plt.savefig('./pyx_ned.png', dpi=400, bbox_inches='tight')
+    # plt.close()
 
 if __name__ == '__main__':
     main()

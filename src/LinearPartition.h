@@ -36,8 +36,8 @@ public:
                   bool pf_only=true);
 
     // DecoderResult parse(string& seq);
-    double parse(string& seq);
-    double normalized_ensemble_defect(string& seq);
+    double parse(string& rna_seq);
+    double ned(string& rna_struct);
 
 private:
     unsigned seq_length;

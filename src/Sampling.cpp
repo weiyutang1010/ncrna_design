@@ -21,7 +21,7 @@ void BeamCKYParser::resample() {
     // struct timeval parse_starttime, parse_endtime;
     // gettimeofday(&parse_starttime, NULL);
 
-    #pragma omp parallel for
+    #pragma omp parallel for shared(samples_cache)
     for (int k = 0; k < sample_size; k++) {
         string seq = string(rna_struct.size(), 'A');
         
@@ -50,15 +50,27 @@ void BeamCKYParser::resample() {
             sample_prob *= probs[idx];
         }
 
-        if (samples_cache.find(seq) != samples_cache.end()) {
-            samples[k] = samples_cache[seq];
-        } else {
-            double log_Q = linear_partition(seq); // log Q(x)
-            long deltaG = eval(seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
-            double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
+        bool found = false;
+        #pragma omp critical
+        {
+            found = samples_cache.find(seq) != samples_cache.end();
+        }
 
-            if (objective == "pyx_sampling")
+        if (found) {
+            #pragma omp critical
+            {
+                samples[k] = samples_cache[seq];
+            }
+        } else {
+            if (objective == "prob") {
+                double log_Q = linear_partition(seq); // log Q(x)
+                long deltaG = eval(seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
+                double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
                 samples[k] = {seq, log_Q, deltaG, log_boltz_prob, exp(log_boltz_prob), sample_prob, -log_boltz_prob};
+            } else if (objective == "ned") {
+                double ned = normalized_ensemble_defect(seq, rna_struct);
+                samples[k] = {seq, 0., 0, 0., 0., sample_prob, ned};
+            }
 
             #pragma omp critical
             {
@@ -68,6 +80,8 @@ void BeamCKYParser::resample() {
             }
         }
     }
+
+
 
     // gettimeofday(&parse_endtime, NULL);
     // double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
@@ -93,10 +107,10 @@ double BeamCKYParser::calculate_variance() {
 }
 
 Objective BeamCKYParser::sampling_approx(int step) {
-    bool resample_cond = (step % resample_iter == 0);
-    if (resample_cond) {
-        resample();
-    }
+    // bool resample_cond = (step % resample_iter == 0);
+    // if (resample_cond) {
+    resample();
+    // }
 
     // DEBUG: prints out all sampled sequences
     // for (int k = 0; k < sample_size; k++) {

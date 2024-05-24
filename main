@@ -9,7 +9,7 @@ FLAGS = flags.FLAGS
 
 def setgflags():
     flags.DEFINE_string('mode', "ncrna_design", "Perform non-Coding RNA Design")
-    flags.DEFINE_string('objective', "pyx_sampling", "Minimizes -E[log p(y | x)] using sampling approximation", short_name='obj')
+    flags.DEFINE_string('objective', "prob", "Minimizes -E[log p(y | x)] using sampling approximation", short_name='obj')
     
     flags.DEFINE_string('initializations', "targeted_sm", "Initialization methods (uniform/targeted/random)", short_name='init')
     flags.DEFINE_float('eps', 0.75, "eps * uniform + (1 - eps) * targeted")
@@ -43,8 +43,8 @@ def setgflags():
     flags.DEFINE_integer('best_k', 1, "Print out best k samples")
 
     flags.DEFINE_integer('seed', 42, "random seed")
+    flags.DEFINE_boolean('kmers', False, "kmers analysis")
     flags.DEFINE_boolean('test', False, "test mode")
-    
 
     argv = FLAGS(sys.argv)
 
@@ -79,12 +79,13 @@ def main():
     best_k = str(FLAGS.best_k)
 
     seed = str(FLAGS.seed)
+    kmers = '1' if FLAGS.kmers else '0'
     exe_file = 'bin/main_test' if FLAGS.test else 'bin/main'
 
     # TODO: error handling
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, exe_file), mode, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, best_k, seed]
+    cmd = ["%s/%s" % (path, exe_file), mode, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, best_k, seed, kmers]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

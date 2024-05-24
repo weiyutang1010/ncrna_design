@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 
 UNIFORM_PARALLEL_FOLDER = '../results/sampling_pyx_uniform_sm_softmax_adam_time_parallel'
 UNIFORM_NO_PARALLEL_FOLDER = '../results/sampling_pyx_uniform_sm_softmax_adam_time'
+UNIFORM_PARALLEL_CACHE_FOLDER = '../results/sampling_pyx_uniform_sm_softmax_adam_time_parallel_cache'
 TARGETED_PARALLEL_FOLDER = '../results/sampling_pyx_targeted_sm_softmax_adam_time_parallel'
 TARGETED_NO_PARALLEL_FOLDER = '../results/sampling_pyx_targeted_sm_softmax_adam_time'
+TARGETED_PARALLEL_CACHE_FOLDER = '../results/sampling_pyx_targeted_sm_softmax_adam_time_parallel_cache'
 DATA_FILE = '../data/eterna/eterna100.txt'
 
 puzzle_ids = []
@@ -43,28 +45,35 @@ def parse(folder, label):
             struct_len.append(len(struct))
             time_arr.append(time_avg)
     
+    struct_len = struct_len[:70]
+    time_arr = time_arr[:70]
+
+    print(len(time_arr))
+
     plt.scatter(struct_len, time_arr, marker='x', label=label)
 
     # best fit of line
-    x_values = np.linspace(0, max(struct_len), 1000)
+    x_values = np.linspace(min(struct_len), max(struct_len), 1000)
     coefficients = np.polyfit(struct_len, time_arr, 3)
     best_fit = np.polyval(coefficients, x_values)
     plt.plot(x_values, best_fit, linestyle='--')
 
-    print(np.polyval(coefficients, 400) * 2000 / 3600)
+    print(np.polyval(coefficients, max(struct_len)))
     print(f"Label = {label}, Max Time = {max(time_arr)}, Average = {np.mean(time_arr)}, 2000 steps = {max(time_arr) * 2000 / 3600} hr")
 
+plt.figure(figsize=(12,6))
 
 
-parse(UNIFORM_PARALLEL_FOLDER, 'Multi-Threading (56 cores)')
-parse(UNIFORM_NO_PARALLEL_FOLDER, 'Single Thread')
-# parse(TARGETED_PARALLEL_FOLDER, 'Targeted Distribution (multi-threading)')
+parse(UNIFORM_PARALLEL_FOLDER, 'Multi-Threading (28 cores)')
+parse(UNIFORM_PARALLEL_CACHE_FOLDER, 'Multi-Threading (28 cores) + Cache')
+# parse(UNIFORM_NO_PARALLEL_FOLDER, 'Single Thread')
+# parse(TARGETED_PARALLEL_CACHE_FOLDER, 'Multi-Threading (28 cores) + Cache')
+# parse(TARGETED_PARALLEL_FOLDER, 'Multi-Threading (28 cores)')
 # parse(TARGETED_NO_PARALLEL_FOLDER, 'Uniform Distribution')
 
-
 plt.xlabel('Structure Length')
-plt.ylabel('Average Time per Step (sec)')
-plt.title('Average Time per Step vs. Structure Length (Sample Size = 2500, Uniform Distribution)')
+plt.ylabel('Time per Step (sec)')
+plt.title('Avg Time per Step vs. Length (Sample Size=2500, Steps=2000)')
 plt.legend()
 
 save_path = './time.png'

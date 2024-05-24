@@ -88,6 +88,8 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --test --init targeted_sm --lr 0.01 -k 2500 --softmax --adam --step 5 > results/sampling_pyx_targeted_sm_softmax_adam_time/${puzzles[0]}.txt
     # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.01 -k 2500 --softmax --adam --step 5 > results/sampling_pyx_uniform_sm_softmax_adam_time_parallel/${puzzles[0]}.txt
     # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 -k 2500 --softmax --adam --step 5 > results/sampling_pyx_targeted_sm_softmax_adam_time_parallel/${puzzles[0]}.txt
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 -k 2500 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_adam_time_parallel_cache/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.01 -k 2500 --softmax --adam --step 2000 > results/sampling_pyx_uniform_sm_softmax_adam_time_parallel_cache/${puzzles[0]}.txt
     
     # Nesterov
     # echo "${puzzles[1]}" | ./main --init targeted_sm --nesterov > results/sampling_pyx_targeted_sm_nesterov/${puzzles[0]}.txt &
@@ -106,6 +108,6 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --init targeted_sm --initial_lr 0.0001 --nesterov --lr_decay --lr_decay_rate 0.50 > results/sampling_pyx_targeted_sm_nesterov_adaptive_lr_decay_50/${puzzles[0]}.txt &
 
     # Kmers Analysis
-    echo "${puzzles[1]}" | ./main --test --init targeted_sm --eps 0.75 --lr 0.01 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_adam_kmers/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --test --init targeted_sm --eps 0.75 --lr 0.01 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_adam_kmers/${puzzles[0]}.txt
 done < "data/eterna/$1.txt"
 

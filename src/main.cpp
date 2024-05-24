@@ -25,13 +25,6 @@
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
 
-// obsolete
-// #include "Inside.cpp"
-// #include "Outside.cpp"
-// #include "Eval.cpp"
-// #include "EvalFull.cpp"
-// #include "Exact.cpp"
-
 // TODO: change to include .h but need to update MAKEFILE
 #include "LinearFoldEval.h"
 #include "Sampling.cpp"
@@ -61,7 +54,8 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
                              int sample_size,
                              int resample_iter,
                              int best_k,
-                             int seed)
+                             int seed,
+                             bool kmers)
     : rna_struct(rna_struct),
       objective(objective),
       initialization(initialization),
@@ -84,7 +78,8 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
       sample_size(sample_size),
       resample_iter(resample_iter),
       best_k(best_k),
-      seed(seed) {
+      seed(seed),
+      kmers(kmers) {
 
     // setting random seed
     this->gen.seed(seed);
@@ -157,11 +152,6 @@ void BeamCKYParser::projection() {
             dist[pos][j] = max(dist[pos][j] - theta[pos][indices[i]], 0.);
         }
     }
-
-    // DEBUG: check every row sums to one
-    // for (auto& [pos, probs]: dist) {
-    //     cerr << pos[0] << " " << accumulate(probs.begin(), probs.end(), 0.) << endl;
-    // }
 }
 
 void BeamCKYParser::update(Objective& obj) {
@@ -478,12 +468,6 @@ void BeamCKYParser::initialize() {
     } else {
         throw std::runtime_error("Initialization not implemented yet!");
     }
-
-    // DEBUG: print sum of every row (should be 1.)
-    // cerr << "Sum of distribution row" << endl;
-    // for (auto& [i, j]: paired_idx) {
-    //     cerr << "(i, j): " << accumulate(dist[{i, j}].begin(), dist[{i, j}].end(), 0.) << endl;
-    // }
 }
 
 void BeamCKYParser::print_dist(string label, map<vector<int>, vector<double>>& dist) {
@@ -533,7 +517,7 @@ void BeamCKYParser::print_mode() {
 
     cout << "initial lr: " << initial_lr << ", number of steps: " << num_steps
          << ", beamsize: " << beamsize << ", sharpturn: " << (!nosharpturn ? "true" : "false")
-         << ", seed: " << seed
+         << ", seed: " << seed << ", kmers: " << kmers
          << ", softmax: " << softmax << ", adam: " << adam << ", nesterov: " << nesterov
          << ", beta_1: " << beta.first << ", beta_2: " << beta.second << "\n";
 
@@ -547,9 +531,9 @@ void BeamCKYParser::print_mode() {
 }
 
 Objective BeamCKYParser::objective_function(int step) {
-    if (objective == "pyx_sampling") {
-        Objective pyx = sampling_approx(step); // optimize E[-log p(y|x)]
-        return pyx;
+    if (objective == "prob" || objective == "ned") {
+        Objective obj = sampling_approx(step);
+        return obj;
     } else {
         throw std::runtime_error("Objective not implemented!");
     }
@@ -608,8 +592,6 @@ Objective BeamCKYParser::logits_grad(const Objective& obj) {
 
 void BeamCKYParser::kmers_analysis(const vector<Sample>& samples) {
     int n = samples[0].seq.size();
-    // unordered_map<string, int> freq_cnt;
-    // vector<int> kmers_count (n+1);
 
     if (kmers_count.size() < n + 1) {
         kmers_count.resize(n+1);
@@ -619,15 +601,15 @@ void BeamCKYParser::kmers_analysis(const vector<Sample>& samples) {
         freq_cnt.resize(n+1);
     }
 
-    for (double x = 0.4; x <= 1.0; x += 0.1) {
-        int k = x * n;
-        int cnt = 0;
+    for (int k = n; k >= max(3, n / 6); k -= n / 6) {
+        long long cnt = 0;
         for (const Sample& sample: samples) {
             for (int i = 0; i <= n - k; i++) {
-                freq_cnt[k][sample.seq.substr(i, k)]++;
-                kmers_count[k]++;
+                freq_cnt[k][sample.seq.substr(i, k)] = 1;
+                cnt++;
             }
         }
+        kmers_count[k] += cnt;
         cout << "k: " << k << ", uniq_kmers: " << freq_cnt[k].size() << ", total count: " << kmers_count[k] << endl;
     }
 
@@ -700,12 +682,17 @@ void BeamCKYParser::gradient_descent() {
         }
 
         // get integral solution x* and its probability p(y | x*)
-        string curr_seq = get_integral_solution();
-        double boltz_prob = exp((eval(curr_seq, rna_struct, false, 2) / kT) - linear_partition(curr_seq));
+        string integral_seq = get_integral_solution();
+        double integral_obj;
+        if (objective == "prob") {
+            integral_obj = exp((eval(integral_seq, rna_struct, false, 2) / kT) - linear_partition(integral_seq));
+        } else {
+            integral_obj = normalized_ensemble_defect(integral_seq, rna_struct);
+        }
 
-        // approximate mean from samples: E[p(y | x)]
+        // approximate E[p(y | x)] from samples
         double mean_prob = 0.;
-        if (sample_size > 0.) {
+        if (sample_size > 0 && objective == "prob") {
             for (int k = 0; k < sample_size; k++)
                 mean_prob += samples[k].boltz_prob;
             mean_prob /= sample_size;
@@ -713,16 +700,19 @@ void BeamCKYParser::gradient_descent() {
 
         gettimeofday(&parse_endtime, NULL);
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
-        cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", seq: " << curr_seq << ", prob: " << boltz_prob << ", learning rate: " << lr << ", time: " << parse_elapsed_time << "\n";
+        cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", integral seq: " << integral_seq << ", integral obj: " << integral_obj << ", learning rate: " << lr << ", time: " << parse_elapsed_time << "\n";
         
         // print out best k samples and stats
         sort(samples.begin(), samples.end(), [&](const Sample& a, const Sample& b) {
-            return a.log_boltz_prob > b.log_boltz_prob;
+            return a.obj < b.obj;
         });
 
         cout << "Boxplot: " << std::scientific << std::setprecision(3);
         for (const Sample& sample: samples) {
-            cout << sample.boltz_prob << " ";
+            if (objective == "prob")
+                cout << sample.boltz_prob << " ";
+            else if (objective == "ned")
+                cout << sample.obj << " ";
         }
         cout << "\n" << defaultfloat;
 
@@ -732,7 +722,12 @@ void BeamCKYParser::gradient_descent() {
         string last_sample = "";
         while (count < best_k && i < sample_size) {
             if (samples[i].seq != last_sample) {
-                cout << samples[i].seq << " " << samples[i].boltz_prob << "\n";
+                cout << samples[i].seq << " ";
+                if (objective == "prob")
+                    cout << samples[i].boltz_prob << "\n";
+                else if (objective == "ned")
+                    cout << samples[i].obj << "\n";
+
                 last_sample = samples[i].seq;
                 count++;
             }
@@ -740,8 +735,10 @@ void BeamCKYParser::gradient_descent() {
         }
         cout << "\n";
 
-        // For analysis
-        // kmers_analysis(samples);
+        // For substring analysis
+        if (kmers) {
+            kmers_analysis(samples);
+        }
 
         // calculate k moving avg of sampled E[p(y | x)]
         moving_avg += obj.score;
@@ -764,9 +761,9 @@ void BeamCKYParser::gradient_descent() {
         if (adaptive_step){
             double best_sample_prob = samples[sample_size-1].boltz_prob;
             
-            if (boltz_prob > last_best_seq.first) {
+            if (integral_obj > last_best_seq.first) {
                 // update step of best integral solution
-                last_best_seq = {boltz_prob, step};
+                last_best_seq = {integral_obj, step};
             }
             
             if (best_sample_prob > last_best_seq.first) {
@@ -844,7 +841,7 @@ void BeamCKYParser::gradient_descent() {
 
 int main(int argc, char** argv){
     string mode = "ncrna_design";
-    string objective = "pyx_sampling";
+    string objective = "prob";
 
     string initialization = "targeted_sm";
     double eps = 0.75;
@@ -869,6 +866,7 @@ int main(int argc, char** argv){
     int best_k = 1;
 
     int seed = 42;
+    bool kmers = false;
 
     if (argc > 1) {
         mode = argv[1];
@@ -901,6 +899,7 @@ int main(int argc, char** argv){
         best_k = atoi(argv[22]);
 
         seed = atoi(argv[23]);
+        kmers = atoi(argv[24]) == 1;
     }
 
     if (mode == "ncrna_design") {
@@ -908,7 +907,7 @@ int main(int argc, char** argv){
             // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    BeamCKYParser parser(rna_struct, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, !sharpturn, sample_size, resample_iter, best_k, seed);
+                    BeamCKYParser parser(rna_struct, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, !sharpturn, sample_size, resample_iter, best_k, seed, kmers);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;

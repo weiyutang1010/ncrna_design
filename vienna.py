@@ -75,12 +75,29 @@ def position_defect(seq, ss, scale=True):
     return defect_pos
 
 if __name__ == '__main__':
-    with open('input.txt', 'r') as f:
-        lines = f.read().split('\n')
-        n = len(lines)
+    # with open('input.txt', 'r') as f:
+    #     lines = f.read().split('\n')
+    #     n = len(lines)
         
-    seqs    = lines[:n//2]
-    structs = lines[n//2:]
+    # seqs    = lines[:n//2]
+    # structs = lines[n//2:]
+
+    seq = "AAAAAGCAAAGCGAAAGCAAACCGAAAGGAAAGGGAAACCAAAGCGAAAGCAAACCGAAAGGAAAGGGAAACCAAAGCAAAAAAAAAAAAAAAAAAAA"
+    struct = ".....((...((....))...((....))...((....))...((....))...((....))...((....))...))...................."
+    bpp = base_pair_probs(seq, sym=True)
+    ned = ensemble_defect(seq, struct)
+
+    for j in range(len(seq)):
+        for i in range(j):
+            print(i, j, bpp[i][j])
+
+    print("ned: ", ned)
+    exit(0)
+
+    struct = input("struct: ")
+
+    seqs = [seq]
+    structs = [struct]
 
     for seq, struct in zip(seqs, structs):
         if seq == "" or struct == "":
@@ -101,5 +118,5 @@ if __name__ == '__main__':
         print(f"is_umfe    : {is_umfe}")
         print(f"p(y | x)   : {pyx}")
         print(f"ned        : {ned}")
-        # print(f"pos defect : {pos_def}")
+        print(f"pos defect : {pos_def}")
         print()

@@ -61,27 +61,6 @@ struct hash_pair {
     } 
 };
 
-// enum nucs {
-//     A = 0, C, G, U
-// };
-
-// enum nucpairs {
-//     CG = 0, GC, GU, UG, AU, UA,
-//     AA, AC, AG, CA, CC, CU, GA, GG, UC, UU
-// };
-
-// convert nucs to idx
-// unordered_map<string, int> nucs_to_idx {
-//     {"A", 0}, {"C", 1}, {"G", 2}, {"U", 3}, 
-//     {"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5},
-//     {"AA", 6}, {"AC", 7}, {"AG", 8}, {"CA", 9}, {"CC", 10}, {"CU", 11}, {"GA", 12}, {"GG", 13}, {"UC", 14}, {"UU", 15}
-// };
-
-// unordered_map<int, string> idx_to_nucs {
-//     {0, "CG"}, {1, "GC"}, {2, "GU"}, {3, "UG"}, {4, "AU"}, {5, "UA"},
-//     {6, "AA"}, {7, "AC"}, {8, "AG"}, {9, "CA"}, {10, "CC"}, {11, "CU"}, {12, "GA"}, {13, "GG"}, {14, "UC"}, {15, "UU"}
-// };
-
 struct comp
 {
     template<typename T>
@@ -103,7 +82,6 @@ struct State {
 
 struct Objective {
     double score;
-    // unordered_map<pair<int, int>, vector<double>, hash_pair> gradient;
     map<vector<int>, vector<double>> gradient;
 
     Objective operator+(Objective& other) const {
@@ -186,6 +164,8 @@ public:
     // for initialization modes
     int seed;
 
+    bool kmers;
+
     map<vector<int>, vector<double>> old_dist; // used in nesterov
     map<vector<int>, vector<double>> dist;
 
@@ -225,7 +205,8 @@ public:
                     int sample_size,
                     int resample_iter,
                     int best_k,
-                    int seed);
+                    int seed,
+                    bool kmers);
 
     void print_mode(); // print settings [lr, num_steps, ...]
     void print_dist(string label, map<vector<int>, vector<double>>& dist); // print distribution or gradient
@@ -233,12 +214,9 @@ public:
     void initialize_sm();
     void gradient_descent();
     string get_integral_solution();
-    // double eval(string& rna_seq, string& rna_struct, bool verbose, FILE* fp);
     
     Objective objective_function(int step);
-    // Objective expected_free_energy(bool verbose);
     Objective sampling_approx(int step);
-    // Objective partition_exact();
 
     void softmax_func(const vector<vector<int>>& positions);
     void logits_to_dist();
@@ -309,7 +287,8 @@ private:
     };
 
     void resample();
-    double linear_partition(string rna_seq);
+    double linear_partition(string& rna_seq);
+    double normalized_ensemble_defect(string& rna_seq, string& rna_struct);
 
     vector<Sample> samples;
     priority_queue<pair<double, string>> best_samples;
@@ -320,7 +299,7 @@ private:
 
     void kmers_analysis(const vector<Sample>& samples);
     vector<unordered_map<string, int>> freq_cnt;
-    vector<int> kmers_count;
+    vector<long long> kmers_count;
     unordered_map<string, Sample> samples_cache;
 
     // brute force
