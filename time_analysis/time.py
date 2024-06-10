@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 UNIFORM_PARALLEL_FOLDER = '../results/sampling_pyx_uniform_sm_softmax_adam_time_parallel'
 UNIFORM_NO_PARALLEL_FOLDER = '../results/sampling_pyx_uniform_sm_softmax_adam_time'
 UNIFORM_PARALLEL_CACHE_FOLDER = '../results/sampling_pyx_uniform_sm_softmax_adam_time_parallel_cache'
+UNIFORM_NED_PARALLEL_FOLDER = '../results/sampling_log_ned_uniform_sm_softmax_adam_time'
+UNIFORM_NED_LAZY_PARALLEL_FOLDER = '../results/sampling_log_ned_uniform_sm_softmax_adam_lazy_time'
 TARGETED_PARALLEL_FOLDER = '../results/sampling_pyx_targeted_sm_softmax_adam_time_parallel'
 TARGETED_NO_PARALLEL_FOLDER = '../results/sampling_pyx_targeted_sm_softmax_adam_time'
 TARGETED_PARALLEL_CACHE_FOLDER = '../results/sampling_pyx_targeted_sm_softmax_adam_time_parallel_cache'
@@ -29,7 +31,7 @@ def parse(folder, label):
 
         with open(file_path, 'r') as f:
             lines = f.read().split('\n')
-            
+
             time = 0.0
             cnt = 0
             for line in lines:
@@ -44,9 +46,9 @@ def parse(folder, label):
 
             struct_len.append(len(struct))
             time_arr.append(time_avg)
-    
-    struct_len = struct_len[:70]
-    time_arr = time_arr[:70]
+
+    struct_len = struct_len
+    time_arr = time_arr
 
     print(len(time_arr))
 
@@ -64,8 +66,10 @@ def parse(folder, label):
 plt.figure(figsize=(12,6))
 
 
-parse(UNIFORM_PARALLEL_FOLDER, 'Multi-Threading (28 cores)')
-parse(UNIFORM_PARALLEL_CACHE_FOLDER, 'Multi-Threading (28 cores) + Cache')
+parse(UNIFORM_PARALLEL_FOLDER, 'obj = p(y | x)')
+parse(UNIFORM_NED_PARALLEL_FOLDER, 'obj = NED')
+parse(UNIFORM_NED_LAZY_PARALLEL_FOLDER, 'obj = NED (lazyoutside)')
+# parse(UNIFORM_PARALLEL_CACHE_FOLDER, 'Multi-Threading (28 cores) + Caching')
 # parse(UNIFORM_NO_PARALLEL_FOLDER, 'Single Thread')
 # parse(TARGETED_PARALLEL_CACHE_FOLDER, 'Multi-Threading (28 cores) + Cache')
 # parse(TARGETED_PARALLEL_FOLDER, 'Multi-Threading (28 cores)')
@@ -73,7 +77,7 @@ parse(UNIFORM_PARALLEL_CACHE_FOLDER, 'Multi-Threading (28 cores) + Cache')
 
 plt.xlabel('Structure Length')
 plt.ylabel('Time per Step (sec)')
-plt.title('Avg Time per Step vs. Length (Sample Size=2500, Steps=2000)')
+plt.title('Avg Time per Step vs. Length (Sample Size=2500, 28 cores)')
 plt.legend()
 
 save_path = './time.png'

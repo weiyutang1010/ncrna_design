@@ -11,20 +11,20 @@ def setgflags():
     flags.DEFINE_string('mode', "ncrna_design", "Perform non-Coding RNA Design")
     flags.DEFINE_string('objective', "prob", "Minimizes -E[log p(y | x)] using sampling approximation", short_name='obj')
     
-    flags.DEFINE_string('initializations', "targeted_sm", "Initialization methods (uniform/targeted/random)", short_name='init')
+    flags.DEFINE_string('initializations', "uniform_sm", "Initialization methods (uniform/targeted/random)", short_name='init')
     flags.DEFINE_float('eps', 0.75, "eps * uniform + (1 - eps) * targeted")
     flags.DEFINE_string('init_seq', "", "initialization sequence", short_name='seq')
 
     # TODO: default lr for softmax should be 0.01
     # TODO: make softmax adam default mode
-    flags.DEFINE_boolean('softmax', False, "Use softmax update instead of projection")
+    flags.DEFINE_boolean('projection', False, "Use projection update instead of softmax")
     # TODO: adam should require softmax
-    flags.DEFINE_boolean('adam', False, "Use adam optimizer")
+    flags.DEFINE_boolean('no_adam', False, "turn off adam optimizer")
     flags.DEFINE_boolean('nesterov', False, "Use nesterov's accelerated gradient descent")
     flags.DEFINE_float('beta_1', 0.9, "Adam first moment decay", short_name='b1')
     flags.DEFINE_float('beta_2', 0.999, "Adam second moment decay", short_name='b2')
     
-    flags.DEFINE_float('initial_lr', 0.001, "set learning rate", short_name='lr')
+    flags.DEFINE_float('initial_lr', 0.01, "set learning rate", short_name='lr')
     flags.DEFINE_boolean('lr_decay', False, "Use learning rate decay")
     flags.DEFINE_float('lr_decay_rate', 0.96, "Decay rate")
     flags.DEFINE_boolean('staircase', False, "Decay rate follows a staircase function")
@@ -46,6 +46,9 @@ def setgflags():
     flags.DEFINE_boolean('kmers', False, "kmers analysis")
     flags.DEFINE_boolean('test', False, "test mode")
 
+    flags.DEFINE_boolean('is_lazy', False, "Use lazy outside for LinearPartition NED")
+    flags.DEFINE_boolean('no_trimismatch', False, "Ablate 4 x 4 x 4 coupled trimismatch for 1 x 2, 1 x 3, 1 x n")
+
     argv = FLAGS(sys.argv)
 
 def main():
@@ -56,8 +59,8 @@ def main():
     eps = str(FLAGS.eps)
     init_seq = str(FLAGS.seq)
 
-    softmax = '1' if FLAGS.softmax else '0'
-    adam = '1' if FLAGS.adam else '0'
+    softmax = '0' if FLAGS.projection else '1'
+    adam = '0' if FLAGS.no_adam else '1'
     nesterov = '1' if FLAGS.nesterov else '0'
     beta_1 = str(FLAGS.beta_1)
     beta_2 = str(FLAGS.beta_2)
@@ -80,12 +83,15 @@ def main():
 
     seed = str(FLAGS.seed)
     kmers = '1' if FLAGS.kmers else '0'
+    is_lazy = '1' if FLAGS.is_lazy else '0'
+    trimismatch = '0' if FLAGS.no_trimismatch else '1'
+
     exe_file = 'bin/main_test' if FLAGS.test else 'bin/main'
 
     # TODO: error handling
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, exe_file), mode, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, best_k, seed, kmers]
+    cmd = ["%s/%s" % (path, exe_file), mode, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, sharpturn, sample_size, resample_iter, best_k, seed, kmers, is_lazy, trimismatch]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

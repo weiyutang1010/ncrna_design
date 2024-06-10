@@ -1,6 +1,6 @@
 #include "main.h"
 
-int BeamCKYParser::selectRandomIndex(const std::vector<double>& weights) {
+int GradientDescent::selectRandomIndex(const std::vector<double>& weights) {
     // Create a discrete distribution based on the weights
     std::discrete_distribution<> dist(weights.begin(), weights.end());
 
@@ -8,7 +8,7 @@ int BeamCKYParser::selectRandomIndex(const std::vector<double>& weights) {
     return dist(gen);
 }
 
-void BeamCKYParser::resample() {
+void GradientDescent::resample() {
     string nucs = "ACGU";
 
     if (samples.size() < sample_size){
@@ -67,9 +67,20 @@ void BeamCKYParser::resample() {
                 long deltaG = eval(seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
                 double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
                 samples[k] = {seq, log_Q, deltaG, log_boltz_prob, exp(log_boltz_prob), sample_prob, -log_boltz_prob};
-            } else if (objective == "ned") {
+            } else if (objective == "ned" || objective == "log_ned") {
                 double ned = normalized_ensemble_defect(seq, rna_struct);
-                samples[k] = {seq, 0., 0, 0., 0., sample_prob, ned};
+
+                if (objective == "log_ned") {
+                    samples[k] = {seq, 0., 0, 0., 0., sample_prob, log(ned)};
+                } else {
+                    samples[k] = {seq, 0., 0, 0., 0., sample_prob, ned};
+                }
+            } else if (objective == "ediff") {
+                double diff = energy_diff(seq, rna_struct); // objective used in NEMO
+                samples[k] = {seq, 0., 0, 0., 0., sample_prob, diff};
+            } else if (objective == "comp") {
+                double score = composite(seq, rna_struct); // objective used in NEMO
+                samples[k] = {seq, 0., 0, 0., 0., sample_prob, score};
             }
 
             #pragma omp critical
@@ -81,14 +92,12 @@ void BeamCKYParser::resample() {
         }
     }
 
-
-
     // gettimeofday(&parse_endtime, NULL);
     // double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
     // cerr << "Sampled Time: " << parse_elapsed_time << endl;
 }
 
-double BeamCKYParser::calculate_mean() {
+double GradientDescent::calculate_mean() {
     double sum = 0.0;
     for (Sample value : samples) {
         sum += value.log_Q;
@@ -96,7 +105,7 @@ double BeamCKYParser::calculate_mean() {
     return sum / samples.size();
 }
 
-double BeamCKYParser::calculate_variance() {
+double GradientDescent::calculate_variance() {
     double mean = calculate_mean();
     double sum_squared_deviations = 0.0;
     for (Sample& value : samples) {
@@ -106,18 +115,10 @@ double BeamCKYParser::calculate_variance() {
     return sum_squared_deviations / samples.size();
 }
 
-Objective BeamCKYParser::sampling_approx(int step) {
-    // bool resample_cond = (step % resample_iter == 0);
-    // if (resample_cond) {
+Objective GradientDescent::sampling_approx(int step) {
     resample();
-    // }
 
-    // DEBUG: prints out all sampled sequences
-    // for (int k = 0; k < sample_size; k++) {
-    //     cerr << samples[k].seq << " " << samples[k].sample_prob << " " << samples[k].obj << endl;
-    // }
-    // cerr << endl;
-
+    // Approximate mean objective value
     double obj_val = 0.;
     for (const Sample& sample: samples) {
         obj_val += sample.obj;
@@ -130,25 +131,29 @@ Objective BeamCKYParser::sampling_approx(int step) {
         gradient[pos] = vector<double> (probs.size(), 0.);
     }
 
-    for (int k = 0; k < sample_size; k++) {
-        for (const vector<int>& pos: unpaired_pos) {
-            string nucij = "";
-            for (const int& x: pos) {
-                nucij += samples[k].seq[x];
+    // Approximate gradient with Monte Carlo Sampling
+    {
+        for (int k = 0; k < sample_size; k++) {
+            for (const vector<int>& pos: unpaired_pos) {
+                string nucij = "";
+                for (const int& x: pos) {
+                    nucij += samples[k].seq[x];
+                }
+                gradient[pos][nucs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][nucs_to_idx[nucij]]);
             }
-            gradient[pos][nucs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][nucs_to_idx[nucij]]);
+
+            for (const vector<int>& pos: base_pairs_pos) {
+                string nucij {samples[k].seq[pos[0]], samples[k].seq[pos[1]]};
+                gradient[pos][pairs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][pairs_to_idx[nucij]]);
+            }
         }
 
-        for (const vector<int>& pos: base_pairs_pos) {
-            string nucij {samples[k].seq[pos[0]], samples[k].seq[pos[1]]};
-            gradient[pos][pairs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][pairs_to_idx[nucij]] );
+        for (auto& [pos, grad]: gradient) {
+            for (auto& x: grad) {
+                x /= sample_size;
+            }
         }
     }
 
-    for (auto& [pos, grad]: gradient) {
-        for (auto& x: grad) {
-            x /= sample_size;
-        }
-    }
     return {obj_val, gradient};
 }

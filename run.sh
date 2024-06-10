@@ -60,9 +60,6 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 --softmax --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_no_adam/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 --softmax --adam > results/sampling_pyx_targeted_sm_softmax_eps_075_adam/${puzzles[0]}.txt &
     
-    # adam no coupled
-    # echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --lr 0.01 --softmax --adam > results/sampling_pyx_targeted_softmax_eps_075_adam/${puzzles[0]}.txt &
-    
     # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.1 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_adam_lr_1/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.001 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_adam_lr_001/${puzzles[0]}.txt &
     
@@ -89,7 +86,7 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.01 -k 2500 --softmax --adam --step 5 > results/sampling_pyx_uniform_sm_softmax_adam_time_parallel/${puzzles[0]}.txt
     # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 -k 2500 --softmax --adam --step 5 > results/sampling_pyx_targeted_sm_softmax_adam_time_parallel/${puzzles[0]}.txt
     # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 -k 2500 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_adam_time_parallel_cache/${puzzles[0]}.txt
-    echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.01 -k 2500 --softmax --adam --step 2000 > results/sampling_pyx_uniform_sm_softmax_adam_time_parallel_cache/${puzzles[0]}.txt
+    # echo "${puzzles[1]}" | ./main --init uniform_sm --lr 0.01 -k 2500 --softmax --adam --step 2000 > results/sampling_pyx_uniform_sm_softmax_adam_time_parallel_cache/${puzzles[0]}.txt
     
     # Nesterov
     # echo "${puzzles[1]}" | ./main --init targeted_sm --nesterov > results/sampling_pyx_targeted_sm_nesterov/${puzzles[0]}.txt &
@@ -109,5 +106,44 @@ while IFS= read -r line; do
 
     # Kmers Analysis
     # echo "${puzzles[1]}" | ./main --test --init targeted_sm --eps 0.75 --lr 0.01 --softmax --adam --step 2000 > results/sampling_pyx_targeted_sm_softmax_eps_075_adam_kmers/${puzzles[0]}.txt
+
+    # NED
+    # echo "${puzzles[1]}" | ./main --obj ned --init targeted_sm --eps 0.75 --lr 0.01 --softmax --adam > results/sampling_ned_targeted_sm_softmax_eps_075_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init targeted_sm --eps 0.75 --lr 0.01 --softmax --adam > results/sampling_log_ned_targeted_sm_softmax_eps_075_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init uniform_sm --lr 0.01 --softmax --adam > results/sampling_log_ned_uniform_sm_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj ned --init targeted_sm --eps 0.75 --lr 0.005 --softmax --adam > results/sampling_ned_targeted_sm_softmax_eps_075_adam_lr_005/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init targeted_sm --eps 0.75 --lr 0.005 --softmax --adam > results/sampling_log_ned_targeted_sm_softmax_eps_075_adam_lr_005/${puzzles[0]}.txt &
+
+    # main log NED script
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init targeted_sm --eps 0.75 > results/sampling_log_ned_targeted_sm_softmax_eps_075_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init targeted_sm --eps 0.75 --is_lazy -b 150 > results/sampling_log_ned_targeted_sm_softmax_eps_075_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init uniform_sm > results/sampling_log_ned_uniform_sm_softmax_adam/${puzzles[0]}.txt &
+    # use sampling_log_ned_targeted_sm_softmax_eps_075_adam_copy for shorter puzzles
+
+    # structural distance
+    # echo "${puzzles[1]}" | ./main --obj dist --init uniform_sm > results/sampling_dist_uniform_sm_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj dist --init uniform_sm -k 1000 > results/sampling_dist_uniform_sm_softmax_adam/${puzzles[0]}.txt & 
+    
+    # nemo objective
+    # echo "${puzzles[1]}" | ./main --obj dist --init uniform_sm > results/sampling_dist_nemo_uniform_sm_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj dist --init targeted_sm --eps 0.75 > results/sampling_dist_nemo_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
+    
+    # free energy diff
+    # echo "${puzzles[1]}" | ./main --obj ediff --init targeted_sm --eps 0.75 > results/sampling_ediff_nemo_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj ediff --init targeted_sm --eps 0.75 -b 100 > results/sampling_ediff_nemo_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
+
+    # small beamsize
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 --softmax --adam -b 10 --best_k 10 --step 50 > results/small_beam_size/${puzzles[0]}.txt &
+    
+    # lazy vs non lazy mode
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init uniform_sm --step 5 > results/sampling_log_ned_uniform_sm_softmax_adam_time/${puzzles[0]}.txt
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init uniform_sm --step 5 --is_lazy  > results/sampling_log_ned_uniform_sm_softmax_adam_lazy_time/${puzzles[0]}.txt
+
+    # ablation study
+    # echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --lr 0.01 --softmax --adam > results/sampling_pyx_targeted_softmax_eps_075_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 --no_trimismatch > results/sampling_pyx_targeted_softmax_eps_075_adam_no_trimismatch/${puzzles[0]}.txt &
+
+    # composite objective function
+    echo "${puzzles[1]}" | ./main --test --obj comp > results/sampling_comp_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
 done < "data/eterna/$1.txt"
 

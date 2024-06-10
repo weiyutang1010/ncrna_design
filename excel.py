@@ -42,10 +42,20 @@ def main():
                 mfe_seq = ""
                 if len(r_lines[4].split(':  ')) > 1:
                     mfe_seq = r_lines[4].split(':  ')[1]
+                    if len(mfe_seq.split(' ')) > 1:
+                        mfe_seq = mfe_seq.split(' ')[1]
+
+                    if mfe_seq == '0':
+                        mfe_seq = ''
 
                 umfe_seq = ""
                 if len(r_lines[5].split(':  ')) > 1:
                     umfe_seq = r_lines[5].split(':  ')[1]
+                    if len(umfe_seq.split(' ')) > 1:
+                        umfe_seq = umfe_seq.split(' ')[1]
+
+                    if umfe_seq == '0':
+                        umfe_seq = ''
 
                 results[rna_id].append((best_pyx, best_pyx_seq, best_pyx_step, best_ned, best_ned_seq, best_ned_step, mfe_seq, umfe_seq, file_path, total_steps))
 
@@ -62,7 +72,8 @@ def main():
         if len(results[rna_id]) == 0:
             continue
 
-        result = max(results[rna_id], key=lambda x: x[0])
+        # result = max(results[rna_id], key=lambda x: x[0]) # for p(y | x)
+        result = min(results[rna_id], key=lambda x: x[3]) # for ned
 
         pyx = result[0]
         pyx_seq = result[1]
@@ -79,8 +90,8 @@ def main():
         print(f"", end=",")
         print(f"{len(rna_struct)}", end=",")
 
-        print(f"{pyx_step}", end=",")
-        print(f"{total_step}", end=",")
+        # print(f"{pyx_step}", end=",")
+        # print(f"{total_step}", end=",")
         print(f"{pyx:.3f}", end=",")
         print(f"{pyx_seq}", end=",")
         # print(f"{ned_step}", end=",")
@@ -118,10 +129,13 @@ def main():
         avg_pyx.append(pyx)
         avg_ned.append(ned)
 
-    print(f"avg p(y|x) step: {np.average(steps)}")
+    undesignable_ids = [50, 52, 57, 60, 61, 67, 72, 78, 80, 81, 86, 87, 88, 90, 91, 92, 96, 99]
+    pyx_no_undesignable = [pyx for pyx, line in zip(avg_pyx, lines) if int(line[0]) not in undesignable_ids]
+
+    # print(f"avg p(y|x) step: {np.average(steps)}")
     print(f"avg total step: {np.average(total_steps)}")
     print(f"average pyx: {np.mean(avg_pyx):.3f}")
-    print(f"average pyx (geometric): {gmean(avg_pyx):.5f}")
+    print(f"average pyx (geometric w/o undesignable): {gmean(avg_pyx):.5f}")
     print(f"average ned: {np.mean(avg_ned):.3f}")
     print(f"mfe count: {mfe_count}")
     print(f"umfe count: {umfe_count}")
