@@ -25,3 +25,9 @@ variance/
 results/*
 analysis/*
 graphs/*
+bpp_plot/plots/*
+data/eterna/beethoven.txt
+data/eterna/gakona.txt
+data/eterna/jsbach.txt
+data/eterna/ironcreek.txt
+data/eterna/mozart.txt

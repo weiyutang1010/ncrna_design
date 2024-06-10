@@ -34,6 +34,11 @@ def base_pair_probs(seq, sym=False, scale=True):
         bpp[range(len(bpp)), range(len(bpp))] = unpair
     return bpp
 
+def mfe(seq):
+    fc = RNA.fold_compound(seq)
+    ss = fc.mfe()
+    return ss
+
 # Print a subopt result as FASTA record
 def print_subopt_result(structure, energy, data):
     ss_list = []

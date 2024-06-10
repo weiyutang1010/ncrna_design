@@ -25,14 +25,19 @@
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
 
-// TODO: change to include .h but need to update MAKEFILE
+// TODO: change to include .h but need to update MAKEFILE and deal with 
+//       multiple definition when including utility files
+#include "LinearFold.cpp"
 #include "LinearFoldEval.h"
-#include "Sampling.cpp"
 #include "LinearPartition.cpp"
+#include "bpp.cpp"
+
+#include "Objective.cpp"
+#include "Sampling.cpp"
 
 using namespace std;
 
-BeamCKYParser::BeamCKYParser(string rna_struct,
+GradientDescent::GradientDescent(string rna_struct,
                              string objective,
                              string initialization,
                              double eps,
@@ -55,7 +60,9 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
                              int resample_iter,
                              int best_k,
                              int seed,
-                             bool kmers)
+                             bool kmers,
+                             bool is_lazy,
+                             bool trimismatch)
     : rna_struct(rna_struct),
       objective(objective),
       initialization(initialization),
@@ -79,7 +86,9 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
       resample_iter(resample_iter),
       best_k(best_k),
       seed(seed),
-      kmers(kmers) {
+      kmers(kmers),
+      is_lazy(is_lazy),
+      trimismatch(trimismatch) {
 
     // setting random seed
     this->gen.seed(seed);
@@ -98,14 +107,7 @@ BeamCKYParser::BeamCKYParser(string rna_struct,
     beta_pow = {beta_1, beta_2};
 }
 
-// trim from end (in place)
-static inline void rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }).base(), s.end());
-}
-
-void BeamCKYParser::projection() {
+void GradientDescent::projection() {
     int n = dist.size(), z = 1;
 
     map<vector<int>, vector<double>> sorted_dist (dist);
@@ -154,7 +156,7 @@ void BeamCKYParser::projection() {
     }
 }
 
-void BeamCKYParser::update(Objective& obj) {
+void GradientDescent::update(Objective& obj) {
     for (auto& [pos, probs]: dist) {
         for (int nucij = 0; nucij < probs.size(); nucij++) {
             if (softmax) {
@@ -166,7 +168,7 @@ void BeamCKYParser::update(Objective& obj) {
     }
 }
 
-void BeamCKYParser::adam_update(Objective& obj, int step) {
+void GradientDescent::adam_update(Objective& obj, int step) {
     // only for softmax
     map<vector<int>, vector<double>>& grad = obj.gradient;
     
@@ -195,7 +197,7 @@ void BeamCKYParser::adam_update(Objective& obj, int step) {
     }
 }
 
-void BeamCKYParser::nesterov_update() {
+void GradientDescent::nesterov_update() {
     // TODO: implement softmax version
     map<vector<int>, vector<double>> temp = dist;
 
@@ -214,7 +216,7 @@ void BeamCKYParser::nesterov_update() {
     old_dist = temp;
 }
 
-string BeamCKYParser::get_integral_solution() {
+string GradientDescent::get_integral_solution() {
     string nucs = "ACGU";
     string seq = string(rna_struct.size(), 'A');
 
@@ -239,7 +241,7 @@ string BeamCKYParser::get_integral_solution() {
     return seq;
 }
 
-void BeamCKYParser::initialize_sm() {
+void GradientDescent::initialize_sm() {
     stack<pair<int, int>> stk;
     tuple<int, int> inner_loop;
     unordered_set<int> idx; 
@@ -267,11 +269,11 @@ void BeamCKYParser::initialize_sm() {
                     // 1x1 internal loops
                     unpaired_pos.push_back({i+1, j-1});
                     idx.insert(i+1); idx.insert(j-1);
-                } else if (p - i - 1 == 1 && j - q - 1 > 0) {
+                } else if (trimismatch && p - i - 1 == 1 && j - q - 1 > 0) {
                     // 1x2, 1x3, 1xn internal loops
                     unpaired_pos.push_back({i+1, q+1, j-1});
                     idx.insert(i+1); idx.insert(q+1); idx.insert(j-1);
-                } else if (j - q - 1 == 1 && p - i - 1 > 0) {
+                } else if (trimismatch && j - q - 1 == 1 && p - i - 1 > 0) {
                     // 2x1, 3x1, nx1 internal loops
                     unpaired_pos.push_back({i+1, p-1, j-1});
                     idx.insert(i+1); idx.insert(p-1); idx.insert(j-1);
@@ -385,7 +387,7 @@ void BeamCKYParser::initialize_sm() {
     return;
 }
 
-void BeamCKYParser::initialize() {
+void GradientDescent::initialize() {
     // if initialization ends with sm, then couple terminal mismatches
     if (initialization.substr(initialization.size() - 2) == "sm") {
         initialize_sm();
@@ -423,7 +425,6 @@ void BeamCKYParser::initialize() {
                 dist[pos] = vector<double> (4, 0.);
                 dist[pos][nucs_to_idx["A"]] = 1.;
             }
-            
         }
 
         for (const vector<int>& pos: base_pairs_pos) {
@@ -470,7 +471,7 @@ void BeamCKYParser::initialize() {
     }
 }
 
-void BeamCKYParser::print_dist(string label, map<vector<int>, vector<double>>& dist) {
+void GradientDescent::print_dist(string label, map<vector<int>, vector<double>>& dist) {
     cout << label << endl;
 
     int dc = 4; // decimal place
@@ -511,7 +512,7 @@ void BeamCKYParser::print_dist(string label, map<vector<int>, vector<double>>& d
     cout << defaultfloat;
 }
 
-void BeamCKYParser::print_mode() {
+void GradientDescent::print_mode() {
     cout << rna_struct << endl;
     cout << "objective: " << objective << ", initializaiton: " << initialization << ", verbose: " << is_verbose << "\n";
 
@@ -530,8 +531,8 @@ void BeamCKYParser::print_mode() {
     cout << endl;
 }
 
-Objective BeamCKYParser::objective_function(int step) {
-    if (objective == "prob" || objective == "ned") {
+Objective GradientDescent::objective_function(int step) {
+    if (objective == "prob" || objective == "ned" || objective == "log_ned" || objective == "ediff" || objective == "comp") {
         Objective obj = sampling_approx(step);
         return obj;
     } else {
@@ -550,7 +551,7 @@ struct ExpFunc {
     double operator()(double x) const { return std::exp(x); }
 };
 
-void BeamCKYParser::softmax_func(const vector<vector<int>>& positions) {
+void GradientDescent::softmax_func(const vector<vector<int>>& positions) {
     for (const vector<int>& pos: positions) {
         double max_logit = *max_element(logits[pos].begin(), logits[pos].end());
 
@@ -566,13 +567,13 @@ void BeamCKYParser::softmax_func(const vector<vector<int>>& positions) {
     }
 }
 
-void BeamCKYParser::logits_to_dist() {
+void GradientDescent::logits_to_dist() {
     dist.clear();
     softmax_func(unpaired_pos);
     softmax_func(base_pairs_pos);
 }
 
-Objective BeamCKYParser::logits_grad(const Objective& obj) {
+Objective GradientDescent::logits_grad(const Objective& obj) {
     // ref: https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
     Objective new_obj;
     new_obj.score = obj.score;
@@ -590,7 +591,7 @@ Objective BeamCKYParser::logits_grad(const Objective& obj) {
     return new_obj;
 }
 
-void BeamCKYParser::kmers_analysis(const vector<Sample>& samples) {
+void GradientDescent::kmers_analysis(const vector<Sample>& samples) {
     int n = samples[0].seq.size();
 
     if (kmers_count.size() < n + 1) {
@@ -635,7 +636,7 @@ void BeamCKYParser::kmers_analysis(const vector<Sample>& samples) {
     cout << "entropy: " << entropy << endl;
 }
 
-void BeamCKYParser::gradient_descent() {
+void GradientDescent::gradient_descent() {
     struct timeval parse_starttime, parse_endtime;
     struct timeval total_starttime, total_endtime;
 
@@ -653,7 +654,7 @@ void BeamCKYParser::gradient_descent() {
     print_dist("Initial Distribution", dist);
 
     // adaptive steps and lr
-    int k_ma = 50, k_ma_lr = 10; // TODO: turn this into a parameter
+    int k_ma = 20, k_ma_lr = 10; // TODO: turn this into a parameter
     double moving_avg = 0., moving_avg_lr = 0.;
     queue<double> last_k_obj, last_k_obj_lr;
 
@@ -686,8 +687,14 @@ void BeamCKYParser::gradient_descent() {
         double integral_obj;
         if (objective == "prob") {
             integral_obj = exp((eval(integral_seq, rna_struct, false, 2) / kT) - linear_partition(integral_seq));
-        } else {
+        } else if (objective == "ned") {
             integral_obj = normalized_ensemble_defect(integral_seq, rna_struct);
+        } else if (objective == "log_ned") {
+            integral_obj = log(normalized_ensemble_defect(integral_seq, rna_struct));
+        } else if (objective == "ediff") {
+            integral_obj = energy_diff(integral_seq, rna_struct);
+        } else if (objective == "comp") {
+            integral_obj = composite(integral_seq, rna_struct);
         }
 
         // approximate E[p(y | x)] from samples
@@ -711,7 +718,7 @@ void BeamCKYParser::gradient_descent() {
         for (const Sample& sample: samples) {
             if (objective == "prob")
                 cout << sample.boltz_prob << " ";
-            else if (objective == "ned")
+            else
                 cout << sample.obj << " ";
         }
         cout << "\n" << defaultfloat;
@@ -725,7 +732,7 @@ void BeamCKYParser::gradient_descent() {
                 cout << samples[i].seq << " ";
                 if (objective == "prob")
                     cout << samples[i].boltz_prob << "\n";
-                else if (objective == "ned")
+                else
                     cout << samples[i].obj << "\n";
 
                 last_sample = samples[i].seq;
@@ -776,7 +783,7 @@ void BeamCKYParser::gradient_descent() {
                 last_best_avg = {moving_avg / k_ma, step};
             }
 
-            if (step >= 500 && step >= last_best_seq.second + 100 && step >= last_best_avg.second + 100) {
+            if (step >= 100 && step >= last_best_seq.second + 50 && step >= last_best_avg.second + 20) {
                 adaptive_step = false;
             }
         }
@@ -847,7 +854,7 @@ int main(int argc, char** argv){
     double eps = 0.75;
     string init_seq = "";
 
-    bool softmax = false, adam = false, nesterov = false;
+    bool softmax = true, adam = true, nesterov = false;
     float beta_1 = 0.9, beta_2 = 0.999;
 
     double initial_lr = 0.01, lr_decay_rate = 0.96;
@@ -867,6 +874,8 @@ int main(int argc, char** argv){
 
     int seed = 42;
     bool kmers = false;
+    bool is_lazy = false;
+    bool trimismatch = true;
 
     if (argc > 1) {
         mode = argv[1];
@@ -900,14 +909,43 @@ int main(int argc, char** argv){
 
         seed = atoi(argv[23]);
         kmers = atoi(argv[24]) == 1;
+        is_lazy = atoi(argv[25]) == 1;
+        trimismatch = atoi(argv[26]) == 1;
     }
 
-    if (mode == "ncrna_design") {
+    if (mode == "eval") {
+        string rna_struct;
+        for (string rna_seq; getline(cin, rna_seq);){
+            getline(cin, rna_struct);
+
+            if (rna_seq.size() > 0 && rna_struct.size() > 0) {
+                if (rna_seq.size() != rna_struct.size()) {
+                    std::cerr << "Sequence size does not match structure size!" << std::endl;
+                    return 1;
+                }
+
+                try {
+                    // implement eval mode for evaluating: p(y* | x), ned(x, y*), d(mfe(x), y*)
+                    GradientDescent parser(rna_struct, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, !sharpturn, sample_size, resample_iter, best_k, seed, kmers, is_lazy, trimismatch);
+                    string mfe_struct = parser.get_mfe_struct(rna_seq);
+                    double ediff = parser.energy_diff(rna_seq, rna_struct);
+
+                    cout << "x:          " << rna_seq << endl;
+                    cout << "mfe(x):     " << mfe_struct << endl;
+                    cout << "energy difference: " << ediff << endl;
+
+                } catch (const std::exception& e) {
+                    std::cerr << "Exception caught: " << e.what() << std::endl;
+                    return 1;
+                }
+            }
+        }
+    } else if (mode == "ncrna_design") {
         for (string rna_struct; getline(cin, rna_struct);){
             // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    BeamCKYParser parser(rna_struct, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, !sharpturn, sample_size, resample_iter, best_k, seed, kmers);
+                    GradientDescent parser(rna_struct, objective, initialization, eps, init_seq, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, staircase, lr_decay_step, num_steps, verbose, beamsize, !sharpturn, sample_size, resample_iter, best_k, seed, kmers, is_lazy, trimismatch);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;

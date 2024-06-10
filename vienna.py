@@ -74,6 +74,48 @@ def position_defect(seq, ss, scale=True):
 
     return defect_pos
 
+def mfe(seq):
+    fc = RNA.fold_compound(seq)
+    ss = fc.mfe()
+    return ss
+
+def structural_dist(seq, ss, ss_mfe):
+    ss_mfe = mfe(seq)[0]
+    stk = []
+    mp = {}
+
+    for j, c in enumerate(ss):
+        if c == '(':
+            stk.append(j)
+        elif c == ')':
+            i = stk.pop()
+            mp[j] = i
+            mp[i] = j
+        else:
+            mp[j] = -1
+
+    dist = len(ss)
+    for j, c in enumerate(ss_mfe):
+        if c == '(':
+            stk.append(j)
+        elif c == ')':
+            i = stk.pop()
+            
+            if mp[j] == i:
+                dist -= 2
+        else:
+            if mp[j] == -1:
+                dist -= 1
+
+    return dist
+
+def energy(seq, ss):
+    fc = RNA.fold_compound(seq)
+    return fc.eval_structure(ss)
+
+def e_diff(seq, ss, ss_mfe):
+    return abs(energy(seq, ss_mfe) - energy(seq, ss))
+
 if __name__ == '__main__':
     # with open('input.txt', 'r') as f:
     #     lines = f.read().split('\n')
@@ -82,19 +124,9 @@ if __name__ == '__main__':
     # seqs    = lines[:n//2]
     # structs = lines[n//2:]
 
-    seq = "AAAAAGCAAAGCGAAAGCAAACCGAAAGGAAAGGGAAACCAAAGCGAAAGCAAACCGAAAGGAAAGGGAAACCAAAGCAAAAAAAAAAAAAAAAAAAA"
-    struct = ".....((...((....))...((....))...((....))...((....))...((....))...((....))...))...................."
-    bpp = base_pair_probs(seq, sym=True)
-    ned = ensemble_defect(seq, struct)
-
-    for j in range(len(seq)):
-        for i in range(j):
-            print(i, j, bpp[i][j])
-
-    print("ned: ", ned)
-    exit(0)
-
-    struct = input("struct: ")
+    seq =    "GGACGGAACCGCGACGAAAAUGGACCGCGAAAGCAAAAGGGACACGAAGCAAAAGGGACCGCGACCAACGGACGGCAACCAAAAUCGACCGCGAGGAAAACCAAAAGGCCAAGCAAAAGGGAGAGGAGGCGCGAGCAAGGGAAACCGGGGGAGCAGGGAAAAGGGACCGCGAAAGCAAAAGGGACCCCAAGCAAAAUCAACCGCGAGCAACGGACGGGGACUAAAAGGGACAGCAAGGAAAACCGAAAGGCCGAGCAAAAUGGACCAGGACCGGGAGCAAGGAC"
+    # seq = "GGGCAAAGCCCGGCACUGGAAACAGAGGCAAGGGACCCGAAAGGGGAGCGCCCAAAGGGCAACGGGAAACCCGGCUCCGGGAAACCGUCCCAAGAGAGGCGAAAGCGCGCCGCCCUAAGGGCAAGGUCAAAGACCGGCGCUGGAAACACUCUCAACCUCCUGGAAACACUGCCGCCCAAAGGGCUACGGCAAAGCCGGGCAGGCGAAAGCGGAGGAACCGGCGCGAAAGCGGGCCGCGGAAUCCGCAACUCCAAAGGAGGGCCCAGGAAACUGCCGGAAGGAGCCCGAAAGGGAGGCGCCCCAAGGGCAAGGGCAAAGCCCGCCUCGGGAAACCGCUCCAAGCCUCGCGAAAGCGUGCCCCGGAAACCGG"
+    struct = "(..(((..((((..((....((..((((....))....))..))))..))....))..))((..((..((..((((..((....((..((((..((....((....))))..))....))..))))..))((..((..((....))((..((((..((....((..((((....))....))..))))..))....))..))))..))..))..))((..((....((..((((..((....((....))))..))....))..))))..))))..))..)..)"
 
     seqs = [seq]
     structs = [struct]
@@ -103,20 +135,30 @@ if __name__ == '__main__':
         if seq == "" or struct == "":
             exit(0)
 
+        if len(seq) != len(struct):
+            print("Length doesn't match!")
+
+        ss_mfe = mfe(seq)[0]
         subopt_data = subopt(seq)
+
         mfe_structs = [st for e, st in subopt_data['ss_list']]
         is_mfe = struct in mfe_structs
         is_umfe = is_mfe and subopt_data['counter'] == 1
         pyx = prob(seq, struct)
         ned = ensemble_defect(seq, struct)
         pos_def = position_defect(seq, struct)
+        dist = structural_dist(seq, struct, ss_mfe)
+        delta_delta_G = e_diff(seq, struct, ss_mfe)
 
         print(f"seq        : {seq}")
         print(f"structure  : {struct}")
         # print(f"mfe(seq) : {mfe_structs}")
         print(f"is_mfe     : {is_mfe}")
         print(f"is_umfe    : {is_umfe}")
+        print(f"dist       : {dist}")
+        print(f"ediff      : {delta_delta_G}")
         print(f"p(y | x)   : {pyx}")
         print(f"ned        : {ned}")
-        print(f"pos defect : {pos_def}")
+        # print(f"pos defect : {pos_def}")
+        print(f"mfe_struct : {ss_mfe}")
         print()

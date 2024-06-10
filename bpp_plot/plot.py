@@ -30,6 +30,17 @@ def get_pairs(struct):
 
     return sorted(pairs)
 
+def get_mfe(seq, struct):
+    ss_mfe = mfe(seq)[0]
+    
+    pos = []
+    for idx in range(len(struct)):
+        if struct[idx] != ss_mfe[idx]:
+            pos.append(idx + 1)
+
+    return pos, ss_mfe
+
+
 def format_bpp(bpp):
     n = len(bpp)
     bpp_arr = []
@@ -305,34 +316,12 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
 
     plt.close()
 
-def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False):
+def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False, is_mfe=False, diff=[]):
     command = f"echo -e \">{puzzle_id}\\n{seq}\\n{struct}\" | RNAplot -t {layout}"
     command += " --pre \""
 
     for j, x in enumerate(defect):
         # ref: https://stackoverflow.com/a/7947812
-
-        # # green -> yellow -> red scale
-        # color = (2.0 * x, 2.0 * (1. - x), 0.)
-
-        # blue -> pink -> red scale
-        # color = (2.0 * x, 0.3, 2.0 * (1. - x))
-
-        # green -> aqua -> blue scale
-        # color = (0.3, 2.0 * (1. - x), 2.0 * x)
-
-        # yellow -> red scale (linear interpolation)
-        # color1 = (255 / 255., 255/ 255., 0. / 255)
-        # color2 = (255 / 255., 0. / 255., 0. / 255)
-
-        # green -> blue scale (linear interpolation)
-        # color1 = (0. / 255., 255/ 255., 0. / 255)
-        # color2 = (0. / 255., 0. / 255., 255. / 255)
-
-        # white -> blue scale (linear interpolation)
-        # color1 = (255. / 255., 255. / 255., 255. / 255)
-        # color2 = (30. / 255., 30./ 255., 255. / 255)
-
         # white -> red scale (linear interpolation)
         color1 = (255. / 255., 255. / 255., 255. / 255)
         color2 = (255. / 255., 0./ 255., 0. / 255)
@@ -342,22 +331,24 @@ def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False)
                  color1[2] + x * (color2[2] - color1[2]))
 
         command += f"{j+1} {j+1} 13 {color[0]} {color[1]} {color[2]} omark "
+
+    if len(diff) > 0:
+        for x in diff:
+            command += f"{x} cmark "
     
-    dx, dy = -1.3, -1.3
+    dx, dy = -1.7, -1.7
     for j in range(9, len(struct), 10):
-        command += f"{j+1} cmark "
         command += f"{j+1} {dx} {dy} ({j+1}) Label "
 
-    command += f"1 cmark "
     command += f"1 {-dx - 1.0} {dy + 0.2} (1) Label "
 
-    command += f"{len(struct)} cmark "
     command += f"{len(struct)} {dx} {dy} ({len(struct)}) Label "
 
     command += "\""
 
     norm = "_norm" if norm else ""
-    save_pdf_path = f"./plots/{folder}/pos_defects/{puzzle_id}{norm}.pdf"
+    is_mfe = "_mfe" if is_mfe else ""
+    save_pdf_path = f"./plots/{folder}/pos_defects/{puzzle_id}{norm}{is_mfe}.pdf"
 
     subprocess.call(command, shell=True)
     subprocess.call(f"ps2pdf -dEPSCrop {puzzle_id}_ss.ps", shell=True)
@@ -367,7 +358,36 @@ def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False)
 
     print(f"Positional defects plot saved to {save_pdf_path}", file=sys.stderr)
 
-def create_folders(folder_name):
+def draw_mfe_plot(seq, struct, puzzle_id, diff, folder, layout, is_mfe=False):
+    command = f"echo -e \">{puzzle_id}\\n{seq}\\n{struct}\" | RNAplot -t {layout}"
+    command += " --pre \""
+
+    if len(diff) > 0:
+        for x in diff:
+            command += f"{x} {x} 13 0.4 0.4 1.0 omark "
+    
+    dx, dy = -1.7, -1.7
+    for j in range(9, len(struct), 10):
+        command += f"{j+1} {dx} {dy} ({j+1}) Label "
+
+    command += f"1 {-dx - 1.0} {dy + 0.2} (1) Label "
+
+    command += f"{len(struct)} {dx} {dy} ({len(struct)}) Label "
+
+    command += "\""
+
+    is_mfe = "_mfe" if is_mfe else ""
+    save_pdf_path = f"./plots/{folder}/mfe/{puzzle_id}{is_mfe}.pdf"
+
+    subprocess.call(command, shell=True)
+    subprocess.call(f"ps2pdf -dEPSCrop {puzzle_id}_ss.ps", shell=True)
+    # subprocess.call(f"pdfcrop {puzzle_id}_ss.pdf", shell=True)
+    subprocess.call(f"mv {puzzle_id}_ss.pdf {save_pdf_path}", shell=True)
+    subprocess.call(f"rm {puzzle_id}_ss.p*", shell=True)
+
+    print(f"mfe plot saved to {save_pdf_path}", file=sys.stderr)
+
+def create_folders(folder_name, args):
     if not os.path.exists(f"./plots"):
         print("Created directory \"./plots\"", file=sys.stderr)
         os.makedirs(f"./plots")
@@ -376,17 +396,22 @@ def create_folders(folder_name):
         print(f"Created directory \"./plots/{folder_name}\"", file=sys.stderr)
         os.makedirs(f"./plots/{folder_name}")
 
-    if not os.path.exists(f"./plots/{folder_name}/linear_plots"):
+    if args.linear and not os.path.exists(f"./plots/{folder_name}/linear_plots"):
         print(f"Created directory \"./plots/{folder_name}/linear_plots\"", file=sys.stderr)
         os.makedirs(f"./plots/{folder_name}/linear_plots")
 
-    if not os.path.exists(f"./plots/{folder_name}/circular_plots"):
+    if args.circular and not os.path.exists(f"./plots/{folder_name}/circular_plots"):
         print(f"Created directory \"./plots/{folder_name}/circular_plots\"", file=sys.stderr)
         os.makedirs(f"./plots/{folder_name}/circular_plots")
 
-    if not os.path.exists(f"./plots/{folder_name}/pos_defects"):
+    if args.positional and not os.path.exists(f"./plots/{folder_name}/pos_defects"):
         print(f"Created directory \"./plots/{folder_name}/pos_defects\"", file=sys.stderr)
         os.makedirs(f"./plots/{folder_name}/pos_defects")
+
+    if args.mfe and not os.path.exists(f"./plots/{folder_name}/mfe"):
+        print(f"Created directory \"./plots/{folder_name}/mfe\"", file=sys.stderr)
+        os.makedirs(f"./plots/{folder_name}/mfe")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Draw RNA plots')
@@ -394,11 +419,12 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--circular', action="store_true", default=False, help='Draw circular RNA plot')
     parser.add_argument('-l', '--linear', action="store_true", default=False, help='Draw linear RNA plot')
     parser.add_argument('-p', '--positional', action="store_true", default=False, help='Draw positional defects RNA plot')
+    parser.add_argument('-m', '--mfe', action="store_true", default=False, help='Draw mfe plot')
     parser.add_argument('-t', '--layout', type=str, default='4', help='RNA plot layout')
     
     args = parser.parse_args()
 
-    create_folders(args.folder)
+    create_folders(args.folder, args)
 
     lines = []
     with open('input', 'r') as f:
@@ -412,8 +438,8 @@ if __name__ == '__main__':
     for puzzle_id, seq, struct in zip(puzzles_ids, seqs, structs):
         print(f"Puzzle {puzzle_id} start", file=sys.stderr)
 
-        # bpp = [(i, j, pair_prob), ...]
         bpp, pos_defect = position_defect(seq, struct)
+        # bpp = [(i, j, pair_prob), ...]
         bpp = format_bpp(bpp)
         # pairs = [(i, j), ...]
         pairs = get_pairs(struct)
@@ -428,8 +454,18 @@ if __name__ == '__main__':
 
         # positional defects
         if args.positional:
-            draw_pos_defects(seq, struct, puzzle_id, pos_defect, args.folder, args.layout, norm=False)
-            # draw_pos_defects(seq, struct, puzzle_id, pos_defect, args.folder, norm=True)
+            diff_pos = []
+            # if args.mfe:
+            #     diff_pos, mfe_struct = get_mfe(seq, struct)
+            #     _, mfe_pos_defect = position_defect(seq, mfe_struct)
+            #     draw_pos_defects(seq, mfe_struct, puzzle_id, mfe_pos_defect, args.folder, args.layout, norm=False, is_mfe=True, diff=diff_pos)
+
+            draw_pos_defects(seq, struct, puzzle_id, pos_defect, args.folder, args.layout, norm=False, is_mfe=False, diff=diff_pos)
+
+        if args.mfe:
+            diff, mfe_struct = get_mfe(seq, struct)
+            draw_mfe_plot(seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
+            draw_mfe_plot(seq, mfe_struct, puzzle_id, diff, args.folder, args.layout, is_mfe=True)
 
 
 
