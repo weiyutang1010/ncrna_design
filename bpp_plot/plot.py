@@ -34,10 +34,37 @@ def get_mfe(seq, struct):
     ss_mfe = mfe(seq)[0]
     
     pos = []
-    for idx in range(len(struct)):
-        if struct[idx] != ss_mfe[idx]:
-            pos.append(idx + 1)
+    mp, stk = {}, []
+    for j, c in enumerate(struct):
+        if c == '(':
+            stk.append(j)
+            mp[j] = -1
+        elif c == ')':
+            i = stk.pop()
+            mp[j] = i
+            mp[i] = j
+        else:
+            mp[j] = j
 
+
+    stk = []
+    for j, c in enumerate(ss_mfe):
+        if c == '(':
+            stk.append(j)
+        elif c == ')':
+            i = stk.pop()
+            
+            if mp[j] == i:
+                pos.append(j)
+                pos.append(i)
+        else:
+            if mp[j] == j:
+                pos.append(j)
+
+    pos = [x for x in range(len(struct)) if x not in pos]
+    pos.sort()
+    print(len(pos))
+    print(pos)
     return pos, ss_mfe
 
 
@@ -245,7 +272,7 @@ def draw_rna_circle(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
 
     plt.close()
 
-def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, num_index_labels=10, text_offset = 1.025, label_offset = 0.05):
+def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, num_index_labels=10, text_offset = 1.025, label_offset = 0.05, is_mfe=False, mfe_pairs=[]):
     """
     Draw a circular RNA plot with a customizable opening size, and mark n indices on the circumference based on the sequence size.
     
@@ -273,18 +300,23 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     plt.axis('off')
 
     # Place indices on the axis
-    indices_height = seq_len * (-0.02)
+    indices_height = seq_len * (-0.015)
     plt.text(0, indices_height, str(1), ha='center', va='center', fontsize=12, color='black',)
     plt.text(seq_len-1, indices_height, str(seq_len), ha='center', va='center', fontsize=12, color='black',)
     
     index_gap = max(1, seq_len // (num_index_labels-2))
     for index in range(index_gap, seq_len - 1, index_gap):
+        # if index == 368:
+        #     continue
         plt.text(index, indices_height, str(index + 1), ha='center', va='center', fontsize=12, color='black',)
 
     # Draw segments for pairs
     for pair in bpp:
         start_index, end_index, pair_prob = pair[0], pair[1], pair[2]
         pair_matched = (start_index, end_index) in pairs
+
+        if is_mfe and (start_index, end_index) not in mfe_pairs:
+            continue
 
         # Draw the arc
         color = 'blue' if pair_matched else 'red'
@@ -306,17 +338,21 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
         plt.plot(x, y, color=color, alpha=alpha)
     
     # print title
-    title_height = seq_len * .25
-    plt.text((seq_len - 1) // 2, title_height, f"Puzzle {puzzle_id}", ha='center', va='center', fontsize=18, color='black')
+    # title_height = seq_len * .25
+    # plt.text((seq_len - 1) // 2, title_height, f"Puzzle {puzzle_id}", ha='center', va='center', fontsize=18, color='black')
     
     # save to file
-    save_path = f"./plots/{folder}/linear_plots/{puzzle_id}.png"
-    plt.savefig(save_path, dpi=400, bbox_inches='tight')
+    mfe = "_mfe" if is_mfe else ""
+    # save_path = f"./plots/{folder}/linear_plots/{puzzle_id}{mfe}.png"
+    # plt.savefig(save_path, dpi=400, bbox_inches='tight')
+
+    save_path = f"./plots/{folder}/linear_plots/{puzzle_id}{mfe}.pdf"
+    plt.savefig(save_path, bbox_inches='tight')
     print(f"Linear plot saved to {save_path}", file=sys.stderr)
 
     plt.close()
 
-def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False, is_mfe=False, diff=[]):
+def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout):
     command = f"echo -e \">{puzzle_id}\\n{seq}\\n{struct}\" | RNAplot -t {layout}"
     command += " --pre \""
 
@@ -331,10 +367,6 @@ def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False,
                  color1[2] + x * (color2[2] - color1[2]))
 
         command += f"{j+1} {j+1} 13 {color[0]} {color[1]} {color[2]} omark "
-
-    if len(diff) > 0:
-        for x in diff:
-            command += f"{x} cmark "
     
     dx, dy = -1.7, -1.7
     for j in range(9, len(struct), 10):
@@ -346,9 +378,7 @@ def draw_pos_defects(seq, struct, puzzle_id, defect, folder, layout, norm=False,
 
     command += "\""
 
-    norm = "_norm" if norm else ""
-    is_mfe = "_mfe" if is_mfe else ""
-    save_pdf_path = f"./plots/{folder}/pos_defects/{puzzle_id}{norm}{is_mfe}.pdf"
+    save_pdf_path = f"./plots/{folder}/pos_defects/{puzzle_id}.pdf"
 
     subprocess.call(command, shell=True)
     subprocess.call(f"ps2pdf -dEPSCrop {puzzle_id}_ss.ps", shell=True)
@@ -363,16 +393,30 @@ def draw_mfe_plot(seq, struct, puzzle_id, diff, folder, layout, is_mfe=False):
     command += " --pre \""
 
     if len(diff) > 0:
-        for x in diff:
-            command += f"{x} {x} 13 0.4 0.4 1.0 omark "
+        diff_group = []
+        start, end = diff[0], diff[0]
+        for i in range(1, len(diff)):
+            if abs(diff[i] - diff[i-1]) <= 1:
+                end = diff[i]
+            else:
+                diff_group.append((start, end))
+                start = diff[i]
+                end = diff[i]
+        diff_group.append((start, end))
+        
+        # for x in diff:
+        #     command += f"{x+1} {x+1} 13 1.0 0.5 0.5 omark "
+
+        for i, j in diff_group:
+            command += f"{i+1} {j+1} 13 1.0 0.5 0.5 omark "
     
     dx, dy = -1.7, -1.7
-    for j in range(9, len(struct), 10):
+    for j in range(9, len(struct)-1, 10):
         command += f"{j+1} {dx} {dy} ({j+1}) Label "
 
-    command += f"1 {-dx - 1.0} {dy + 0.2} (1) Label "
+    command += f"1 {-dx - 2.4} {dy + 0.2} (1) Label "
 
-    command += f"{len(struct)} {dx} {dy} ({len(struct)}) Label "
+    command += f"{len(struct)} {dx + 1.9} {dy} ({len(struct)}) Label "
 
     command += "\""
 
@@ -438,11 +482,14 @@ if __name__ == '__main__':
     for puzzle_id, seq, struct in zip(puzzles_ids, seqs, structs):
         print(f"Puzzle {puzzle_id} start", file=sys.stderr)
 
+
         bpp, pos_defect = position_defect(seq, struct)
         # bpp = [(i, j, pair_prob), ...]
         bpp = format_bpp(bpp)
         # pairs = [(i, j), ...]
         pairs = get_pairs(struct)
+
+        diff, mfe_struct = get_mfe(seq, struct)
         
         # circular plot
         if args.circular:
@@ -452,18 +499,18 @@ if __name__ == '__main__':
         if args.linear:
             draw_rna_linear(bpp, len(seq), pairs, args.folder, puzzle_id)
 
+            if args.mfe:
+                mfe_pairs = get_pairs(mfe_struct)
+                draw_rna_linear(bpp, len(seq), pairs, args.folder, puzzle_id, is_mfe=True, mfe_pairs=mfe_pairs)
+
         # positional defects
         if args.positional:
-            diff_pos = []
-            # if args.mfe:
-            #     diff_pos, mfe_struct = get_mfe(seq, struct)
-            #     _, mfe_pos_defect = position_defect(seq, mfe_struct)
-            #     draw_pos_defects(seq, mfe_struct, puzzle_id, mfe_pos_defect, args.folder, args.layout, norm=False, is_mfe=True, diff=diff_pos)
-
-            draw_pos_defects(seq, struct, puzzle_id, pos_defect, args.folder, args.layout, norm=False, is_mfe=False, diff=diff_pos)
+            draw_pos_defects(seq, struct, puzzle_id, pos_defect, args.folder, args.layout, norm=False)
 
         if args.mfe:
-            diff, mfe_struct = get_mfe(seq, struct)
+            # sampling_seq = "GCCCCGAAAGGACCCGCCGAAAGGCAAGCACAGGGGAACUGGAAACAGGGGAGGGAAACCGGCAAAGCCCCGAAAGGACCCGCCAAAAGGCAACCCCAGGACAAGACAAAAGUCGGCACGGAAACGGAGAAACUCGCAAAAGCAGCCGCGGAAACGCAAGUCCAGCUCAAUCCGAAAGGAGCCACGGAAACGGCCAAAGGCGCAAAAGCAGGCGGGGAAACCCAAGAGCACCCCAACUCAAAAGAGGCCACCGAAAGGGAGAAACUCGGGAAACCAGGCGGCAAAAGCCAAGGGGAGUCCAACGGGGAACCGGGCACGGAAACGGACAAAGUCGCGAAAGCAGCCGGCGAAAGCCAAGGACAGUGCAACUCAAAAGAGGGGAGGGAAACCGGC"
+            # draw_mfe_plot(sampling_seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
+
             draw_mfe_plot(seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
             draw_mfe_plot(seq, mfe_struct, puzzle_id, diff, args.folder, args.layout, is_mfe=True)
 

@@ -5,7 +5,7 @@ Mode
 -p: draw positional defects plots
 -c: draw circular bpp plots
 -l: draw linear bpp plots
---mfe: draw mfe plots
+--mfe: highlight the structural difference between mfe(x) and target structure
 -t #: use layout # from the viennaRNA package
 -o <folder>: save plots to ./plots/<folder> (default folder is "temp")
 ```
