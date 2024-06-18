@@ -63,8 +63,6 @@ def get_mfe(seq, struct):
 
     pos = [x for x in range(len(struct)) if x not in pos]
     pos.sort()
-    print(len(pos))
-    print(pos)
     return pos, ss_mfe
 
 
@@ -508,10 +506,10 @@ if __name__ == '__main__':
             draw_pos_defects(seq, struct, puzzle_id, pos_defect, args.folder, args.layout, norm=False)
 
         if args.mfe:
-            # sampling_seq = "GCCCCGAAAGGACCCGCCGAAAGGCAAGCACAGGGGAACUGGAAACAGGGGAGGGAAACCGGCAAAGCCCCGAAAGGACCCGCCAAAAGGCAACCCCAGGACAAGACAAAAGUCGGCACGGAAACGGAGAAACUCGCAAAAGCAGCCGCGGAAACGCAAGUCCAGCUCAAUCCGAAAGGAGCCACGGAAACGGCCAAAGGCGCAAAAGCAGGCGGGGAAACCCAAGAGCACCCCAACUCAAAAGAGGCCACCGAAAGGGAGAAACUCGGGAAACCAGGCGGCAAAAGCCAAGGGGAGUCCAACGGGGAACCGGGCACGGAAACGGACAAAGUCGCGAAAGCAGCCGGCGAAAGCCAAGGACAGUGCAACUCAAAAGAGGGGAGGGAAACCGGC"
-            # draw_mfe_plot(sampling_seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
+            sampling_seq = "GCCCCGAAAGGACCCGCCGAAAGGCAAGCACAGGGGAACUGGAAACAGGGGAGGGAAACCGGCAAAGCCCCGAAAGGACCCGCCAAAAGGCAACCCCAGGACAAGACAAAAGUCGGCACGGAAACGGAGAAACUCGCAAAAGCAGCCGCGGAAACGCAAGUCCAGCUCAAUCCGAAAGGAGCCACGGAAACGGCCAAAGGCGCAAAAGCAGGCGGGGAAACCCAAGAGCACCCCAACUCAAAAGAGGCCACCGAAAGGGAGAAACUCGGGAAACCAGGCGGCAAAAGCCAAGGGGAGUCCAACGGGGAACCGGGCACGGAAACGGACAAAGUCGCGAAAGCAGCCGGCGAAAGCCAAGGACAGUGCAACUCAAAAGAGGGGAGGGAAACCGGC"
+            draw_mfe_plot(sampling_seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
 
-            draw_mfe_plot(seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
+            # draw_mfe_plot(seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
             draw_mfe_plot(seq, mfe_struct, puzzle_id, diff, args.folder, args.layout, is_mfe=True)
 
 
