@@ -39,6 +39,49 @@ def subopt(seq, e=0):
     subopt_data['ss_list'] = sorted(subopt_data['ss_list'])
     return subopt_data
 
+def mfe(seq):
+    fc = RNA.fold_compound(seq)
+    ss = fc.mfe()
+    return ss
+
+def structural_dist(seq, ss):
+    ss_mfe = mfe(seq)[0]
+    stk = []
+    mp = {}
+
+    for j, c in enumerate(ss):
+        if c == '(':
+            stk.append(j)
+        elif c == ')':
+            i = stk.pop()
+            mp[j] = i
+            mp[i] = j
+        else:
+            mp[j] = -1
+
+    dist = len(ss)
+    for j, c in enumerate(ss_mfe):
+        if c == '(':
+            stk.append(j)
+        elif c == ')':
+            i = stk.pop()
+            
+            if mp[j] == i:
+                dist -= 2
+        else:
+            if mp[j] == -1:
+                dist -= 1
+
+    return dist
+
+def energy(seq, ss):
+    fc = RNA.fold_compound(seq)
+    return fc.eval_structure(ss)
+
+def e_diff(seq, ss):
+    ss_mfe = mfe(seq)[0]
+    return abs(energy(seq, ss_mfe) - energy(seq, ss))
+
 def eval_seq(seq, ss, scale=True):
     subopt_data = { 'counter' : 0, 'sequence' : seq, 'ss_list': []}
     
@@ -57,7 +100,10 @@ def eval_seq(seq, ss, scale=True):
     is_mfe = ss in mfe_structs
     is_umfe = is_mfe and subopt_data['counter'] == 1
 
-    return seq, pr, ed, is_mfe, is_umfe
+    dist = structural_dist(seq, ss)
+    energy_diff = e_diff(seq, ss)
+
+    return seq, pr, ed, is_mfe, is_umfe, dist, energy_diff
 
 def graph_prob(rna_id, lines, avg_pyx, integral_pyx, sampled_pyx, boxplot, lr_idx, args):
     plt.rcParams["figure.figsize"] = [7.50, 4.50]
@@ -291,11 +337,15 @@ def process_result_file(rna_id, result_file, args):
     best_ned_solution = min(seqs_stats, key=lambda x: x[2])
     mfe_solutions = [stat[0] for stat in seqs_stats if stat[3]]
     umfe_solutions = [stat[0] for stat in seqs_stats if stat[4]]
+    best_dist_solution = min(seqs_stats, key=lambda x: x[5])
+    best_ediff_solution = min(seqs_stats, key=lambda x: x[6])
 
     print("Best p(y|x) solution: ", best_pyx_solution[0], best_pyx_solution[1], seq_step[best_pyx_solution[0]])
     print("Best NED solution: ", best_ned_solution[0], best_ned_solution[2], seq_step[best_ned_solution[0]])
     print("MFE solution: ", len(mfe_solutions), *mfe_solutions[:1])
     print("UMFE solution: ", len(umfe_solutions), *umfe_solutions[:1])
+    print("Best d(MFE(x), y) solution: ", best_dist_solution[0], best_dist_solution[5], seq_step[best_dist_solution[0]])
+    print("Best free energy diff solution: ", best_ediff_solution[0], best_ediff_solution[6], seq_step[best_ediff_solution[0]])
 
     print(f"id {rna_id} done", file=sys.stderr)
 

@@ -79,7 +79,7 @@ def mfe(seq):
     ss = fc.mfe()
     return ss
 
-def structural_dist(seq, ss, ss_mfe):
+def structural_dist(seq, ss):
     ss_mfe = mfe(seq)[0]
     stk = []
     mp = {}
@@ -124,9 +124,9 @@ if __name__ == '__main__':
     # seqs    = lines[:n//2]
     # structs = lines[n//2:]
 
-    seq =    "GGACGGAACCGCGACGAAAAUGGACCGCGAAAGCAAAAGGGACACGAAGCAAAAGGGACCGCGACCAACGGACGGCAACCAAAAUCGACCGCGAGGAAAACCAAAAGGCCAAGCAAAAGGGAGAGGAGGCGCGAGCAAGGGAAACCGGGGGAGCAGGGAAAAGGGACCGCGAAAGCAAAAGGGACCCCAAGCAAAAUCAACCGCGAGCAACGGACGGGGACUAAAAGGGACAGCAAGGAAAACCGAAAGGCCGAGCAAAAUGGACCAGGACCGGGAGCAAGGAC"
+    seq =    "AAAAGCGAAAGCGAAAGGAAAAGGAAUGGAGCAAAGCGACAGAAACCGAAAAGCCGAAAAAAGCGAAAAAAAAGCAAAAAAAAAAAAC"
     # seq = "GGGCAAAGCCCGGCACUGGAAACAGAGGCAAGGGACCCGAAAGGGGAGCGCCCAAAGGGCAACGGGAAACCCGGCUCCGGGAAACCGUCCCAAGAGAGGCGAAAGCGCGCCGCCCUAAGGGCAAGGUCAAAGACCGGCGCUGGAAACACUCUCAACCUCCUGGAAACACUGCCGCCCAAAGGGCUACGGCAAAGCCGGGCAGGCGAAAGCGGAGGAACCGGCGCGAAAGCGGGCCGCGGAAUCCGCAACUCCAAAGGAGGGCCCAGGAAACUGCCGGAAGGAGCCCGAAAGGGAGGCGCCCCAAGGGCAAGGGCAAAGCCCGCCUCGGGAAACCGCUCCAAGCCUCGCGAAAGCGUGCCCCGGAAACCGG"
-    struct = "(..(((..((((..((....((..((((....))....))..))))..))....))..))((..((..((..((((..((....((..((((..((....((....))))..))....))..))))..))((..((..((....))((..((((..((....((..((((....))....))..))))..))....))..))))..))..))..))((..((....((..((((..((....((....))))..))....))..))))..))))..))..)..)"
+    struct = "....((....((....((....((..((..((...))..))....))......)).......)).........))............."
 
     seqs = [seq]
     structs = [struct]
@@ -147,7 +147,7 @@ if __name__ == '__main__':
         pyx = prob(seq, struct)
         ned = ensemble_defect(seq, struct)
         pos_def = position_defect(seq, struct)
-        dist = structural_dist(seq, struct, ss_mfe)
+        dist = structural_dist(seq, struct)
         delta_delta_G = e_diff(seq, struct, ss_mfe)
 
         print(f"seq        : {seq}")

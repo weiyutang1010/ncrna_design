@@ -264,6 +264,14 @@ void GradientDescent::initialize_sm() {
             } else if (page == 1) {
                 int p = get<0>(inner_loop), q = get<1>(inner_loop);
 
+                // 2 pair stacking condition
+                bool two_pair_stacking = p - i - 1 == 0 &&
+                                         j - q - 1 == 0 &&
+                                         rna_struct[p+1] == '.' &&
+                                         rna_struct[q-1] == '.' &&
+                                         (i - 1 < 0 || rna_struct[i-1] == '.') &&
+                                         (j + 1 >= rna_struct.size() || rna_struct[j+1] == '.');
+
                 // i ... p ... q ... j
                 if (p - i - 1 == 1 && j - q - 1 == 1) {
                     // 1x1 internal loops
@@ -322,6 +330,7 @@ void GradientDescent::initialize_sm() {
         for (const vector<int>& pos: unpaired_pos) {
             int num = pow(4, pos.size());
             if (pos.size() == 1) {
+                // unpaired position
                 if (softmax) {
                     logits[pos] = vector<double> (num, log((0. * eps) + (.25 * (1 - eps))));
                     logits[pos][nucs_to_idx["A"]] = log((1. * eps) + (.25 * (1 - eps)));
@@ -330,6 +339,7 @@ void GradientDescent::initialize_sm() {
                     dist[pos][nucs_to_idx["A"]] = 1.;
                 }
             } else {
+                // coupled mismatch
                 if (softmax) {
                     logits[pos] = vector<double> (num, 0.);
                 } else {
@@ -532,7 +542,7 @@ void GradientDescent::print_mode() {
 }
 
 Objective GradientDescent::objective_function(int step) {
-    if (objective == "prob" || objective == "ned" || objective == "log_ned" || objective == "ediff" || objective == "comp") {
+    if (objective == "prob" || objective == "ned" || objective == "log_ned" || objective == "dist" || objective == "ediff") {
         Objective obj = sampling_approx(step);
         return obj;
     } else {
@@ -691,10 +701,11 @@ void GradientDescent::gradient_descent() {
             integral_obj = normalized_ensemble_defect(integral_seq, rna_struct);
         } else if (objective == "log_ned") {
             integral_obj = log(normalized_ensemble_defect(integral_seq, rna_struct));
-        } else if (objective == "ediff") {
+        } else if (objective == "dist") {
+            integral_obj = structural_dist_mfe(integral_seq, rna_struct);
+        } else if (objective == "ediff") { 
+            // ediff stands for free energy differences (Delta Delta G)
             integral_obj = energy_diff(integral_seq, rna_struct);
-        } else if (objective == "comp") {
-            integral_obj = composite(integral_seq, rna_struct);
         }
 
         // approximate E[p(y | x)] from samples
@@ -783,7 +794,7 @@ void GradientDescent::gradient_descent() {
                 last_best_avg = {moving_avg / k_ma, step};
             }
 
-            if (step >= 100 && step >= last_best_seq.second + 50 && step >= last_best_avg.second + 20) {
+            if (step >= 100 && step >= last_best_seq.second + 80 && step >= last_best_avg.second + 50) {
                 adaptive_step = false;
             }
         }

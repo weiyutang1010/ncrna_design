@@ -118,6 +118,7 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --obj log_ned --init targeted_sm --eps 0.75 > results/sampling_log_ned_targeted_sm_softmax_eps_075_adam/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --obj log_ned --init targeted_sm --eps 0.75 --is_lazy -b 150 > results/sampling_log_ned_targeted_sm_softmax_eps_075_adam/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --obj log_ned --init uniform_sm > results/sampling_log_ned_uniform_sm_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --obj log_ned --init uniform_sm --is_lazy -b 100 > results/sampling_log_ned_uniform_sm_softmax_adam/${puzzles[0]}.txt &
     # use sampling_log_ned_targeted_sm_softmax_eps_075_adam_copy for shorter puzzles
 
     # structural distance
@@ -144,6 +145,17 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --init targeted_sm --eps 0.75 --lr 0.01 --no_trimismatch > results/sampling_pyx_targeted_softmax_eps_075_adam_no_trimismatch/${puzzles[0]}.txt &
 
     # composite objective function
-    echo "${puzzles[1]}" | ./main --test --obj comp > results/sampling_comp_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --test --obj comp > results/sampling_comp_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
+
+    # structural dist objective function
+    echo "${puzzles[1]}" | ./main --test --obj dist -b 100 > results/sampling_dist_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --test --obj dist --init uniform_sm -b 100 > results/sampling_dist_uniform_sm_softmax_adam/${puzzles[0]}.txt &
+
+    # long sequence design
+    # echo "${puzzles[1]}" | ./main -k 500 > results/sampling_pyx_targeted_sm_eps_075_softmax_adam_16s/${puzzles[0]}.txt &
+
+    # rfam27
+    # echo "${puzzles[1]}" | ./main > results/sampling_pyx_targeted_sm_eps_075_softmax_adam_rfam27/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --init uniform_sm > results/sampling_pyx_uniform_sm_softmax_adam_rfam27/${puzzles[0]}.txt &
 done < "data/eterna/$1.txt"
 

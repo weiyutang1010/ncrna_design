@@ -66,19 +66,61 @@ samfeo_umfe = [False for _ in range(100)]
 # st  = '................................................................................................................................................................................................................................................................................................................................................................................................................'
 # print(eval_seq(seq, st))
 
+def prob(seq, ss, scale=True):
+    fc = RNA.fold_compound(seq)
+    if scale:
+        _, mfe = fc.mfe()
+        fc.exp_params_rescale(mfe)
+    fc.pf()
+    pr = fc.pr_structure(ss)
+    return pr
+
+def ensemble_defect(seq, ss, scale=True):
+    fc = RNA.fold_compound(seq)
+    if scale:
+        _, mfe = fc.mfe()
+        fc.exp_params_rescale(mfe)
+    fc.pf()
+    fc.bpp()
+    ed = fc.ensemble_defect(ss)
+    return ed
+
+nemo_pyx_seq = ["" for i in range(100)]
+nemo_ned_seq = ["" for i in range(100)]
+
 for idx, p_id in enumerate(puzzle_ids):
     puzzle = structs[idx]
     nemo = nemo_seqs[idx]
 
+    best_ned = 10
+    best_pyx = -1
     for seq in nemo:
-        _, is_mfe, is_umfe = eval_seq(seq, puzzle)
+        pyx = prob(seq, puzzle)
+        ned = ensemble_defect(seq, puzzle)
 
-        if is_mfe:
-            nemo_mfe[idx] = True
+        if pyx > best_pyx:
+            nemo_pyx_seq[idx] = seq
 
-        if is_umfe:
-            nemo_umfe[idx] = True
+        if ned < best_ned:
+            nemo_ned_seq[idx] = seq
 
+
+        # _, is_mfe, is_umfe = eval_seq(seq, puzzle)
+
+        # if is_mfe:
+        #     nemo_mfe[idx] = True
+
+        # if is_umfe:
+        #     nemo_umfe[idx] = True
+
+
+for x in nemo_pyx_seq:
+    print(x)
+print()
+for x in nemo_ned_seq:
+    print(x)
+
+exit(0)
 
 with open('samfeo_mfe.txt', 'r') as f:
     lines = f.read().split('\n')

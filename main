@@ -11,7 +11,7 @@ def setgflags():
     flags.DEFINE_string('mode', "ncrna_design", "Perform non-Coding RNA Design")
     flags.DEFINE_string('objective', "prob", "Minimizes -E[log p(y | x)] using sampling approximation", short_name='obj')
     
-    flags.DEFINE_string('initializations', "uniform_sm", "Initialization methods (uniform/targeted/random)", short_name='init')
+    flags.DEFINE_string('initializations', "targeted_sm", "Initialization methods (uniform/targeted/random)", short_name='init')
     flags.DEFINE_float('eps', 0.75, "eps * uniform + (1 - eps) * targeted")
     flags.DEFINE_string('init_seq', "", "initialization sequence", short_name='seq')
 

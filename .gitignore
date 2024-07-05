@@ -26,6 +26,8 @@ results/*
 analysis/*
 graphs/*
 bpp_plot/plots/*
+pyx_analysis/
+structs_analysis/
 data/eterna/beethoven.txt
 data/eterna/gakona.txt
 data/eterna/jsbach.txt

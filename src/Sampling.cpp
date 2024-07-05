@@ -75,12 +75,12 @@ void GradientDescent::resample() {
                 } else {
                     samples[k] = {seq, 0., 0, 0., 0., sample_prob, ned};
                 }
+            } else if (objective == "dist") {
+                double distance = structural_dist_mfe(seq, rna_struct);
+                samples[k] = {seq, 0., 0, 0., 0., sample_prob, distance};
             } else if (objective == "ediff") {
                 double diff = energy_diff(seq, rna_struct); // objective used in NEMO
                 samples[k] = {seq, 0., 0, 0., 0., sample_prob, diff};
-            } else if (objective == "comp") {
-                double score = composite(seq, rna_struct); // objective used in NEMO
-                samples[k] = {seq, 0., 0, 0., 0., sample_prob, score};
             }
 
             #pragma omp critical

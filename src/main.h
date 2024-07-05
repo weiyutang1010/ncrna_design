@@ -226,6 +226,7 @@ public:
     double energy_diff(string& rna_seq, string& rna_struct);
     double composite(string& rna_seq, string& rna_struct);
     int structural_dist(const string& struct_1, const string& struct_2);
+    int structural_dist_mfe(string& seq, const string& rna_struct);
     double base_pair_dist(string& y, string& y_star);
     vector<string> get_mfe_structs();
     string get_mfe_struct(string& rna_seq);

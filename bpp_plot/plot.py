@@ -284,7 +284,7 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     plt.figure(figsize=(figwidth, figheight))
 
     # Correctly place labels for 5' and 3' ends
-    label_dist_x, label_dist_y = seq_len * 0.03, seq_len * 0.01
+    label_dist_x, label_dist_y = seq_len * 0.015, seq_len * 0
     plt.text(0 - label_dist_x, label_dist_y, "5'", ha='left', va='center', fontsize=13)
     plt.text(seq_len-1 + label_dist_x, label_dist_y, "3'", ha='center', va='center', fontsize=13)
 
@@ -299,19 +299,23 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
 
     # Place indices on the axis
     indices_height = seq_len * (-0.015)
-    plt.text(0, indices_height, str(1), ha='center', va='center', fontsize=12, color='black',)
-    plt.text(seq_len-1, indices_height, str(seq_len), ha='center', va='center', fontsize=12, color='black',)
+    plt.text(0, indices_height, str(1), ha='center', va='center', fontsize=13, color='black',)
+    plt.text(seq_len-1, indices_height, str(seq_len), ha='center', va='center', fontsize=13, color='black',)
     
     index_gap = max(1, seq_len // (num_index_labels-2))
     for index in range(index_gap, seq_len - 1, index_gap):
-        # if index == 368:
-        #     continue
-        plt.text(index, indices_height, str(index + 1), ha='center', va='center', fontsize=12, color='black',)
+        if index == 368 or index == 360:
+            continue
+        if index == 280:
+            continue
+        plt.text(index, indices_height, str(index + 1), ha='center', va='center', fontsize=13, color='black',)
 
     # Draw segments for pairs
+    bpp_pairs = []
     for pair in bpp:
         start_index, end_index, pair_prob = pair[0], pair[1], pair[2]
         pair_matched = (start_index, end_index) in pairs
+        bpp_pairs.append((start_index, end_index))
 
         if is_mfe and (start_index, end_index) not in mfe_pairs:
             continue
@@ -325,7 +329,7 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
 
         center = ((start_index + end_index) / 2, 0)
         width = (end_index - start_index) / 2
-        height = width * 0.4
+        height = (width+3) * 0.55
 
         x = np.linspace(start_index, end_index, max(400, seq_len * 4))
         y = np.sqrt((1. - ((x - center[0]) ** 2 / (width * width))) * (height * height)) + center[1]
@@ -334,17 +338,32 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
             y *= -1
 
         plt.plot(x, y, color=color, alpha=alpha)
+
+        if pair_matched and pair_prob < .1:
+            plt.plot(x, y, color="darkorange", alpha=.8)
+
     
+    for pair in pairs:
+        if pair not in bpp_pairs:
+            start_index, end_index = pair
+
+            center = ((start_index + end_index) / 2, 0)
+            width = (end_index - start_index) / 2
+            height = (width+3) * 0.55
+
+            x = np.linspace(start_index, end_index, max(400, seq_len * 4))
+            y = np.sqrt((1. - ((x - center[0]) ** 2 / (width * width))) * (height * height)) + center[1]
+
+            plt.plot(x, y, color="darkorange", alpha=.8)
+
     # print title
     # title_height = seq_len * .25
     # plt.text((seq_len - 1) // 2, title_height, f"Puzzle {puzzle_id}", ha='center', va='center', fontsize=18, color='black')
     
     # save to file
     mfe = "_mfe" if is_mfe else ""
-    # save_path = f"./plots/{folder}/linear_plots/{puzzle_id}{mfe}.png"
-    # plt.savefig(save_path, dpi=400, bbox_inches='tight')
-
-    save_path = f"./plots/{folder}/linear_plots/{puzzle_id}{mfe}.pdf"
+    save_format = ".pdf"
+    save_path = f"./plots/{folder}/linear_plots/{puzzle_id}{mfe}{save_format}"
     plt.savefig(save_path, bbox_inches='tight')
     print(f"Linear plot saved to {save_path}", file=sys.stderr)
 
@@ -412,9 +431,9 @@ def draw_mfe_plot(seq, struct, puzzle_id, diff, folder, layout, is_mfe=False):
     for j in range(9, len(struct)-1, 10):
         command += f"{j+1} {dx} {dy} ({j+1}) Label "
 
-    command += f"1 {-dx - 2.4} {dy + 0.2} (1) Label "
+    command += f"1 {-dx - 2.4} {dy + 0.4} (1) Label "
 
-    command += f"{len(struct)} {dx + 1.9} {dy} ({len(struct)}) Label "
+    command += f"{len(struct)} {dx + 1.9} {dy + 0.4} ({len(struct)}) Label "
 
     command += "\""
 
@@ -480,14 +499,41 @@ if __name__ == '__main__':
     for puzzle_id, seq, struct in zip(puzzles_ids, seqs, structs):
         print(f"Puzzle {puzzle_id} start", file=sys.stderr)
 
-
         bpp, pos_defect = position_defect(seq, struct)
+
+        # unpaired probability (w/ incorrect)
+        # for idx, x in enumerate(bpp):
+        #     mult = 1
+        #     if struct[idx] != '.':
+        #         mult = -1
+            
+        #     print(idx + 1, mult * bpp[idx, idx])
+        # # exit(0)
+        # print()
+
         # bpp = [(i, j, pair_prob), ...]
         bpp = format_bpp(bpp)
         # pairs = [(i, j), ...]
         pairs = get_pairs(struct)
 
         diff, mfe_struct = get_mfe(seq, struct)
+        mfe_pairs = get_pairs(mfe_struct)
+
+        # paired prob (w/ incorrect)
+        for idx, x in enumerate(bpp):
+            i, j, pair_prob = x
+            if (i, j) in mfe_pairs:
+                mult = 1
+                if (i, j) not in pairs:
+                    mult = -1
+                
+                print(i+1, j+1, pair_prob * mult)
+        print()
+
+        # pos defect
+        for idx, x in enumerate(pos_defect):
+            print(idx+1, x)
+        exit(0)
         
         # circular plot
         if args.circular:
@@ -506,10 +552,10 @@ if __name__ == '__main__':
             draw_pos_defects(seq, struct, puzzle_id, pos_defect, args.folder, args.layout, norm=False)
 
         if args.mfe:
-            sampling_seq = "GCCCCGAAAGGACCCGCCGAAAGGCAAGCACAGGGGAACUGGAAACAGGGGAGGGAAACCGGCAAAGCCCCGAAAGGACCCGCCAAAAGGCAACCCCAGGACAAGACAAAAGUCGGCACGGAAACGGAGAAACUCGCAAAAGCAGCCGCGGAAACGCAAGUCCAGCUCAAUCCGAAAGGAGCCACGGAAACGGCCAAAGGCGCAAAAGCAGGCGGGGAAACCCAAGAGCACCCCAACUCAAAAGAGGCCACCGAAAGGGAGAAACUCGGGAAACCAGGCGGCAAAAGCCAAGGGGAGUCCAACGGGGAACCGGGCACGGAAACGGACAAAGUCGCGAAAGCAGCCGGCGAAAGCCAAGGACAGUGCAACUCAAAAGAGGGGAGGGAAACCGGC"
-            draw_mfe_plot(sampling_seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
+            # sampling_seq = "GGGCAAAGCCCGGCACUGGAAACAGAGGCAAGGGACCCGAAAGGGGAGCGCCCAAAGGGCAACGGGAAACCCGGCUCCGGGAAACCGUCCCAAGAGAGGCGAAAGCGCGCCGCCCUAAGGGCAAGGUCAAAGACCGGCGCUGGAAACACUCUCAACCUCCUGGAAACACUGCCGCCCAAAGGGCUACGGCAAAGCCGGGCAGGCGAAAGCGGAGGAACCGGCGCGAAAGCGGGCCGCGGAAUCCGCAACUCCAAAGGAGGGCCCAGGAAACUGCCGGAAGGAGCCCGAAAGGGAGGCGCCCCAAGGGCAAGGGCAAAGCCCGCCUCGGGAAACCGCUCCAAGCCUCGCGAAAGCGUGCCCCGGAAACCGG"
+            # draw_mfe_plot(sampling_seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
 
-            # draw_mfe_plot(seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
+            draw_mfe_plot(seq, struct, puzzle_id, diff, args.folder, args.layout, is_mfe=False)
             draw_mfe_plot(seq, mfe_struct, puzzle_id, diff, args.folder, args.layout, is_mfe=True)
 
 

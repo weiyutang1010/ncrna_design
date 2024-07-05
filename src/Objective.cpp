@@ -71,6 +71,11 @@ int GradientDescent::structural_dist(const string& struct_1, const string& struc
     return dist;
 }
 
+int GradientDescent::structural_dist_mfe(string& seq, const string& rna_struct) {
+    string mfe = get_mfe_struct(seq);
+    return structural_dist(mfe, rna_struct);
+}
+
 double GradientDescent::base_pair_dist(string& y, string& y_star) {
     int n = y.size(); //y and y^\star should have same size
     stack<int> stk;

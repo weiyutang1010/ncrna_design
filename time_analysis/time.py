@@ -66,19 +66,20 @@ def parse(folder, label):
 plt.figure(figsize=(12,6))
 
 
-parse(UNIFORM_PARALLEL_FOLDER, 'obj = p(y | x)')
-parse(UNIFORM_NED_PARALLEL_FOLDER, 'obj = NED')
-parse(UNIFORM_NED_LAZY_PARALLEL_FOLDER, 'obj = NED (lazyoutside)')
+parse(UNIFORM_NO_PARALLEL_FOLDER, 'Single Thread')
+parse(UNIFORM_PARALLEL_FOLDER, 'Multi-Threading (28 cores)')
+# parse(UNIFORM_NED_PARALLEL_FOLDER, 'obj = NED')
+# parse(UNIFORM_NED_LAZY_PARALLEL_FOLDER, 'obj = NED (lazyoutside)')
 # parse(UNIFORM_PARALLEL_CACHE_FOLDER, 'Multi-Threading (28 cores) + Caching')
-# parse(UNIFORM_NO_PARALLEL_FOLDER, 'Single Thread')
 # parse(TARGETED_PARALLEL_CACHE_FOLDER, 'Multi-Threading (28 cores) + Cache')
 # parse(TARGETED_PARALLEL_FOLDER, 'Multi-Threading (28 cores)')
 # parse(TARGETED_NO_PARALLEL_FOLDER, 'Uniform Distribution')
 
 plt.xlabel('Structure Length')
 plt.ylabel('Time per Step (sec)')
-plt.title('Avg Time per Step vs. Length (Sample Size=2500, 28 cores)')
+plt.title(r'Average Time per Step vs. Length (Sample Size = 2500, Objective = $p(y \mid x)$)')
 plt.legend()
 
-save_path = './time.png'
-plt.savefig(save_path, format="png", bbox_inches="tight")
+save_path = './time.pdf'
+# plt.savefig(save_path, format="png", bbox_inches="tight")
+plt.savefig(save_path, format="pdf", bbox_inches="tight")
