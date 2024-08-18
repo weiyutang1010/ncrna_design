@@ -1,8 +1,0 @@
-Total steps:  1201
-Number of unique sequence:  8
-Best p(y|x) solution:  GGCCUAUGGCCA 0.9838273715507729 0
-Best NED solution:  GGCCUAUGGCCA 0.00273884497610922 0
-MFE solution:  8 GGCCCGUGGCCA
-UMFE solution:  8 GGCCCGUGGCCA
-Best d(MFE(x), y) solution:  GGCCCGUGGCCA 0 163
-Best free energy diff solution:  GGCCCGUGGCCA 0.0 163

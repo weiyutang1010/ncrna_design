@@ -384,14 +384,14 @@ def process_result_file(rna_id, result_file, args):
     mfe_solutions = [stat[0] for stat in seqs_stats if stat[3]]
     umfe_solutions = [stat[0] for stat in seqs_stats if stat[4]]
     best_dist_solution = min(seqs_stats, key=lambda x: x[5])
-    best_ediff_solution = min(seqs_stats, key=lambda x: x[6])
+    best_ddg_solution = min(seqs_stats, key=lambda x: x[6])
 
-    print("Best p(y|x) solution: ", best_pyx_solution[0], best_pyx_solution[1], seq_step[best_pyx_solution[0]])
-    print("Best NED solution: ", best_ned_solution[0], best_ned_solution[2], seq_step[best_ned_solution[0]])
-    print("MFE solution: ", len(mfe_solutions), *mfe_solutions[:1])
-    print("UMFE solution: ", len(umfe_solutions), *umfe_solutions[:1])
+    print("Best p(y*|x) solution: ", best_pyx_solution[0], best_pyx_solution[1], seq_step[best_pyx_solution[0]])
+    print("Best NED(x, y*) solution: ", best_ned_solution[0], best_ned_solution[2], seq_step[best_ned_solution[0]])
     print("Best d(MFE(x), y) solution: ", best_dist_solution[0], best_dist_solution[5], seq_step[best_dist_solution[0]])
-    print("Best free energy diff solution: ", best_ediff_solution[0], best_ediff_solution[6], seq_step[best_ediff_solution[0]])
+    print("Best DeltaDeltaG(x, y*) solution: ", best_ddg_solution[0], best_ddg_solution[6], seq_step[best_ddg_solution[0]])
+    print("MFE solution: ", len(mfe_solutions), *mfe_solutions[:1]) # only print 1 mfe solution as example
+    print("UMFE solution: ", len(umfe_solutions), *umfe_solutions[:1])
 
     print(f"id {rna_id} done", file=sys.stderr)
 
@@ -400,7 +400,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--y", type=str, default="")
     parser.add_argument("--folder", type=str, default="temp")
-    parser.add_argument("--file", type=str, default="0")
+    parser.add_argument("--file", type=str, default="0.txt")
     args = parser.parse_args()
 
     results_path = f'./results/{args.folder}/{args.file}'

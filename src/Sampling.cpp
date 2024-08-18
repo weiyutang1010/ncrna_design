@@ -64,24 +64,17 @@ void GradientDescent::resample() {
             }
         } else {
             if (objective == "prob") {
-                double log_Q = linear_partition(seq); // log Q(x)
-                long deltaG = eval(seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
-                double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
-                samples[k] = {seq, log_Q, deltaG, log_boltz_prob, exp(log_boltz_prob), sample_prob, -log_boltz_prob};
-            } else if (objective == "ned" || objective == "log_ned") {
+                double log_boltz_prob = log_boltzmann_prob(seq, rna_struct); // log p(y | x)
+                samples[k] = {seq, sample_prob, -log_boltz_prob, exp(log_boltz_prob)};
+            } else if (objective == "ned") {
                 double ned = normalized_ensemble_defect(seq, rna_struct);
-
-                if (objective == "log_ned") {
-                    samples[k] = {seq, 0., 0, 0., 0., sample_prob, log(ned)};
-                } else {
-                    samples[k] = {seq, 0., 0, 0., 0., sample_prob, ned};
-                }
+                samples[k] = {seq, sample_prob, ned, 0.};
             } else if (objective == "dist") {
                 double distance = structural_dist_mfe(seq, rna_struct);
-                samples[k] = {seq, 0., 0, 0., 0., sample_prob, distance};
-            } else if (objective == "ediff") {
-                double diff = energy_diff(seq, rna_struct); // objective used in NEMO
-                samples[k] = {seq, 0., 0, 0., 0., sample_prob, diff};
+                samples[k] = {seq, sample_prob, distance, 0.};
+            } else if (objective == "ddg") {
+                double diff = energy_diff(seq, rna_struct);
+                samples[k] = {seq, sample_prob, diff, 0.};
             }
 
             #pragma omp critical
@@ -98,29 +91,28 @@ void GradientDescent::resample() {
     // cerr << "Sampled Time: " << parse_elapsed_time << endl;
 }
 
-double GradientDescent::calculate_mean() {
-    double sum = 0.0;
-    for (Sample value : samples) {
-        sum += value.log_Q;
-    }
-    return sum / samples.size();
-}
+// double GradientDescent::calculate_mean() {
+//     double sum = 0.0;
+//     for (Sample value : samples) {
+//         sum += value.log_Q;
+//     }
+//     return sum / samples.size();
+// }
 
-double GradientDescent::calculate_variance() {
-    double mean = calculate_mean();
-    double sum_squared_deviations = 0.0;
-    for (Sample& value : samples) {
-        double deviation = value.log_Q - mean;
-        sum_squared_deviations += deviation * deviation;
-    }
-    return sum_squared_deviations / samples.size();
-}
+// double GradientDescent::calculate_variance() {
+//     double mean = calculate_mean();
+//     double sum_squared_deviations = 0.0;
+//     for (Sample& value : samples) {
+//         double deviation = value.log_Q - mean;
+//         sum_squared_deviations += deviation * deviation;
+//     }
+//     return sum_squared_deviations / samples.size();
+// }
 
 Objective GradientDescent::sampling_approx(int step) {
     resample();
 
-
-    // Approximate mean objective value
+    // Sample mean of the objective value
     double obj_val = 0.;
     for (const Sample& sample: samples) {
         obj_val += sample.obj;
@@ -164,7 +156,8 @@ Objective GradientDescent::sampling_approx(int step) {
 }
 
 
-// for paper figures
+
+// weiyu: manual sampling, used to generate figure in the paper
 
 // if (step == 0) {
     //     if (samples.size() < sample_size){

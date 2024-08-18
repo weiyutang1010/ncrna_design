@@ -1,0 +1,147 @@
+..((((((((.....)).))))))..
+objective: prob, initializaiton: targeted, eps: 0.75
+parameterization: softmax, adam: 1, nesterov: 0, beta1: 0.9, beta2: 0.999
+initial lr: 0.01, lr decay: 0, lr decay rate: 0.96
+max number of steps: 10, adaptive step: 0, k moving avg: 50
+beamsize: 250, sharpturn: 0, LazyOutside: 0
+sample size: 2500, best k samples listed: 1
+mismatch: 1, trimismatch: 1
+seed: 0, verbose: 0, num threads: 4
+
+Initial Logits
+0: A -0.2076, C -2.7726, G -2.7726, U -2.7726
+1: A -0.2076, C -2.7726, G -2.7726, U -2.7726
+(10, 14): AA 0.0000, AC 0.0000, AG 0.0000, AU 0.0000, CA 0.0000, CC 0.0000, CG 0.0000, CU 0.0000, GA 0.0000, GC 0.0000, GG 0.0000, GU 0.0000, UA 0.0000, UC 0.0000, UG 0.0000, UU 0.0000
+11: A -0.2076, C -2.7726, G -2.7726, U -2.7726
+12: A -0.2076, C -2.7726, G -2.7726, U -2.7726
+13: A -0.2076, C -2.7726, G -2.7726, U -2.7726
+17: A -0.2076, C -2.7726, G -2.7726, U -2.7726
+24: A -0.2076, C -2.7726, G -2.7726, U -2.7726
+25: A -0.2076, C -2.7726, G -2.7726, U -2.7726
+(9, 15): GC -0.8755, CG -0.8755, UG -3.1781, GU -3.1781, UA -3.1781, AU -3.1781
+(8, 16): GC -0.8755, CG -0.8755, UG -3.1781, GU -3.1781, UA -3.1781, AU -3.1781
+(7, 18): GC -0.8755, CG -0.8755, UG -3.1781, GU -3.1781, UA -3.1781, AU -3.1781
+(6, 19): GC -0.8755, CG -0.8755, UG -3.1781, GU -3.1781, UA -3.1781, AU -3.1781
+(5, 20): GC -0.8755, CG -0.8755, UG -3.1781, GU -3.1781, UA -3.1781, AU -3.1781
+(4, 21): GC -0.8755, CG -0.8755, UG -3.1781, GU -3.1781, UA -3.1781, AU -3.1781
+(3, 22): GC -0.8755, CG -0.8755, UG -3.1781, GU -3.1781, UA -3.1781, AU -3.1781
+(2, 23): GC -0.8755, CG -0.8755, UG -3.1781, GU -3.1781, UA -3.1781, AU -3.1781
+
+Initial Distribution
+0: A 0.8125, C 0.0625, G 0.0625, U 0.0625
+1: A 0.8125, C 0.0625, G 0.0625, U 0.0625
+(10, 14): AA 0.0625, AC 0.0625, AG 0.0625, AU 0.0625, CA 0.0625, CC 0.0625, CG 0.0625, CU 0.0625, GA 0.0625, GC 0.0625, GG 0.0625, GU 0.0625, UA 0.0625, UC 0.0625, UG 0.0625, UU 0.0625
+11: A 0.8125, C 0.0625, G 0.0625, U 0.0625
+12: A 0.8125, C 0.0625, G 0.0625, U 0.0625
+13: A 0.8125, C 0.0625, G 0.0625, U 0.0625
+17: A 0.8125, C 0.0625, G 0.0625, U 0.0625
+24: A 0.8125, C 0.0625, G 0.0625, U 0.0625
+25: A 0.8125, C 0.0625, G 0.0625, U 0.0625
+(9, 15): GC 0.4167, CG 0.4167, UG 0.0417, GU 0.0417, UA 0.0417, AU 0.0417
+(8, 16): GC 0.4167, CG 0.4167, UG 0.0417, GU 0.0417, UA 0.0417, AU 0.0417
+(7, 18): GC 0.4167, CG 0.4167, UG 0.0417, GU 0.0417, UA 0.0417, AU 0.0417
+(6, 19): GC 0.4167, CG 0.4167, UG 0.0417, GU 0.0417, UA 0.0417, AU 0.0417
+(5, 20): GC 0.4167, CG 0.4167, UG 0.0417, GU 0.0417, UA 0.0417, AU 0.0417
+(4, 21): GC 0.4167, CG 0.4167, UG 0.0417, GU 0.0417, UA 0.0417, AU 0.0417
+(3, 22): GC 0.4167, CG 0.4167, UG 0.0417, GU 0.0417, UA 0.0417, AU 0.0417
+(2, 23): GC 0.4167, CG 0.4167, UG 0.0417, GU 0.0417, UA 0.0417, AU 0.0417
+
+step: 0, objective value: 2.248, E[p(y|x)] approx: 0.3715, learning rate: 0.01, time: 0.09465
+integral solution: AAGGGGGGGGAAAAACCACCCCCCAA 0.1389
+best samples
+AAGGGCGGGCGAAAAGCACCGCCCAA 0.9904
+
+
+step: 1, objective value: 2.223, E[p(y|x)] approx: 0.3733, learning rate: 0.01, time: 0.09229
+integral solution: AAGCCCGCCCUAAAUGGAGCGGGCAA 0.018
+best samples
+AAGGCGGCCCGAAAAGGUGCCGCCAA 0.989
+
+
+step: 2, objective value: 2.137, E[p(y|x)] approx: 0.3914, learning rate: 0.01, time: 0.09524
+integral solution: AACGCCGGCCUAAAUGGACCGGCGAA 0.04869
+best samples
+AAGCCCGGCCAAAACGGACCGGGCAA 0.9892
+
+
+step: 3, objective value: 2.143, E[p(y|x)] approx: 0.3915, learning rate: 0.01, time: 0.09616
+integral solution: AACGCCGCGCUAAACGCAGCGGCGAA 0.0928
+best samples
+AAGCGCGGCCAAACAGGACCGCGCAA 0.9891
+
+
+step: 4, objective value: 2.076, E[p(y|x)] approx: 0.3997, learning rate: 0.01, time: 0.09785
+integral solution: AACGCCGCGCUAAACGCAGCGGCGAA 0.0928
+best samples
+ACGGCGGGGCGAAAAGCACCCGCCAC 0.9904
+
+
+step: 5, objective value: 1.96, E[p(y|x)] approx: 0.4264, learning rate: 0.01, time: 0.09148
+integral solution: AAGGCCGCGCUAAACGCAGCGGCCAA 0.05647
+best samples
+AAGCCCGGGCGAAUGGCACCGGGCAA 0.9904
+
+
+step: 6, objective value: 1.896, E[p(y|x)] approx: 0.4337, learning rate: 0.01, time: 0.09143
+integral solution: AAGGCCGCGCUAAACGCAGCGGCCAA 0.05647
+best samples
+AAGCGCGGGCUAAAUGCACCGCGCAA 0.9891
+
+
+step: 7, objective value: 1.694, E[p(y|x)] approx: 0.4637, learning rate: 0.01, time: 0.09365
+integral solution: AAGGCCGCGCUAAACGCAGCGGCCAA 0.05647
+best samples
+AAGCGCGGGCGAACGGCACCGCGCAA 0.9903
+
+
+step: 8, objective value: 1.72, E[p(y|x)] approx: 0.4668, learning rate: 0.01, time: 0.0917
+integral solution: AAGGCCGCGCGAAAGGCAGCGGCCAA 0.023
+best samples
+AAGCCGGGCCAAAAAGGACCCGGCAA 0.9892
+
+
+step: 9, objective value: 1.545, E[p(y|x)] approx: 0.4999, learning rate: 0.01, time: 0.08816
+integral solution: AAGGCCGGGCGAAAGGCACCGGCCAA 0.01133
+best samples
+AAGGCGGGGCGAAAAGCACCCGCCAA 0.9904
+
+
+Final Logits
+0: A -0.2752, C -2.6620, G -2.8056, U -2.7766
+1: A 0.1013, C -2.9928, G -2.9948, U -3.0762
+(10, 14): AA 0.3177, AC 0.3325, AG 0.3249, AU -0.1320, CA 0.1506, CC 0.0802, CG -0.3321, CU 0.2237, GA 0.3283, GC -0.3256, GG 0.3312, GU -0.0313, UA -0.3161, UC 0.3264, UG -0.3260, UU 0.3280
+11: A -0.0944, C -2.7214, G -2.9258, U -2.8058
+12: A -0.1581, C -2.7769, G -2.7341, U -2.8368
+13: A -0.3796, C -2.6116, G -2.5840, U -2.7918
+17: A 0.1326, C -3.1049, G -3.1134, U -2.9734
+24: A 0.1149, C -2.9924, G -2.7637, U -3.1155
+25: A -0.0766, C -2.7622, G -2.8884, U -2.9305
+(9, 15): GC -0.7789, CG -0.5674, UG -3.4414, GU -3.4867, UA -3.4090, AU -3.0580
+(8, 16): GC -0.5501, CG -0.5525, UG -3.5085, GU -3.4931, UA -3.5060, AU -2.9384
+(7, 18): GC -0.6008, CG -0.6187, UG -3.4917, GU -3.4290, UA -3.3655, AU -3.1803
+(6, 19): GC -0.5923, CG -0.9687, UG -3.4610, GU -3.3791, UA -3.0092, AU -3.2100
+(5, 20): GC -0.8120, CG -0.7074, UG -3.3670, GU -3.3761, UA -3.2582, AU -3.0093
+(4, 21): GC -0.9350, CG -0.8442, UG -3.2794, GU -3.1353, UA -3.0543, AU -3.0086
+(3, 22): GC -0.7385, CG -0.8499, UG -3.3698, GU -3.4120, UA -3.3062, AU -3.0646
+(2, 23): GC -0.6476, CG -0.7152, UG -3.4901, GU -3.2949, UA -3.2287, AU -3.0114
+
+Final Distribution
+0: A 0.7978, C 0.0733, G 0.0635, U 0.0654
+1: A 0.8832, C 0.0400, G 0.0399, U 0.0368
+(10, 14): AA 0.0766, AC 0.0777, AG 0.0771, AU 0.0488, CA 0.0648, CC 0.0604, CG 0.0400, CU 0.0697, GA 0.0774, GC 0.0402, GG 0.0776, GU 0.0540, UA 0.0406, UC 0.0773, UG 0.0402, UU 0.0774
+11: A 0.8350, C 0.0604, G 0.0492, U 0.0555
+12: A 0.8213, C 0.0599, G 0.0625, U 0.0564
+13: A 0.7650, C 0.0821, G 0.0844, U 0.0686
+17: A 0.8905, C 0.0350, G 0.0347, U 0.0399
+24: A 0.8768, C 0.0392, G 0.0493, U 0.0347
+25: A 0.8432, C 0.0575, G 0.0507, U 0.0486
+(9, 15): GC 0.3927, CG 0.4852, UG 0.0274, GU 0.0262, UA 0.0283, AU 0.0402
+(8, 16): GC 0.4452, CG 0.4442, UG 0.0231, GU 0.0235, UA 0.0232, AU 0.0409
+(7, 18): GC 0.4473, CG 0.4393, UG 0.0248, GU 0.0264, UA 0.0282, AU 0.0339
+(6, 19): GC 0.5084, CG 0.3489, UG 0.0289, GU 0.0313, UA 0.0454, AU 0.0371
+(5, 20): GC 0.4060, CG 0.4509, UG 0.0315, GU 0.0313, UA 0.0352, AU 0.0451
+(4, 21): GC 0.3925, CG 0.4298, UG 0.0376, GU 0.0435, UA 0.0472, AU 0.0494
+(3, 22): GC 0.4525, CG 0.4048, UG 0.0326, GU 0.0312, UA 0.0347, AU 0.0442
+(2, 23): GC 0.4477, CG 0.4185, UG 0.0261, GU 0.0317, UA 0.0339, AU 0.0421
+
+Total Time: 0.9384

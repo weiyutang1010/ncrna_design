@@ -271,14 +271,6 @@ def draw_rna_circle(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     plt.close()
 
 def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, num_index_labels=10, text_offset = 1.025, label_offset = 0.05, is_mfe=False, mfe_pairs=[]):
-    """
-    Draw a circular RNA plot with a customizable opening size, and mark n indices on the circumference based on the sequence size.
-    
-    Parameters:
-    - opening_size: A float representing the fraction of the circle to be left open.
-    - sequence_size: The total size of the RNA sequence.
-    - n: The number of indices to mark on the circumference, equidistant from each other, following the sequence direction.
-    """
     # Create a new figure for drawing
     figwidth, figheight = max(12, seq_len // 15), 10
     plt.figure(figsize=(figwidth, figheight))
@@ -287,8 +279,6 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     label_dist_x, label_dist_y = seq_len * 0.025, 0
     plt.text(0 - label_dist_x, label_dist_y, "5'", ha='left', va='center', fontsize=13)
     plt.text(seq_len-1 + label_dist_x, label_dist_y, "3'", ha='center', va='center', fontsize=13)
-
-    
 
     # Remove axis lines and ticks
     plt.axis('equal')
@@ -301,8 +291,6 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     
     index_gap = max(1, seq_len // (num_index_labels-2))
     for index in range(index_gap, seq_len - 1, index_gap):
-        if index == 96 or index == 360 or index == 368 or index==280:
-            continue
         plt.text(index, indices_height, str(index + 1), ha='center', va='center', fontsize=13, color='black',)
 
     # Draw segments for pairs

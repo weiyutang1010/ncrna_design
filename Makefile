@@ -1,8 +1,8 @@
 ################################
 # Makefile
 #
-# author: He Zhang
-# edited by: 03/2019
+# author: Wei Yu (based on He Zhang's code)
+# edited by: 08/2024
 ################################
 
 CC=g++
@@ -16,6 +16,7 @@ main: src/main.cpp $(DEPS)
 		mkdir -p bin
 		$(CC) src/main.cpp $(CFLAGS) -Dlpv -DSPECIAL_HP -o bin/main
 
+# for testing purposes
 test: src/main.cpp $(DEPS) 
 		chmod +x main
 		mkdir -p bin

@@ -1,6 +1,0 @@
-Seq length:  93
-Seq stats length:  93
-Best p(y|x) solution:  GGCCUAUGGCCA 0.9838273715507729
-Best NED solution:  GGCCUAUGGCCA 0.00273884497610922
-MFE solution:  GGCCCUUGGCCG
-UMFE solution:  GGCCCUUGGCCG
