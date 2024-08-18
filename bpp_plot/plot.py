@@ -513,21 +513,20 @@ if __name__ == '__main__':
         diff, mfe_struct = get_mfe(seq, struct)
         mfe_pairs = get_pairs(mfe_struct)
 
-        # paired prob (w/ incorrect)
-        for idx, x in enumerate(bpp):
-            i, j, pair_prob = x
-            if (i, j) in mfe_pairs:
-                mult = 1
-                if (i, j) not in pairs:
-                    mult = -1
+        # print paired prob (w/ incorrect)
+        # for idx, x in enumerate(bpp):
+        #     i, j, pair_prob = x
+        #     if (i, j) in mfe_pairs:
+        #         mult = 1
+        #         if (i, j) not in pairs:
+        #             mult = -1
                 
-            print(i+1, j+1, pair_prob)
-        print()
+        #     print(i+1, j+1, pair_prob)
+        # print()
 
-        # pos defect
-        for idx, x in enumerate(pos_defect):
-            print(idx+1, x)
-        # exit(0)
+        # print pos defect
+        # for idx, x in enumerate(pos_defect):
+        #     print(idx+1, x)
         
         # circular plot
         if args.circular:
@@ -537,9 +536,9 @@ if __name__ == '__main__':
         if args.linear:
             draw_rna_linear(bpp, len(seq), pairs, args.folder, puzzle_id)
 
-            if args.mfe:
-                mfe_pairs = get_pairs(mfe_struct)
-                draw_rna_linear(bpp, len(seq), pairs, args.folder, puzzle_id, is_mfe=True, mfe_pairs=mfe_pairs)
+            # if args.mfe:
+            #     mfe_pairs = get_pairs(mfe_struct)
+            #     draw_rna_linear(bpp, len(seq), pairs, args.folder, puzzle_id, is_mfe=True, mfe_pairs=mfe_pairs)
 
         # positional defects
         if args.positional:

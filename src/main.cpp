@@ -523,7 +523,8 @@ void GradientDescent::print_mode() {
          << ", beta1: " << beta_1 << ", beta2: " << beta_2 << "\n";
     
     cout << "initial lr: " << initial_lr
-         << ", lr decay: " << lr_decay << ", lr decay rate: " << lr_decay_rate << "\n";
+         << ", lr decay: " << lr_decay << ", lr decay rate: " << lr_decay_rate
+         << ", adaptive lr decay: " << adaptive_lr << ", k_ma_lr: " << k_ma_lr << "\n";
 
     cout << "max number of steps: " << num_steps
          << ", adaptive step: " << adaptive_step << ", k moving avg: " << k_ma << "\n";
@@ -535,7 +536,8 @@ void GradientDescent::print_mode() {
     
     cout << "mismatch: " << mismatch << ", trimismatch: " << trimismatch << "\n";
 
-    cout << "seed: " << seed << ", verbose: " << is_verbose << ", num threads: " << num_threads << "\n";
+    cout << "seed: " << seed << ", verbose: " << is_verbose 
+         << ", num threads: " << num_threads << ", boxplot: " << boxplot << "\n";
 
     cout << endl;
 }
