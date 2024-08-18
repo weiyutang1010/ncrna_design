@@ -63,7 +63,8 @@ GradientDescent::GradientDescent(string rna_struct,
                                 bool trimismatch,
                                 int seed,
                                 bool verbose,
-                                int num_threads)
+                                int num_threads,
+                                bool boxplot)
     : rna_struct(rna_struct),
       objective(objective),
       init(init),
@@ -91,7 +92,8 @@ GradientDescent::GradientDescent(string rna_struct,
     //   kmers(kmers),
       seed(seed),
       is_verbose(verbose),
-      num_threads(num_threads) {
+      num_threads(num_threads),
+      boxplot(boxplot) {
 
     // setting random seed
     this->gen.seed(seed);
@@ -669,7 +671,6 @@ void GradientDescent::gradient_descent() {
             return a.obj < b.obj;
         });
 
-        bool boxplot = false; // TODO: turn into an argument
         if (boxplot) {
             cout << "Boxplot: " << std::scientific << std::setprecision(3);
             for (const Sample& sample: samples) {
@@ -821,6 +822,7 @@ int main(int argc, char** argv){
     bool verbose = false;
     int seed = 42;
     int num_threads = 0;
+    bool boxplot = false;
     // bool kmers = false;
 
     if (argc > 1) {
@@ -859,6 +861,7 @@ int main(int argc, char** argv){
         seed = atoi(argv[25]);
         verbose = atoi(argv[26]) == 1;
         num_threads = atoi(argv[27]);
+        boxplot = atoi(argv[28]) == 1;
         // kmers = atoi(argv[24]) == 1;
     }
 
@@ -876,7 +879,7 @@ int main(int argc, char** argv){
 
                 try {
                     // implement eval mode for evaluating: p(y* | x), ned(x, y*), d(mfe(x), y*)
-                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads);
+                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     
                     string mfe_struct = parser.get_mfe_struct(rna_seq);
                     double prob = parser.boltzmann_prob(rna_seq, rna_struct);
@@ -903,7 +906,7 @@ int main(int argc, char** argv){
             // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads);
+                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;

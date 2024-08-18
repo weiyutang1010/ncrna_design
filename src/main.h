@@ -188,7 +188,7 @@ public:
     bool trimismatch;
 
     int seed, num_threads;
-    bool is_verbose;
+    bool is_verbose, boxplot;
 
     // bool kmers;
 
@@ -236,7 +236,8 @@ public:
                     bool trimismatch,
                     int seed,
                     bool verbose,
-                    int num_threads);
+                    int num_threads,
+                    bool boxplot);
 
     void print_mode(); // print settings
     void print_dist(string label, map<vector<int>, vector<double>>& dist); // print distribution or gradient

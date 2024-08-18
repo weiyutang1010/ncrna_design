@@ -53,7 +53,8 @@ def setgflags():
     flags.DEFINE_boolean('verbose', False, "print out distribution and gradient at each step")
     flags.DEFINE_integer('seed', 42, "random seed")
     flags.DEFINE_integer('num_threads', 0, "number of threads used in openmp (0 for default)")
-    
+    flags.DEFINE_boolean('boxplot', False, "print out the objective of all samples")
+
     # flags.DEFINE_boolean('kmers', False, "kmers analysis")
     flags.DEFINE_boolean('test', False, "test mode")
 
@@ -95,6 +96,7 @@ def main():
     verbose = '1' if FLAGS.verbose else '0'
     seed = str(FLAGS.seed)
     num_threads = str(FLAGS.num_threads)
+    boxplot = '1' if FLAGS.boxplot else '0'
 
     # kmers = '1' if FLAGS.kmers else '0'
     exe_file = 'bin/main_test' if FLAGS.test else 'bin/main'
@@ -102,7 +104,7 @@ def main():
     # TODO: error handling
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, verbose, seed, num_threads]
+    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, verbose, seed, num_threads, boxplot]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':
