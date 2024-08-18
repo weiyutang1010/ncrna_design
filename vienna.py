@@ -100,7 +100,7 @@ def structural_dist(seq, ss):
             stk.append(j)
         elif c == ')':
             i = stk.pop()
-            
+
             if mp[j] == i:
                 dist -= 2
         else:
@@ -113,20 +113,24 @@ def energy(seq, ss):
     fc = RNA.fold_compound(seq)
     return fc.eval_structure(ss)
 
-def e_diff(seq, ss, ss_mfe):
+def e_diff(seq, ss, ss_mfe=""):
+    if ss_mfe == "":
+        ss_mfe = mfe(seq)[0]
     return abs(energy(seq, ss_mfe) - energy(seq, ss))
 
 if __name__ == '__main__':
     # with open('input.txt', 'r') as f:
     #     lines = f.read().split('\n')
     #     n = len(lines)
-        
+
     # seqs    = lines[:n//2]
     # structs = lines[n//2:]
 
-    seq =    "AAAAGCGAAAGCGAAAGGAAAAGGAAUGGAGCAAAGCGACAGAAACCGAAAAGCCGAAAAAAGCGAAAAAAAAGCAAAAAAAAAAAAC"
-    # seq = "GGGCAAAGCCCGGCACUGGAAACAGAGGCAAGGGACCCGAAAGGGGAGCGCCCAAAGGGCAACGGGAAACCCGGCUCCGGGAAACCGUCCCAAGAGAGGCGAAAGCGCGCCGCCCUAAGGGCAAGGUCAAAGACCGGCGCUGGAAACACUCUCAACCUCCUGGAAACACUGCCGCCCAAAGGGCUACGGCAAAGCCGGGCAGGCGAAAGCGGAGGAACCGGCGCGAAAGCGGGCCGCGGAAUCCGCAACUCCAAAGGAGGGCCCAGGAAACUGCCGGAAGGAGCCCGAAAGGGAGGCGCCCCAAGGGCAAGGGCAAAGCCCGCCUCGGGAAACCGCUCCAAGCCUCGCGAAAGCGUGCCCCGGAAACCGG"
-    struct = "....((....((....((....((..((..((...))..))....))......)).......)).........))............."
+    seq =    "AACAGCAAGGGCCAAAAGGCGCACAAAAGCGCCGGCCCGGGGAAAGGCCGAAAAGGCCCCCCGCCAAGGCAAACGCCGGCACCCAAACCGGAAAGCCCUAAAAUGGGCCCGGGGCAAGCCAAAAAGGCGCCGGACCGAAAGGCCACCCCAAAACGGAAGCCGAAAAAGGCCCGGGACCGAAAAGGCCGCCGAAAGGCACCUGCAAAAAGGACCGAAGAAGGCCGCCGAAAAGGCGCGAAAGCAGCCCGCAAAAAAGGCAAAAACGCCGCGAAAAGCAAAGGGCCCCUAUGGGGCCCAAAUAAAGCGGGCAAAACAGCAGGAAAAAGGGGAAAAGGGAAAGCGAGGAACGUGACGGCAAAACCAAAAGGGCGAAAGCGGGCCCAAAGGGCCCAGCCGCAGG"
+    struct = "..(.((..(((((....(((((......))))))))))((((...((((.....))))))))(((..(((....)))))).(((...((((...((((......))))))))(((..(((.....))))))((.((....)))).((((....(((..(((......))))))((.((.....))))(((....))).(((((.....((.((......))))(((.....)))((....)).((((((......(((......)))((.....))...(((((((...))))))).......))))))......))))).....))))....)))...))..)...(.((.((((....((....))((....))((((((...)))))).)))))).)"
+
+    # seq = "AAAAAUAAGAAUACAAAGUGGAAGACUAACCCACCCAAAGCACGAUUGUGCAGCUACAACACCCGGCACAAGAACACAGACUUUGGACAUGGACUGAGGCGCCGGACUGUCGGCGAACCGCUCCGCGGACGCACACAGCAUGGCCACUUAGCAUAUGUCUGUAUUCUGAAGGCUUGAAGAGGGAAGGGUGGCAGGGAAGCGCACCCGCGGAAGCCACGAGGGCAGAAGGCUGCGAGGGCCCGAGGGUCUCGGGCCAGGAUGGACGCAGGGUAGAGAACUACCCACGCGCAUAUCACGGCCACAGGCUACCGGGUCCAGAAGGCCCCGAGCCCAGAAGGCACUAGCGGGACCGGAUAACCGGAAAGCGAGGGGAAGGAUACGACGAAGCAAGCAAUAAAAG"
+    # struct = "(....)..(....(...(..(.(..(...(((.(((...((((....)))).(((((..(.(((..(.((((..(.((((..(.((((((((.((((((.(((((.((((.((((..((((...)))).))).)))))).))))).)))))).)))))))..).))))..).))))..).)))..).))))).)))...(((.(((((.(..(((.(..((((.(..((((.(..(((((((.((((((.(((((.((((((.(((.((((((....))))))..)))).)))).))))).)))))).)))))))).)..)))).)..)))).)..))).)..))))).((((....))))...))).)))...)..).)..)...)....)..(....)"
 
     seqs = [seq]
     structs = [struct]

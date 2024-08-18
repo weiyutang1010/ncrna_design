@@ -42,10 +42,11 @@ void GradientDescent::resample() {
         for(const vector<int>& pos: base_pairs_pos) {
             const vector<double>& probs = dist[pos];
             int idx = selectRandomIndex(probs);
-            string nucij = idx_to_pairs[idx];
+            string nucij = idx_to_pairs[{idx, pos.size()}];
 
-            seq[pos[0]] = nucij[0];
-            seq[pos[1]] = nucij[1];
+            for (int x = 0; x < pos.size(); x++) {
+                seq[pos[x]] = nucij[x];
+            }
 
             sample_prob *= probs[idx];
         }
@@ -118,6 +119,7 @@ double GradientDescent::calculate_variance() {
 Objective GradientDescent::sampling_approx(int step) {
     resample();
 
+
     // Approximate mean objective value
     double obj_val = 0.;
     for (const Sample& sample: samples) {
@@ -143,7 +145,10 @@ Objective GradientDescent::sampling_approx(int step) {
             }
 
             for (const vector<int>& pos: base_pairs_pos) {
-                string nucij {samples[k].seq[pos[0]], samples[k].seq[pos[1]]};
+                string nucij = "";
+                for (const int& x: pos) {
+                    nucij += samples[k].seq[x];
+                }
                 gradient[pos][pairs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][pairs_to_idx[nucij]]);
             }
         }
@@ -157,3 +162,110 @@ Objective GradientDescent::sampling_approx(int step) {
 
     return {obj_val, gradient};
 }
+
+
+// for paper figures
+
+// if (step == 0) {
+    //     if (samples.size() < sample_size){
+    //         samples.resize(sample_size);
+    //     }
+
+    //     // vector<string> p1 {"CG","GC", "CG", "AU", "UA", "UA", "AU", "GU", "UG", "UG"};
+    //     // vector<string> p2 {"CG","GC", "AU", "AU", "GC", "UA", "GU", "GU", "UG", "UG"};
+    //     // vector<string> p3 {"CG","GC", "AU", "GC", "UA", "UA", "GU", "GU", "UG", "UG"};
+    //     // vector<string> up {"A", "A", "C", "C", "C", "G", "G", "U", "U", "U"};
+        
+    //     // vector<int> x (16, 0);
+    //     // for (int i = 0; i < 16; i++) {
+    //     //     x[i] = i;
+    //     // }
+
+    //     // auto rd = std::random_device {}; 
+    //     // auto rng = std::default_random_engine { rd() };
+    //     // std::shuffle(std::begin(x), std::end(x), rng);
+
+    //     // vector<string> m;
+    //     // for (int i = 0; i < 10; i++) {
+    //     //     m.push_back(idx_to_nucs[{x[i], 2}]);
+    //     // }
+
+    //     // std::shuffle(std::begin(p1), std::end(p1), rng);
+    //     // std::shuffle(std::begin(p2), std::end(p2), rng);
+    //     // std::shuffle(std::begin(p3), std::end(p3), rng);
+    //     // std::shuffle(std::begin(up), std::end(up), rng);
+
+    //     vector<string> seqs {
+    //         "UAUAAUGUG",
+    //         "CUGCGCUGG",
+    //         "GGGAAACUC",
+    //         "GUGUUGUGU",
+    //         "AGCUCUGCU",
+    //         "UAAGUAUUA",
+    //         "UUUCGUAAG",
+    //         "CGGUUACCG",
+    //         "UCUCCGAGA",
+    //         "AGUACGGUU",
+    //     };
+
+
+    //     for (int i = 0; i < 10; i++) {
+    //         // vector<char> charList = {p1[i][0], p2[i][0], p3[i][0], m[i][0], up[i][0], m[i][1], p3[i][1], p2[i][1], p1[i][1]};
+    //         // string seq (charList.begin(), charList.end());
+    //         string seq = seqs[i];
+
+    //         double log_Q = linear_partition(seq); // log Q(x)
+    //         long deltaG = eval(seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
+    //         double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
+    //         double sample_prob = 1. / (6. * 6. * 6 * 16 * 4);
+    //         samples[i] = {seq, log_Q, deltaG, log_boltz_prob, exp(log_boltz_prob), sample_prob, -log_boltz_prob};
+    //     }
+    // } else if (step == 1) {
+    //     vector<string> p1 {"GC","GC", "GC", "CG", "CG", "UA", "UA", "AU", "GU", "UG"};
+    //     vector<string> p2 {"CG","CG", "GC", "CG", "AU", "UA", "UA", "GU", "GU", "UG"};
+    //     vector<string> p3 {"GC","GC", "CG", "CG", "CG", "AU", "AU", "UA", "GU", "UG"};
+    //     vector<string> up {"A", "A", "A", "G", "G", "G", "C", "C", "U", "U"};
+    //     vector<int> x {0, 1, 3, 5, 6, 9, 10, 11, 12, 14};
+
+    //     auto rd = std::random_device {}; 
+    //     auto rng = std::default_random_engine { rd() };
+    //     std::shuffle(std::begin(x), std::end(x), rng);
+
+    //     vector<string> m;
+    //     for (int i = 0; i < 10; i++) {
+    //         m.push_back(idx_to_nucs[{x[i], 2}]);
+    //     }
+
+    //     std::shuffle(std::begin(p1), std::end(p1), rng);
+    //     std::shuffle(std::begin(p2), std::end(p2), rng);
+    //     std::shuffle(std::begin(p3), std::end(p3), rng);
+    //     std::shuffle(std::begin(up), std::end(up), rng);
+
+    //     // vector<string> seqs {
+    //     //     "UAUAAUGUG",
+    //     //     "CUGCGCUGG",
+    //     //     "GGGAAACUC",
+    //     //     "GUGUUGUGU",
+    //     //     "AGCUCUGCU",
+    //     //     "UAAGUAUUA",
+    //     //     "UUUCGUAAG",
+    //     //     "CGGUUACCG",
+    //     //     "UCUCCGAGA",
+    //     //     "AGUACGGUU",
+    //     // };
+
+
+    //     for (int i = 0; i < 10; i++) {
+    //         vector<char> charList = {p1[i][0], p2[i][0], p3[i][0], m[i][0], up[i][0], m[i][1], p3[i][1], p2[i][1], p1[i][1]};
+    //         string seq (charList.begin(), charList.end());
+    //         // string seq = seqs[i];
+
+    //         double log_Q = linear_partition(seq); // log Q(x)
+    //         long deltaG = eval(seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
+    //         double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
+    //         double sample_prob = 1. / (6. * 6. * 6 * 16 * 4);
+    //         samples[i] = {seq, log_Q, deltaG, log_boltz_prob, exp(log_boltz_prob), sample_prob, -log_boltz_prob};
+    //     }
+    // } else {
+        // resample();
+    // }

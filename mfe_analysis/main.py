@@ -95,32 +95,32 @@ for idx, p_id in enumerate(puzzle_ids):
     best_ned = 10
     best_pyx = -1
     for seq in nemo:
-        pyx = prob(seq, puzzle)
-        ned = ensemble_defect(seq, puzzle)
+        # pyx = prob(seq, puzzle)
+        # ned = ensemble_defect(seq, puzzle)
 
-        if pyx > best_pyx:
-            nemo_pyx_seq[idx] = seq
+        # if pyx > best_pyx:
+        #     nemo_pyx_seq[idx] = seq
 
-        if ned < best_ned:
-            nemo_ned_seq[idx] = seq
-
-
-        # _, is_mfe, is_umfe = eval_seq(seq, puzzle)
-
-        # if is_mfe:
-        #     nemo_mfe[idx] = True
-
-        # if is_umfe:
-        #     nemo_umfe[idx] = True
+        # if ned < best_ned:
+        #     nemo_ned_seq[idx] = seq
 
 
-for x in nemo_pyx_seq:
-    print(x)
-print()
-for x in nemo_ned_seq:
-    print(x)
+        _, is_mfe, is_umfe = eval_seq(seq, puzzle)
 
-exit(0)
+        if is_mfe:
+            nemo_mfe[idx] = True
+
+        if is_umfe:
+            nemo_umfe[idx] = True
+
+
+# for x in nemo_pyx_seq:
+#     print(x)
+# print()
+# for x in nemo_ned_seq:
+#     print(x)
+
+# exit(0)
 
 with open('samfeo_mfe.txt', 'r') as f:
     lines = f.read().split('\n')

@@ -148,7 +148,7 @@ while IFS= read -r line; do
     # echo "${puzzles[1]}" | ./main --test --obj comp > results/sampling_comp_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
 
     # structural dist objective function
-    echo "${puzzles[1]}" | ./main --test --obj dist -b 100 > results/sampling_dist_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
+    # echo "${puzzles[1]}" | ./main --test --obj dist -b 100 > results/sampling_dist_targeted_sm_eps_075_softmax_adam/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --test --obj dist --init uniform_sm -b 100 > results/sampling_dist_uniform_sm_softmax_adam/${puzzles[0]}.txt &
 
     # long sequence design
@@ -157,5 +157,19 @@ while IFS= read -r line; do
     # rfam27
     # echo "${puzzles[1]}" | ./main > results/sampling_pyx_targeted_sm_eps_075_softmax_adam_rfam27/${puzzles[0]}.txt &
     # echo "${puzzles[1]}" | ./main --init uniform_sm > results/sampling_pyx_uniform_sm_softmax_adam_rfam27/${puzzles[0]}.txt &
+
+    # two pairs stacking
+    # echo "${puzzles[1]}" | ./main > results/sampling_pyx_targeted_sm_eps_075_softmax_adam_two_pairs/${puzzles[0]}.txt &
+    
+    # mismatch
+    # echo "${puzzles[1]}" | ./main --init uniform_sm > results/mismatch/${puzzles[0]}.txt &
+
+    # samples
+    # echo "Puzzle: ${puzzles[0]}"
+    # echo "${puzzles[1]}" | ./main --test --init uniform_sm --step 100  -k 10 --projection --verbose > ./results/samples_2/${puzzles[0]}.txt
+
+    # time run
+    echo "${puzzles[1]}" | ./main --test --step ${puzzles[2]} > results/sampling_time/${puzzles[0]}.txt
+
 done < "data/eterna/$1.txt"
 

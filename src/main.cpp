@@ -94,13 +94,19 @@ GradientDescent::GradientDescent(string rna_struct,
     this->gen.seed(seed);
 
     // set random eps value
-    if (eps < 0. || eps >= 1.) {
+    if (eps < 0. || eps > 1.) {
+        std::uniform_real_distribution<> dis(0, 1);
+        this->eps = dis(gen);
+    }
+
+    if (softmax && eps == 1.) { // use eps = 1 will cause log(0) issue during initialization
         std::uniform_real_distribution<> dis(0, 1);
         this->eps = dis(gen);
     }
 
     // initialize idx_to_nucs map
     idx_to_nucs_init();
+    idx_to_pairs_init();
 
     lr = initial_lr;
     beta = {beta_1, beta_2};
@@ -234,8 +240,8 @@ string GradientDescent::get_integral_solution() {
         auto maxIterator = std::max_element(probs.begin(), probs.end());
 
         int nucij = std::distance(probs.begin(), maxIterator);
-        seq[pos[0]] = idx_to_pairs[nucij][0];
-        seq[pos[1]] = idx_to_pairs[nucij][1];
+        for (int x = 0; x < pos.size(); x++)
+            seq[pos[x]] = idx_to_pairs[{nucij, pos.size()}][x%2];
     }
 
     return seq;
@@ -243,7 +249,7 @@ string GradientDescent::get_integral_solution() {
 
 void GradientDescent::initialize_sm() {
     stack<pair<int, int>> stk;
-    tuple<int, int> inner_loop;
+    tuple<int, int> inner_loop {-1, -1};
     unordered_set<int> idx; 
 
     // add coupled positions: base pairs and terminal mismatch
@@ -256,22 +262,13 @@ void GradientDescent::initialize_sm() {
         } else if (rna_struct[j] == ')') {
             tuple<int, int> top = stk.top();
             int i = get<0>(top), page = get<1>(top);
+            int p = get<0>(inner_loop), q = get<1>(inner_loop);
             stk.pop();
 
             if (page == 0) {
                 unpaired_pos.push_back({i+1, j-1});
                 idx.insert(i+1); idx.insert(j-1);
             } else if (page == 1) {
-                int p = get<0>(inner_loop), q = get<1>(inner_loop);
-
-                // 2 pair stacking condition
-                bool two_pair_stacking = p - i - 1 == 0 &&
-                                         j - q - 1 == 0 &&
-                                         rna_struct[p+1] == '.' &&
-                                         rna_struct[q-1] == '.' &&
-                                         (i - 1 < 0 || rna_struct[i-1] == '.') &&
-                                         (j + 1 >= rna_struct.size() || rna_struct[j+1] == '.');
-
                 // i ... p ... q ... j
                 if (p - i - 1 == 1 && j - q - 1 == 1) {
                     // 1x1 internal loops
@@ -293,10 +290,27 @@ void GradientDescent::initialize_sm() {
                     idx.insert(p-1); idx.insert(q+1);
                 }
             }
+            
             //update inner_loop
             inner_loop = make_tuple(i, j);
 
-            base_pairs_pos.push_back({i, j});
+            // 2 pair stacking condition
+            bool two_pair_stacking = false; // TODO: turn this into an argument
+            bool two_pair_cond = two_pair_stacking &&
+                                p - i - 1 == 0 &&
+                                j - q - 1 == 0 &&
+                                rna_struct[p+1] == '.' &&
+                                rna_struct[q-1] == '.' &&
+                                (i - 1 < 0 || rna_struct[i-1] == '.') &&
+                                (j + 1 >= rna_struct.size() || rna_struct[j+1] == '.');
+
+            if (two_pair_cond) {
+                int last_index = base_pairs_pos.size() - 1;
+                base_pairs_pos[last_index].push_back(i);
+                base_pairs_pos[last_index].push_back(j);
+            } else {
+                base_pairs_pos.push_back({i, j});
+            }
             idx.insert(i); idx.insert(j);
         }
     }
@@ -320,10 +334,11 @@ void GradientDescent::initialize_sm() {
         }
 
         for (const vector<int>& pos: base_pairs_pos) {
+            int num = pow(6, pos.size() / 2);
             if (softmax) {
-                logits[pos] = vector<double> (6, 0.);
+                logits[pos] = vector<double> (num, 0.);
             } else {
-                dist[pos] = vector<double> (6, 1. / 6.);
+                dist[pos] = vector<double> (num, 1. / double(num));
             }
         }
     } else if (initialization == "targeted_sm") {
@@ -335,8 +350,8 @@ void GradientDescent::initialize_sm() {
                     logits[pos] = vector<double> (num, log((0. * eps) + (.25 * (1 - eps))));
                     logits[pos][nucs_to_idx["A"]] = log((1. * eps) + (.25 * (1 - eps)));
                 } else {
-                    dist[pos] = vector<double> (num, 0.);
-                    dist[pos][nucs_to_idx["A"]] = 1.;
+                    dist[pos] = vector<double> (num, (0. * eps) + (.25 * (1 - eps)));
+                    dist[pos][nucs_to_idx["A"]] = (1. * eps) + (.25 * (1 - eps));
                 }
             } else {
                 // coupled mismatch
@@ -349,47 +364,63 @@ void GradientDescent::initialize_sm() {
         }
 
         for (const vector<int>& pos: base_pairs_pos) {
+            int num = pow(6, pos.size() / 2);
             if (softmax) {
-                logits[pos] = vector<double> (6, log((0. * eps) + (1./6. * (1 - eps))));
+                logits[pos] = vector<double> (num, log((0. * eps) + (1./double(num) * (1 - eps))));
 
-                logits[pos][pairs_to_idx["CG"]] = log((.5 * eps) + (1./6. * (1. - eps)));
-                logits[pos][pairs_to_idx["GC"]] = log((.5 * eps) + (1./6. * (1. - eps)));
+                if (num == 6) {
+                    logits[pos][pairs_to_idx["CG"]] = log((.5 * eps) + (1./double(num) * (1. - eps)));
+                    logits[pos][pairs_to_idx["GC"]] = log((.5 * eps) + (1./double(num) * (1. - eps)));
+                } else if (num == 36) {
+                    logits[pos][pairs_to_idx["CGCG"]] = log((.25 * eps) + (1./double(num) * (1. - eps)));
+                    logits[pos][pairs_to_idx["CGGC"]] = log((.25 * eps) + (1./double(num) * (1. - eps)));
+                    logits[pos][pairs_to_idx["GCCG"]] = log((.25 * eps) + (1./double(num) * (1. - eps)));
+                    logits[pos][pairs_to_idx["GCGC"]] = log((.25 * eps) + (1./double(num) * (1. - eps)));
+                }
             } else {
-                dist[pos] = vector<double> (6, 0.);
-                dist[pos][pairs_to_idx["CG"]] = .5;
-                dist[pos][pairs_to_idx["GC"]] = .5;
+                dist[pos] = vector<double> (num, (0. * eps) + (1./double(num) * (1 - eps)));
+
+                if (num == 6) {
+                    dist[pos][pairs_to_idx["CG"]] = (.5 * eps) + (1./double(num) * (1. - eps));
+                    dist[pos][pairs_to_idx["GC"]] = (.5 * eps) + (1./double(num) * (1. - eps));
+                } else if (num == 36) {
+                    dist[pos][pairs_to_idx["CGCG"]] = (.25 * eps) + (1./double(num) * (1. - eps));
+                    dist[pos][pairs_to_idx["CGGC"]] = (.25 * eps) + (1./double(num) * (1. - eps));
+                    dist[pos][pairs_to_idx["GCCG"]] = (.25 * eps) + (1./double(num) * (1. - eps));
+                    dist[pos][pairs_to_idx["GCGC"]] = (.25 * eps) + (1./double(num) * (1. - eps));
+                }
             }
         }
     } else if (initialization == "random_sm") {
-        // TODO: add softmax
-        std::uniform_real_distribution<> dis(0, 1);
+        // TODO: update for softmax and two pair stacking
+        // std::uniform_real_distribution<> dis(0, 1);
 
-        for (const vector<int>& pos: unpaired_pos) {
-            int num = pow(4, pos.size());
-            vector<double> rand {0.0, 1.0};
+        // for (const vector<int>& pos: unpaired_pos) {
+        //     int num = pow(4, pos.size());
+        //     vector<double> rand {0.0, 1.0};
 
-            for (int k = 0; k < num - 1; k++)
-                rand.push_back(dis(gen));
+        //     for (int k = 0; k < num - 1; k++)
+        //         rand.push_back(dis(gen));
 
-            sort(rand.begin(), rand.end());
+        //     sort(rand.begin(), rand.end());
             
-            for (int k = 1; k < rand.size(); k++) {
-                dist[pos].push_back(rand[k] - rand[k-1]);
-            }
-        }
+        //     for (int k = 1; k < rand.size(); k++) {
+        //         dist[pos].push_back(rand[k] - rand[k-1]);
+        //     }
+        // }
 
-        for (const vector<int>& pos: base_pairs_pos) {
-            vector<double> rand {0.0, 1.0};
+        // for (const vector<int>& pos: base_pairs_pos) {
+        //     vector<double> rand {0.0, 1.0};
 
-            for (int k = 0; k < 5; k++)
-                rand.push_back(dis(gen));
+        //     for (int k = 0; k < 5; k++)
+        //         rand.push_back(dis(gen));
 
-            sort(rand.begin(), rand.end());
+        //     sort(rand.begin(), rand.end());
             
-            for (int k = 1; k < rand.size(); k++) {
-                dist[pos].push_back(rand[k] - rand[k-1]);
-            }
-        }
+        //     for (int k = 1; k < rand.size(); k++) {
+        //         dist[pos].push_back(rand[k] - rand[k-1]);
+        //     }
+        // }
     } else {
         throw std::runtime_error("Initialization not implemented yet!");
     }
@@ -417,7 +448,7 @@ void GradientDescent::initialize() {
         }
     }
 
-    // TODO: add softmax modes
+    // TODO: add softmax modes and two pair stacking
     if (initialization == "uniform") {
         for (const vector<int>& pos: unpaired_pos) {
             dist[pos] = vector<double> (4, 0.25);
@@ -508,11 +539,14 @@ void GradientDescent::print_dist(string label, map<vector<int>, vector<double>>&
     for (const vector<int>& pos: base_pairs_pos) {
         auto& probs = dist[pos];
 
-        cout << "(" << pos[0] << ", " << pos[1] << ")";
+        cout << "(";
+        for (int i = 0; i < pos.size(); i++)
+            cout << pos[i] << (i == pos.size() - 1 ? "" : ", ");
+        cout << ")";
         cout << ": " << fixed << setprecision(dc);
 
         for (int i = 0; i < probs.size(); i++) {
-            cout << idx_to_pairs[i] << " " 
+            cout << idx_to_pairs[{i, pos.size()}] << " " 
                  << probs[i] << (i == probs.size() - 1 ? "" : ", ");
         }
         cout << "\n";
@@ -654,6 +688,7 @@ void GradientDescent::gradient_descent() {
 
     print_mode();
     initialize();
+
     if (nesterov) old_dist = dist;
 
     if (softmax) {
@@ -671,10 +706,10 @@ void GradientDescent::gradient_descent() {
     pair<double, int> last_best_seq = {-1.0, -1};
     pair<double, int> last_best_avg = {1000000, -1}, last_best_avg_lr = {1000000, -1};
 
-    bool adaptive_step = false;
-    if (num_steps == -1) {
-        adaptive_step = true;
-    }
+    bool adaptive_step = false; // TODO: turn this into a parameter
+    // if (num_steps == -1) {
+    //     adaptive_step = true;
+    // }
 
     for (int step = 0; step < num_steps || adaptive_step; step++) {
         gettimeofday(&parse_starttime, NULL);
@@ -719,20 +754,23 @@ void GradientDescent::gradient_descent() {
         gettimeofday(&parse_endtime, NULL);
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
         cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", integral seq: " << integral_seq << ", integral obj: " << integral_obj << ", learning rate: " << lr << ", time: " << parse_elapsed_time << "\n";
-        
+
         // print out best k samples and stats
         sort(samples.begin(), samples.end(), [&](const Sample& a, const Sample& b) {
             return a.obj < b.obj;
         });
 
-        cout << "Boxplot: " << std::scientific << std::setprecision(3);
-        for (const Sample& sample: samples) {
-            if (objective == "prob")
-                cout << sample.boltz_prob << " ";
-            else
-                cout << sample.obj << " ";
+        bool boxplot = false; // TODO: turn into an argument
+        if (boxplot) {
+            cout << "Boxplot: " << std::scientific << std::setprecision(3);
+            for (const Sample& sample: samples) {
+                if (objective == "prob")
+                    cout << sample.boltz_prob << " ";
+                else
+                    cout << sample.obj << " ";
+            }
+            cout << "\n" << defaultfloat;
         }
-        cout << "\n" << defaultfloat;
 
         // print best k unique sample
         cout << "best samples" << "\n";

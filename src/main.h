@@ -103,14 +103,18 @@ struct Objective {
     }
 };
 
-unordered_map<string, int> pairs_to_idx {{"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}};
+// unordered_map<string, int> pairs_to_idx {{"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}};
+// array<string, 6> idx_to_pairs {"CG", "GC", "GU", "UG", "AU", "UA"};
+
+unordered_map<string, int> pairs_to_idx;
+unordered_map<pair<int, int>, string, hash_pair> idx_to_pairs;
+
 unordered_map<string, int> nucs_to_idx;
-array<string, 6> idx_to_pairs {"CG", "GC", "GU", "UG", "AU", "UA"};
 unordered_map<pair<int, int>, string, hash_pair> idx_to_nucs;
 
 void idx_to_nucs_init() {
     string nucs = "ACGU";
-    for (int size = 0; size <= 3; size++) {    
+    for (int size = 1; size <= 3; size++) {    
         for (int i = 0; i < pow(4, size); i++) {
             int x = i;
             string res = "";
@@ -127,6 +131,25 @@ void idx_to_nucs_init() {
     }
 }
 
+void idx_to_pairs_init() {
+    vector<string> basepairs {"CG", "GC", "GU", "UG", "AU", "UA"};
+
+    for (int size = 1; size <= 2; size++) {    
+        for (int i = 0; i < pow(6, size); i++) {
+            int x = i;
+            string res = "";
+
+            for (int j = 0; j < size; j++) {
+                res += basepairs[x % 6];
+                x /= 6;
+            }
+            
+            reverse(res.begin(), res.end());
+            idx_to_pairs[{i, size * 2}] = res;
+            pairs_to_idx[res] = i;
+        }
+    }
+}
 
 class GradientDescent {
 public:

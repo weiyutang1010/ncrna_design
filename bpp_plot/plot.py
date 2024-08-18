@@ -284,14 +284,11 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     plt.figure(figsize=(figwidth, figheight))
 
     # Correctly place labels for 5' and 3' ends
-    label_dist_x, label_dist_y = seq_len * 0.015, seq_len * 0
+    label_dist_x, label_dist_y = seq_len * 0.025, 0
     plt.text(0 - label_dist_x, label_dist_y, "5'", ha='left', va='center', fontsize=13)
     plt.text(seq_len-1 + label_dist_x, label_dist_y, "3'", ha='center', va='center', fontsize=13)
 
-    # Draw axis
-    x = np.linspace(0, seq_len-1, seq_len)
-    y = np.zeros(seq_len)
-    plt.plot(x, y, color='black')
+    
 
     # Remove axis lines and ticks
     plt.axis('equal')
@@ -304,9 +301,7 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     
     index_gap = max(1, seq_len // (num_index_labels-2))
     for index in range(index_gap, seq_len - 1, index_gap):
-        if index == 368 or index == 360:
-            continue
-        if index == 280:
+        if index == 96 or index == 360 or index == 368 or index==280:
             continue
         plt.text(index, indices_height, str(index + 1), ha='center', va='center', fontsize=13, color='black',)
 
@@ -321,8 +316,14 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
             continue
 
         # Draw the arc
+
+        # color
+        round_prob = math.ceil(pair_prob * 10) / 10
+        # colors = {-1.0: "#FF0000", -0.9: "#FF1A1A", -0.8 : "#FF3333", -0.7: "#FF4D4D", -0.6: "#FF6666", -0.5: "#FF8080", -0.4: "#FF9999", -0.3: "#FFB3B3", -0.2: "#FFCCCC", -0.1: "#FFE6E6", 0.0: "#FFA000", 0.1: "#CCCCFF", 0.2: "#B3B3FF", 0.3: "#9999FF", 0.4: "#8080FF", 0.5: "#6666FF", 0.6: "#4D4DFF", 0.7: "#3333FF", 0.8: "#1A1AFF", 0.9: "#0000FF"}
+
+
         color = 'blue' if pair_matched else 'red'
-        alpha = 1 if not pair_prob else pair_prob
+        # alpha = 1 if not pair_prob else pair_prob
 
         # equation for ellipses
         # ref: https://en.wikipedia.org/wiki/Ellipse
@@ -337,10 +338,20 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
         if not pair_matched:
             y *= -1
 
-        plt.plot(x, y, color=color, alpha=alpha)
+        # plt.plot(x, y, color=color, alpha=alpha)
+        # if round_prob == 0.0:
+        #     if pair_prob < 0.01:
+        #         color = "#FFA000"
+        #     else:
+        #         color = "#E6E6FF"
+        alpha = round_prob
+        if pair_matched and pair_prob < 0.1:
+            alpha = 1.0
+            color = "#FFAA00"
+        plt.plot(x, y, alpha=alpha, color=color)
 
-        if pair_matched and pair_prob < .1:
-            plt.plot(x, y, color="darkorange", alpha=.8)
+        # if pair_matched and pair_prob >= 0. and pair_prob < .1:
+        #     plt.plot(x, y, color="darkorange", alpha=.8)
 
     
     for pair in pairs:
@@ -354,7 +365,12 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
             x = np.linspace(start_index, end_index, max(400, seq_len * 4))
             y = np.sqrt((1. - ((x - center[0]) ** 2 / (width * width))) * (height * height)) + center[1]
 
-            plt.plot(x, y, color="darkorange", alpha=.8)
+            plt.plot(x, y, color="#FFA000")
+
+    # Draw axis
+    x = np.linspace(0, seq_len-1, seq_len)
+    y = np.zeros(seq_len)
+    plt.plot(x, y, color='black')
 
     # print title
     # title_height = seq_len * .25
@@ -363,6 +379,7 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
     # save to file
     mfe = "_mfe" if is_mfe else ""
     save_format = ".pdf"
+    # save_format = ".png"
     save_path = f"./plots/{folder}/linear_plots/{puzzle_id}{mfe}{save_format}"
     plt.savefig(save_path, bbox_inches='tight')
     print(f"Linear plot saved to {save_path}", file=sys.stderr)
@@ -500,17 +517,6 @@ if __name__ == '__main__':
         print(f"Puzzle {puzzle_id} start", file=sys.stderr)
 
         bpp, pos_defect = position_defect(seq, struct)
-
-        # unpaired probability (w/ incorrect)
-        # for idx, x in enumerate(bpp):
-        #     mult = 1
-        #     if struct[idx] != '.':
-        #         mult = -1
-            
-        #     print(idx + 1, mult * bpp[idx, idx])
-        # # exit(0)
-        # print()
-
         # bpp = [(i, j, pair_prob), ...]
         bpp = format_bpp(bpp)
         # pairs = [(i, j), ...]
@@ -527,13 +533,13 @@ if __name__ == '__main__':
                 if (i, j) not in pairs:
                     mult = -1
                 
-                print(i+1, j+1, pair_prob * mult)
+            print(i+1, j+1, pair_prob)
         print()
 
         # pos defect
         for idx, x in enumerate(pos_defect):
             print(idx+1, x)
-        exit(0)
+        # exit(0)
         
         # circular plot
         if args.circular:

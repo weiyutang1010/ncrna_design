@@ -1,6 +1,8 @@
-Seq length:  11
-Seq stats length:  11
-Best p(y|x) solution:  GGCCCGAAAAAGGGCC 0.975944476818876
-Best NED solution:  GGCCCGAAAAAGGGCC 0.0030305277109666778
-MFE solution:  GCCGCGAAAAAGCGGC
-UMFE solution:  GCCGCGAAAAAGCGGC
+Total steps:  665
+Number of unique sequence:  11
+Best p(y|x) solution:  GGCCCGAAAAAGGGCC 0.975944476818876 0
+Best NED solution:  GGCCCGAAAAAGGGCC 0.0030305277109666778 0
+MFE solution:  10 GCCGCGAAAAAGCGGC
+UMFE solution:  10 GCCGCGAAAAAGCGGC
+Best d(MFE(x), y) solution:  GCCGCGAAAAAGCGGC 0 148
+Best free energy diff solution:  GCCGCGAAAAAGCGGC 0.0 148

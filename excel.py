@@ -39,11 +39,11 @@ def main():
                 best_pyx_seq, best_pyx, best_pyx_step = r_lines[2].split(': ')[1].split(' ')[1], float(r_lines[2].split(': ')[1].split(' ')[2]), int(r_lines[2].split(': ')[1].split(' ')[3]) 
                 best_ned_seq, best_ned, best_ned_step = r_lines[3].split(': ')[1].split(' ')[1], float(r_lines[3].split(': ')[1].split(' ')[2]), int(r_lines[3].split(': ')[1].split(' ')[3]) 
                 
-                # best_dist_seq, best_dist, best_dist_step = r_lines[6].split(': ')[1].split(' ')[1], float(r_lines[6].split(': ')[1].split(' ')[2]), int(r_lines[6].split(': ')[1].split(' ')[3]) 
-                # best_ediff_seq, best_ediff, best_ediff_step = r_lines[7].split(': ')[1].split(' ')[1], float(r_lines[7].split(': ')[1].split(' ')[2]), int(r_lines[7].split(': ')[1].split(' ')[3]) 
+                best_dist_seq, best_dist, best_dist_step = r_lines[6].split(': ')[1].split(' ')[1], float(r_lines[6].split(': ')[1].split(' ')[2]), int(r_lines[6].split(': ')[1].split(' ')[3]) 
+                best_ediff_seq, best_ediff, best_ediff_step = r_lines[7].split(': ')[1].split(' ')[1], float(r_lines[7].split(': ')[1].split(' ')[2]), int(r_lines[7].split(': ')[1].split(' ')[3]) 
 
-                best_dist_seq, best_dist, best_dist_step = 0, 0, 0
-                best_ediff_seq, best_ediff, best_ediff_step = 0, 0, 0
+                # best_dist_seq, best_dist, best_dist_step = 0, 0, 0
+                # best_ediff_seq, best_ediff, best_ediff_step = 0, 0, 0
 
 
                 mfe_seq = ""
@@ -64,7 +64,7 @@ def main():
                     if umfe_seq == '0':
                         umfe_seq = ''
 
-                results[rna_id].append((best_pyx, best_pyx_seq, best_pyx_step, best_ned, best_ned_seq, best_ned_step, mfe_seq, umfe_seq, file_path, total_steps, best_dist, best_dist_seq, best_ediff, best_ediff_seq))
+                results[rna_id].append((best_pyx, best_pyx_seq, best_ned, best_ned_seq, mfe_seq, umfe_seq, file_path, total_steps, best_dist, best_dist_seq, best_ediff, best_ediff_seq))
 
     total_steps = []
     steps = []
@@ -81,23 +81,28 @@ def main():
         if len(results[rna_id]) == 0:
             continue
 
-        # result = max(results[rna_id], key=lambda x: x[0]) # for p(y | x)
-        result = min(results[rna_id], key=lambda x: x[3]) # for ned
 
+        result = max(results[rna_id], key=lambda x: x[0]) # for p(y | x)
         pyx = result[0]
         pyx_seq = result[1]
-        pyx_step = result[2]
-        ned = result[3]
-        ned_seq = result[4]
-        ned_step = result[5]
-        mfe_seq = result[6]
-        umfe_seq = result[7]
-        file_path = result[8]
-        total_step = result[9]
-        dist = result[10]
-        dist_seq = result[11]
-        ediff = result[12]
-        ediff_seq = result[13]
+
+        result = min(results[rna_id], key=lambda x: x[2]) # for ned
+        ned = result[2]
+        ned_seq = result[3]
+
+        result = max(results[rna_id], key=lambda x: x[0]) # for p(y | x)
+        mfe_seq = result[4]
+        umfe_seq = result[5]
+        file_path = result[6]
+        total_step = result[7]
+        
+        result = min(results[rna_id], key=lambda x: x[8])
+        dist = result[8]
+        dist_seq = result[9]
+        
+        result = min(results[rna_id], key=lambda x: x[10])
+        ediff = result[10]
+        ediff_seq = result[11]
 
         print(f"{int(rna_id)}", end=",")
         print(f"", end=",")
@@ -105,17 +110,17 @@ def main():
 
         # print(f"{pyx_step}", end=",")
         # print(f"{total_step}", end=",")
-        print(f"{pyx:.3f}", end=",")
+        print(f"{pyx:.5e}", end=",")
         print(f"{pyx_seq}", end=",")
         # print(f"{ned_step}", end=",")
-        print(f"{ned:.3f}", end=",")
+        print(f"{ned:.5f}", end=",")
         print(f"{ned_seq}", end=",")
 
-        # print(f"{dist}", end=",")
-        # print(f"{dist_seq}", end=",")
+        print(f"{dist}", end=",")
+        print(f"{dist_seq}", end=",")
 
-        # print(f"{ediff}", end=",")
-        # print(f"{ediff_seq}", end=",")
+        print(f"{ediff:.2f}", end=",")
+        print(f"{ediff_seq}", end=",")
 
         if mfe_seq != "":
             print("is_mfe", end="")
@@ -132,10 +137,11 @@ def main():
             if "050" in file_path:
                 print("targeted (eps=0.5)")
             elif "075" in file_path:
-                if "lr_decay" in file_path:
-                    print("targeted (eps=0.75+lr_decay)")
-                else:
-                    print("targeted (eps=0.75)")
+                # if "lr_decay" in file_path:
+                #     print("targeted (eps=0.75+lr_decay)")
+                # else:
+                #     print("targeted (eps=0.75)")
+                print("targeted (eps=0.75)")
             else:
                 print("targeted")
         elif "uniform" in file_path:
@@ -144,7 +150,6 @@ def main():
             print("random")
         
         total_steps.append(total_step)
-        steps.append(pyx_step)
         avg_pyx.append(pyx)
         avg_ned.append(ned)
         avg_dist.append(dist)
