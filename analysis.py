@@ -318,8 +318,8 @@ def process_result_file(rna_id, result_file, args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--y", type=str, default="")
-    parser.add_argument("--folder", type=str, default="temp")
-    parser.add_argument("--file", type=str, default="0.txt")
+    parser.add_argument("--folder", type=str)
+    parser.add_argument("--file", type=str)
     parser.add_argument("--max_workers", type=int, default=None)
     parser.add_argument("--no_eval_seq", action="store_true", default=False, help='draw graph only')
     parser.add_argument("--no_graph", action="store_true", default=False, help='eval seqs only')

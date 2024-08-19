@@ -15,20 +15,18 @@ def setgflags():
     flags.DEFINE_string('initializations', "targeted", "initializations: uniform / targeted", short_name='init')
     flags.DEFINE_float('eps', 0.75, "eps * uniform + (1 - eps) * targeted")
 
-    # TODO: default lr for softmax should be 0.01
-    # TODO: make softmax adam default mode
     # TODO: adam should require softmax
     # parameterization
     flags.DEFINE_boolean('projection', False, "use projection instead of softmax parameterization")
-    flags.DEFINE_boolean('nesterov', False, "use nesterov's accelerated gradient descent")
     flags.DEFINE_boolean('no_adam', False, "turn off adam optimizer")
+    flags.DEFINE_boolean('nesterov', False, "use nesterov's accelerated gradient descent")
     flags.DEFINE_float('beta_1', 0.9, "Adam's first moment decay rate", short_name='b1')
     flags.DEFINE_float('beta_2', 0.999, "Adam's second moment decay rate", short_name='b2')
     
     # learning rate
     flags.DEFINE_float('initial_lr', 0.01, "set learning rate", short_name='lr')
     flags.DEFINE_boolean('lr_decay', False, "use learning rate decay")
-    flags.DEFINE_float('lr_decay_rate', 0.99, "decay rate")
+    flags.DEFINE_float('lr_decay_rate', 0.96, "decay rate")
     flags.DEFINE_boolean('adaptive_lr', False, "use adaptive learning rate decay")
     flags.DEFINE_integer('k_ma_lr', 10, "parameter for adaptive lr decay")
     
