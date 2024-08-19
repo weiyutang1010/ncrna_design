@@ -103,14 +103,22 @@ struct Objective {
     }
 };
 
-unordered_map<string, int> pairs_to_idx {{"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}};
+// unordered_map<string, int> pairs_to_idx {{"CG", 0}, {"GC", 1}, {"GU", 2}, {"UG", 3}, {"AU", 4}, {"UA", 5}};
+// array<string, 6> idx_to_pairs {"CG", "GC", "GU", "UG", "AU", "UA"};
+
+unordered_map<string, int> pairs_to_idx;
+unordered_map<pair<int, int>, string, hash_pair> idx_to_pairs;
+
 unordered_map<string, int> nucs_to_idx;
-array<string, 6> idx_to_pairs {"CG", "GC", "GU", "UG", "AU", "UA"};
 unordered_map<pair<int, int>, string, hash_pair> idx_to_nucs;
 
 void idx_to_nucs_init() {
+    // initialize a list of index to nucs and nucs to index e.g. 
+    // {"AAA": 1, "AAC": 2, ...} and
+    // {(0, 2): "AA", (1, 2): "AC", ..., (0, 3): "AAA", (1, 3): "AAC", ...}
+
     string nucs = "ACGU";
-    for (int size = 0; size <= 3; size++) {    
+    for (int size = 1; size <= 3; size++) {    
         for (int i = 0; i < pow(4, size); i++) {
             int x = i;
             string res = "";
@@ -127,46 +135,70 @@ void idx_to_nucs_init() {
     }
 }
 
+void idx_to_pairs_init() {
+    // initialize a list of index to pairs and pairs to index e.g. 
+    // {"CG": 1, "GC": 2, ...} and
+    // {(0, 1): "CG", (1, 1): "GC", ..., (0, 2): "CGCG", (1, 2): "CGGC", ...}
+
+    vector<string> basepairs {"CG", "GC", "GU", "UG", "AU", "UA"};
+
+    for (int size = 1; size <= 2; size++) {    
+        for (int i = 0; i < pow(6, size); i++) {
+            int x = i;
+            string res = "";
+
+            for (int j = 0; j < size; j++) {
+                res += basepairs[x % 6];
+                x /= 6;
+            }
+            
+            reverse(res.begin(), res.end());
+            idx_to_pairs[{i, size * 2}] = res;
+            pairs_to_idx[res] = i;
+        }
+    }
+}
 
 class GradientDescent {
 public:
     string rna_struct;
     string objective;
     
-    string initialization;
+    string init;
     double eps;
-    string init_seq;
 
     bool softmax, adam, nesterov;
     float beta_1, beta_2;
 
     double initial_lr, lr, lr_decay_rate;
-    bool lr_decay, staircase;
-    int lr_decay_step;
+    bool lr_decay, adaptive_lr;
+    int k_ma_lr;
 
-    int num_steps;
-    bool is_verbose;
+    int num_steps, k_ma;
+    bool adaptive_step;
 
     int beamsize;
     bool nosharpturn;
+    bool is_lazy;
 
     // for sampling method
-    int sample_size, resample_iter;
-    int best_k = 1;
+    int sample_size, best_k = 1;
 
-    // for initialization modes
-    int seed;
-
-    bool kmers;
-    bool is_lazy;
+    bool mismatch;
     bool trimismatch;
 
-    map<vector<int>, vector<double>> old_dist; // used in nesterov
+    int seed, num_threads;
+    bool is_verbose, boxplot;
+
+    // bool kmers;
+
+    map<vector<int>, vector<double>> old_dist; // used in nesterov, save previous distribution
     map<vector<int>, vector<double>> dist;
 
     map<vector<int>, vector<double>> logits;
 
-    vector<vector<int>> base_pairs_pos;
+    // 
+    vector<vector<int>> base_pairs_pos; // [i, j] for paired position, [i1, j1, i2, j2] for 2 pair stacking
     vector<vector<int>> unpaired_pos; // [i] for unpaired, [i, j] and [i, j, k] for coupled terminal mismatches
 
     // Adam optimizer
@@ -180,9 +212,8 @@ public:
     
     GradientDescent(string rna_struct,
                     string objective,
-                    string initialization,
+                    string init,
                     double eps,
-                    string init_seq,
                     bool softmax,
                     bool adam,
                     bool nesterov,
@@ -191,66 +222,77 @@ public:
                     double initial_lr,
                     bool lr_decay,
                     double lr_decay_rate,
-                    bool staircase,
-                    int lr_decay_step,
+                    bool adaptive_lr,
+                    int k_ma_lr,
                     int num_steps,
-                    bool verbose,
+                    bool adaptive_step,
+                    int k_ma,
                     int beamsize,
                     bool nosharpturn,
-                    int sample_size,
-                    int resample_iter,
-                    int best_k,
-                    int seed,
-                    bool kmers,
                     bool is_lazy,
-                    bool trimismatch);
+                    int sample_size,
+                    int best_k,
+                    bool mismatch,
+                    bool trimismatch,
+                    int seed,
+                    bool verbose,
+                    int num_threads,
+                    bool boxplot);
 
-    void print_mode(); // print settings [lr, num_steps, ...]
+    void print_mode(); // print settings
     void print_dist(string label, map<vector<int>, vector<double>>& dist); // print distribution or gradient
-    void initialize();
-    void initialize_sm();
+
+    // initiailization
+    void initialize_dist();
+    void initialize_dist_no_mismatch();
+
     void gradient_descent();
     string get_integral_solution();
     
-    Objective objective_function(int step);
+    // sampling
     Objective sampling_approx(int step);
 
+    // softmax conversion
     void softmax_func(const vector<vector<int>>& positions);
-    void logits_to_dist();
-    Objective logits_grad(const Objective& grad);
+    void logits_to_dist(); // convert logits to distribution
+    Objective logits_grad(const Objective& grad); // compute softmax logits
 
-    // Objective Functions
-    double linear_partition(string& rna_seq);
-    double boltzmann_prob(string& rna_seq, string& rna_struct);
-    double normalized_ensemble_defect(string& rna_seq, string& rna_struct);
-    double energy_diff(string& rna_seq, string& rna_struct);
-    double composite(string& rna_seq, string& rna_struct);
-    int structural_dist(const string& struct_1, const string& struct_2);
-    int structural_dist_mfe(string& seq, const string& rna_struct);
-    double base_pair_dist(string& y, string& y_star);
-    vector<string> get_mfe_structs();
-    string get_mfe_struct(string& rna_seq);
+    // objective functions
+    Objective objective_function(int step);
+    double linear_partition(string& rna_seq); // Q(x)
+    double boltzmann_prob(string& rna_seq, string& rna_struct); // p(y* | x)
+    double log_boltzmann_prob(string& rna_seq, string& rna_struct); // log p(y* | x)
+    double normalized_ensemble_defect(string& rna_seq, string& rna_struct); // ned(x, y*)
+    double energy_diff(string& rna_seq, string& rna_struct); // Delta Delta G(x, y*)
+    int structural_dist(const string& struct_1, const string& struct_2); // d(y, y')
+    int structural_dist_mfe(string& seq, const string& rna_struct); // d(MFE(x), y*)
+    double base_pair_dist(string& y, string& y_star); // BPD(y, y') used in nemo
+    string get_mfe_struct(string& rna_seq); // MFE(x)
+    // vector<string> get_mfe_structs(); // MFE(x) set but uses LinearFold
 
 private:
     void get_parentheses(char* result, string& seq);
 
-    double inside_partition(vector<array<double, 4>>& dist);
-    double free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose);
-    void outside_partition(vector<array<double, 4>>& dist);
 
     unsigned seq_length;
 
+    // update step
     void update(Objective& obj);
     void adam_update(Objective& obj, int step);
     void nesterov_update();
     void projection();
 
-    vector<vector<vector<int>>> bulge_score;
-    vector<vector<int>> stacking_score;
+    // // weiyu: used in dp version of ncrna design
+    // double inside_partition(vector<array<double, 4>>& dist);
+    // double free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose);
+    // void outside_partition(vector<array<double, 4>>& dist);
 
-    vector<int> if_tetraloops;
-    vector<int> if_hexaloops;
-    vector<int> if_triloops;
+    // vector<vector<vector<int>>> bulge_score;
+    // vector<vector<int>> stacking_score;
+
+    // vector<int> if_tetraloops;
+    // vector<int> if_hexaloops;
+    // vector<int> if_triloops;
 
     int *nucs;
 
@@ -258,30 +300,26 @@ private:
     std::mt19937 gen;
     int selectRandomIndex(const std::vector<double>& weights);
 
-    // sampling
+    // sampling (TODO)
     struct Sample {
         string seq;
-        double log_Q;
-        long deltaG;
-        double log_boltz_prob;
-        double boltz_prob;
-        double sample_prob;
+        double sample_prob; // p(x; \theta)
         double obj;
+        double boltz_prob;
     };
 
     void resample();
 
     vector<Sample> samples;
     priority_queue<pair<double, string>> best_samples;
-
-    // for analysis
-    double calculate_mean();
-    double calculate_variance();
-
-    void kmers_analysis(const vector<Sample>& samples);
-    vector<unordered_map<string, int>> freq_cnt;
-    vector<long long> kmers_count;
     unordered_map<string, Sample> samples_cache;
+
+    // // for analysis
+    // double calculate_mean();
+    // double calculate_variance();
+    // void kmers_analysis(const vector<Sample>& samples);
+    // vector<unordered_map<string, int>> freq_cnt;
+    // vector<long long> kmers_count;
 };
 
 #endif //FASTCKY_BEAMCKYPAR_H

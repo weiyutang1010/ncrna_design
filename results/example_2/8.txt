@@ -1,0 +1,6029 @@
+((((...)))).
+objective: prob, initializaiton: targeted, eps: 1
+parameterization: projection, adam: 1, nesterov: 0, beta1: 0.9, beta2: 0.999
+initial lr: 0.01, lr decay: 1, lr decay rate: 0.5
+max number of steps: 1000, adaptive step: 0, k moving avg: 50
+beamsize: 250, sharpturn: 0, LazyOutside: 0
+sample size: 2500, best k samples listed: 1
+mismatch: 1, trimismatch: 1
+seed: 0, verbose: 0, num threads: 0
+
+Initial Distribution
+(4, 6): AA 0.0625, AC 0.0625, AG 0.0625, AU 0.0625, CA 0.0625, CC 0.0625, CG 0.0625, CU 0.0625, GA 0.0625, GC 0.0625, GG 0.0625, GU 0.0625, UA 0.0625, UC 0.0625, UG 0.0625, UU 0.0625
+5: A 1.0000, C 0.0000, G 0.0000, U 0.0000
+11: A 1.0000, C 0.0000, G 0.0000, U 0.0000
+(3, 7): GC 0.5000, CG 0.5000, UG 0.0000, GU 0.0000, UA 0.0000, AU 0.0000
+(2, 8): GC 0.5000, CG 0.5000, UG 0.0000, GU 0.0000, UA 0.0000, AU 0.0000
+(1, 9): GC 0.5000, CG 0.5000, UG 0.0000, GU 0.0000, UA 0.0000, AU 0.0000
+(0, 10): GC 0.5000, CG 0.5000, UG 0.0000, GU 0.0000, UA 0.0000, AU 0.0000
+
+step: 0, objective value: 0.0826, E[p(y|x)] approx: 0.9231, learning rate: 0.01, time: 0.01867
+integral solution: GGGGAAACCCCA 0.9037
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 1, objective value: 0.08412, E[p(y|x)] approx: 0.9228, learning rate: 0.01, time: 0.009652
+integral solution: GGGCCAAGCCCA 0.9837
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 2, objective value: 0.08439, E[p(y|x)] approx: 0.9222, learning rate: 0.01, time: 0.009134
+integral solution: GGGCUAGGCCCA 0.9837
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 3, objective value: 0.08373, E[p(y|x)] approx: 0.9222, learning rate: 0.01, time: 0.008891
+integral solution: GGGCCAGGCCCA 0.9837
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 4, objective value: 0.08626, E[p(y|x)] approx: 0.9212, learning rate: 0.01, time: 0.009861
+integral solution: GGGCCAGGCCCA 0.9837
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 5, objective value: 0.08382, E[p(y|x)] approx: 0.922, learning rate: 0.01, time: 0.008275
+integral solution: GGGCCAGGCCCA 0.9837
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 6, objective value: 0.08361, E[p(y|x)] approx: 0.9228, learning rate: 0.01, time: 0.007938
+integral solution: GGGCCAGGCCCA 0.9837
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 7, objective value: 0.08617, E[p(y|x)] approx: 0.921, learning rate: 0.01, time: 0.007551
+integral solution: GGGCCAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 8, objective value: 0.08276, E[p(y|x)] approx: 0.9232, learning rate: 0.01, time: 0.007156
+integral solution: GGGCCAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 9, objective value: 0.08532, E[p(y|x)] approx: 0.9209, learning rate: 0.01, time: 0.006983
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 10, objective value: 0.08815, E[p(y|x)] approx: 0.9186, learning rate: 0.01, time: 0.006899
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 11, objective value: 0.08644, E[p(y|x)] approx: 0.9212, learning rate: 0.005, time: 0.008542
+integral solution: GGGCCAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 12, objective value: 0.08158, E[p(y|x)] approx: 0.9244, learning rate: 0.005, time: 0.006984
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 13, objective value: 0.08329, E[p(y|x)] approx: 0.9228, learning rate: 0.005, time: 0.008064
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 14, objective value: 0.08384, E[p(y|x)] approx: 0.9223, learning rate: 0.005, time: 0.008006
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 15, objective value: 0.08439, E[p(y|x)] approx: 0.9217, learning rate: 0.005, time: 0.0069
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 16, objective value: 0.08304, E[p(y|x)] approx: 0.9229, learning rate: 0.005, time: 0.007748
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 17, objective value: 0.08191, E[p(y|x)] approx: 0.9241, learning rate: 0.005, time: 0.007201
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 18, objective value: 0.08322, E[p(y|x)] approx: 0.9228, learning rate: 0.005, time: 0.007115
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 19, objective value: 0.08419, E[p(y|x)] approx: 0.9217, learning rate: 0.005, time: 0.007134
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 20, objective value: 0.08083, E[p(y|x)] approx: 0.9247, learning rate: 0.005, time: 0.007319
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 21, objective value: 0.08979, E[p(y|x)] approx: 0.9178, learning rate: 0.005, time: 0.007123
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 22, objective value: 0.08318, E[p(y|x)] approx: 0.9227, learning rate: 0.005, time: 0.007131
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 23, objective value: 0.08678, E[p(y|x)] approx: 0.9208, learning rate: 0.005, time: 0.00693
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 24, objective value: 0.08445, E[p(y|x)] approx: 0.9217, learning rate: 0.005, time: 0.006801
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 25, objective value: 0.08521, E[p(y|x)] approx: 0.922, learning rate: 0.005, time: 0.007109
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 26, objective value: 0.08444, E[p(y|x)] approx: 0.9217, learning rate: 0.005, time: 0.006817
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 27, objective value: 0.08213, E[p(y|x)] approx: 0.924, learning rate: 0.005, time: 0.006746
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 28, objective value: 0.08108, E[p(y|x)] approx: 0.9244, learning rate: 0.005, time: 0.007703
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 29, objective value: 0.08357, E[p(y|x)] approx: 0.9224, learning rate: 0.005, time: 0.007051
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 30, objective value: 0.08071, E[p(y|x)] approx: 0.9249, learning rate: 0.005, time: 0.006913
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 31, objective value: 0.08853, E[p(y|x)] approx: 0.9205, learning rate: 0.0025, time: 0.006736
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 32, objective value: 0.08329, E[p(y|x)] approx: 0.9227, learning rate: 0.0025, time: 0.007099
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 33, objective value: 0.08402, E[p(y|x)] approx: 0.9232, learning rate: 0.0025, time: 0.007411
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 34, objective value: 0.08109, E[p(y|x)] approx: 0.9248, learning rate: 0.0025, time: 0.007117
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 35, objective value: 0.08216, E[p(y|x)] approx: 0.924, learning rate: 0.0025, time: 0.00678
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 36, objective value: 0.08303, E[p(y|x)] approx: 0.9229, learning rate: 0.0025, time: 0.00684
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 37, objective value: 0.08339, E[p(y|x)] approx: 0.9224, learning rate: 0.0025, time: 0.007299
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 38, objective value: 0.08209, E[p(y|x)] approx: 0.9238, learning rate: 0.0025, time: 0.006836
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 39, objective value: 0.08306, E[p(y|x)] approx: 0.9234, learning rate: 0.0025, time: 0.006763
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 40, objective value: 0.0835, E[p(y|x)] approx: 0.9227, learning rate: 0.0025, time: 0.007549
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 41, objective value: 0.08118, E[p(y|x)] approx: 0.9243, learning rate: 0.0025, time: 0.007017
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 42, objective value: 0.07981, E[p(y|x)] approx: 0.9258, learning rate: 0.0025, time: 0.007009
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 43, objective value: 0.08006, E[p(y|x)] approx: 0.9255, learning rate: 0.0025, time: 0.007253
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 44, objective value: 0.0814, E[p(y|x)] approx: 0.9243, learning rate: 0.0025, time: 0.007145
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 45, objective value: 0.08265, E[p(y|x)] approx: 0.9233, learning rate: 0.0025, time: 0.007619
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 46, objective value: 0.07947, E[p(y|x)] approx: 0.9259, learning rate: 0.0025, time: 0.007003
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 47, objective value: 0.08489, E[p(y|x)] approx: 0.9215, learning rate: 0.0025, time: 0.007014
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 48, objective value: 0.08503, E[p(y|x)] approx: 0.9215, learning rate: 0.0025, time: 0.007199
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 49, objective value: 0.08003, E[p(y|x)] approx: 0.9255, learning rate: 0.0025, time: 0.006766
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 50, objective value: 0.08225, E[p(y|x)] approx: 0.9236, learning rate: 0.0025, time: 0.007066
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 51, objective value: 0.08316, E[p(y|x)] approx: 0.9229, learning rate: 0.0025, time: 0.006948
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 52, objective value: 0.0808, E[p(y|x)] approx: 0.9246, learning rate: 0.0025, time: 0.007069
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 53, objective value: 0.08166, E[p(y|x)] approx: 0.9245, learning rate: 0.0025, time: 0.007463
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 54, objective value: 0.08301, E[p(y|x)] approx: 0.9234, learning rate: 0.0025, time: 0.006857
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 55, objective value: 0.08344, E[p(y|x)] approx: 0.9225, learning rate: 0.0025, time: 0.006732
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 56, objective value: 0.08217, E[p(y|x)] approx: 0.9236, learning rate: 0.0025, time: 0.007521
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 57, objective value: 0.08075, E[p(y|x)] approx: 0.9251, learning rate: 0.00125, time: 0.006801
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 58, objective value: 0.08205, E[p(y|x)] approx: 0.9236, learning rate: 0.00125, time: 0.007359
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 59, objective value: 0.07988, E[p(y|x)] approx: 0.9256, learning rate: 0.00125, time: 0.006841
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 60, objective value: 0.08202, E[p(y|x)] approx: 0.9237, learning rate: 0.00125, time: 0.007697
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 61, objective value: 0.08423, E[p(y|x)] approx: 0.9219, learning rate: 0.00125, time: 0.007037
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 62, objective value: 0.08354, E[p(y|x)] approx: 0.923, learning rate: 0.00125, time: 0.007162
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 63, objective value: 0.0793, E[p(y|x)] approx: 0.9263, learning rate: 0.00125, time: 0.006822
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 64, objective value: 0.08241, E[p(y|x)] approx: 0.9234, learning rate: 0.00125, time: 0.006731
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 65, objective value: 0.08176, E[p(y|x)] approx: 0.9242, learning rate: 0.00125, time: 0.007614
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 66, objective value: 0.07733, E[p(y|x)] approx: 0.9278, learning rate: 0.00125, time: 0.006862
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 67, objective value: 0.08113, E[p(y|x)] approx: 0.9245, learning rate: 0.00125, time: 0.006961
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 68, objective value: 0.0829, E[p(y|x)] approx: 0.9233, learning rate: 0.00125, time: 0.00691
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 69, objective value: 0.08131, E[p(y|x)] approx: 0.9243, learning rate: 0.00125, time: 0.00677
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 70, objective value: 0.08237, E[p(y|x)] approx: 0.9236, learning rate: 0.00125, time: 0.007303
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 71, objective value: 0.07957, E[p(y|x)] approx: 0.9258, learning rate: 0.00125, time: 0.007576
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 72, objective value: 0.08197, E[p(y|x)] approx: 0.9239, learning rate: 0.00125, time: 0.006569
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 73, objective value: 0.08105, E[p(y|x)] approx: 0.9245, learning rate: 0.00125, time: 0.007376
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 74, objective value: 0.08203, E[p(y|x)] approx: 0.9238, learning rate: 0.00125, time: 0.006997
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 75, objective value: 0.0811, E[p(y|x)] approx: 0.9247, learning rate: 0.00125, time: 0.006946
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 76, objective value: 0.08067, E[p(y|x)] approx: 0.9251, learning rate: 0.00125, time: 0.006846
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 77, objective value: 0.08086, E[p(y|x)] approx: 0.9248, learning rate: 0.00125, time: 0.006881
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 78, objective value: 0.08075, E[p(y|x)] approx: 0.9249, learning rate: 0.00125, time: 0.006723
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 79, objective value: 0.08168, E[p(y|x)] approx: 0.9241, learning rate: 0.00125, time: 0.006861
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 80, objective value: 0.0829, E[p(y|x)] approx: 0.9231, learning rate: 0.00125, time: 0.006985
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 81, objective value: 0.08069, E[p(y|x)] approx: 0.9251, learning rate: 0.00125, time: 0.00711
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 82, objective value: 0.08108, E[p(y|x)] approx: 0.925, learning rate: 0.00125, time: 0.006864
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 83, objective value: 0.08009, E[p(y|x)] approx: 0.9254, learning rate: 0.000625, time: 0.006951
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 84, objective value: 0.07768, E[p(y|x)] approx: 0.9273, learning rate: 0.000625, time: 0.00692
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 85, objective value: 0.08159, E[p(y|x)] approx: 0.9241, learning rate: 0.000625, time: 0.007075
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 86, objective value: 0.08089, E[p(y|x)] approx: 0.9247, learning rate: 0.000625, time: 0.006643
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 87, objective value: 0.08086, E[p(y|x)] approx: 0.9247, learning rate: 0.000625, time: 0.006972
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 88, objective value: 0.08073, E[p(y|x)] approx: 0.9249, learning rate: 0.000625, time: 0.006968
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 89, objective value: 0.08046, E[p(y|x)] approx: 0.9252, learning rate: 0.000625, time: 0.006733
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 90, objective value: 0.07995, E[p(y|x)] approx: 0.9254, learning rate: 0.000625, time: 0.006684
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 91, objective value: 0.07908, E[p(y|x)] approx: 0.9263, learning rate: 0.000625, time: 0.007527
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 92, objective value: 0.08081, E[p(y|x)] approx: 0.9247, learning rate: 0.000625, time: 0.006776
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 93, objective value: 0.07941, E[p(y|x)] approx: 0.9261, learning rate: 0.000625, time: 0.006923
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 94, objective value: 0.08121, E[p(y|x)] approx: 0.9244, learning rate: 0.000625, time: 0.007781
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 95, objective value: 0.07772, E[p(y|x)] approx: 0.9274, learning rate: 0.000625, time: 0.006744
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 96, objective value: 0.07854, E[p(y|x)] approx: 0.9266, learning rate: 0.000625, time: 0.007404
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 97, objective value: 0.08089, E[p(y|x)] approx: 0.9251, learning rate: 0.000625, time: 0.006808
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 98, objective value: 0.08291, E[p(y|x)] approx: 0.9233, learning rate: 0.000625, time: 0.006999
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 99, objective value: 0.07949, E[p(y|x)] approx: 0.9258, learning rate: 0.000625, time: 0.007258
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 100, objective value: 0.08154, E[p(y|x)] approx: 0.9244, learning rate: 0.000625, time: 0.006847
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 101, objective value: 0.08204, E[p(y|x)] approx: 0.9238, learning rate: 0.000625, time: 0.00693
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 102, objective value: 0.08085, E[p(y|x)] approx: 0.9249, learning rate: 0.000625, time: 0.006591
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 103, objective value: 0.08096, E[p(y|x)] approx: 0.9246, learning rate: 0.000625, time: 0.00676
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 104, objective value: 0.0823, E[p(y|x)] approx: 0.9233, learning rate: 0.000625, time: 0.006964
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 105, objective value: 0.08131, E[p(y|x)] approx: 0.9244, learning rate: 0.000625, time: 0.006911
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 106, objective value: 0.08403, E[p(y|x)] approx: 0.9222, learning rate: 0.000625, time: 0.007034
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 107, objective value: 0.08406, E[p(y|x)] approx: 0.9219, learning rate: 0.0003125, time: 0.006924
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 108, objective value: 0.08168, E[p(y|x)] approx: 0.9239, learning rate: 0.0003125, time: 0.007496
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 109, objective value: 0.07994, E[p(y|x)] approx: 0.9257, learning rate: 0.0003125, time: 0.007287
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 110, objective value: 0.07877, E[p(y|x)] approx: 0.9267, learning rate: 0.0003125, time: 0.006847
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 111, objective value: 0.08001, E[p(y|x)] approx: 0.9253, learning rate: 0.0003125, time: 0.007458
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 112, objective value: 0.07942, E[p(y|x)] approx: 0.926, learning rate: 0.0003125, time: 0.007083
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 113, objective value: 0.08121, E[p(y|x)] approx: 0.9244, learning rate: 0.0003125, time: 0.00699
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 114, objective value: 0.07915, E[p(y|x)] approx: 0.926, learning rate: 0.0003125, time: 0.007284
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 115, objective value: 0.08092, E[p(y|x)] approx: 0.9246, learning rate: 0.0003125, time: 0.006429
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 116, objective value: 0.07929, E[p(y|x)] approx: 0.9261, learning rate: 0.0003125, time: 0.008489
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 117, objective value: 0.08062, E[p(y|x)] approx: 0.925, learning rate: 0.0003125, time: 0.006909
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 118, objective value: 0.07951, E[p(y|x)] approx: 0.9259, learning rate: 0.0003125, time: 0.006579
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 119, objective value: 0.08181, E[p(y|x)] approx: 0.9239, learning rate: 0.0003125, time: 0.006807
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 120, objective value: 0.08251, E[p(y|x)] approx: 0.9237, learning rate: 0.0003125, time: 0.006713
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 121, objective value: 0.08112, E[p(y|x)] approx: 0.9244, learning rate: 0.0003125, time: 0.006408
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 122, objective value: 0.08125, E[p(y|x)] approx: 0.9244, learning rate: 0.0003125, time: 0.006934
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 123, objective value: 0.08122, E[p(y|x)] approx: 0.9244, learning rate: 0.0003125, time: 0.00688
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 124, objective value: 0.07973, E[p(y|x)] approx: 0.9256, learning rate: 0.0003125, time: 0.007024
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 125, objective value: 0.07913, E[p(y|x)] approx: 0.9261, learning rate: 0.0003125, time: 0.007719
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 126, objective value: 0.08108, E[p(y|x)] approx: 0.9247, learning rate: 0.0003125, time: 0.007098
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 127, objective value: 0.08103, E[p(y|x)] approx: 0.9247, learning rate: 0.0003125, time: 0.006814
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 128, objective value: 0.07992, E[p(y|x)] approx: 0.9253, learning rate: 0.0003125, time: 0.00715
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 129, objective value: 0.07983, E[p(y|x)] approx: 0.9257, learning rate: 0.0001563, time: 0.006839
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 130, objective value: 0.08073, E[p(y|x)] approx: 0.9247, learning rate: 0.0001563, time: 0.006838
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 131, objective value: 0.07988, E[p(y|x)] approx: 0.9257, learning rate: 0.0001563, time: 0.006649
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 132, objective value: 0.08199, E[p(y|x)] approx: 0.9238, learning rate: 0.0001563, time: 0.007025
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 133, objective value: 0.08147, E[p(y|x)] approx: 0.9242, learning rate: 0.0001563, time: 0.006919
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 134, objective value: 0.08235, E[p(y|x)] approx: 0.9236, learning rate: 0.0001563, time: 0.007805
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 135, objective value: 0.08129, E[p(y|x)] approx: 0.9248, learning rate: 0.0001563, time: 0.007155
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 136, objective value: 0.07991, E[p(y|x)] approx: 0.9253, learning rate: 0.0001563, time: 0.006947
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 137, objective value: 0.08091, E[p(y|x)] approx: 0.9254, learning rate: 0.0001563, time: 0.007037
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 138, objective value: 0.08377, E[p(y|x)] approx: 0.9223, learning rate: 0.0001563, time: 0.006876
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 139, objective value: 0.07903, E[p(y|x)] approx: 0.9263, learning rate: 0.0001563, time: 0.00689
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 140, objective value: 0.07929, E[p(y|x)] approx: 0.9262, learning rate: 0.0001563, time: 0.006975
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 141, objective value: 0.08151, E[p(y|x)] approx: 0.9242, learning rate: 0.0001563, time: 0.007309
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 142, objective value: 0.07856, E[p(y|x)] approx: 0.9266, learning rate: 7.813e-05, time: 0.00718
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 143, objective value: 0.08151, E[p(y|x)] approx: 0.9242, learning rate: 7.813e-05, time: 0.007124
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 144, objective value: 0.07838, E[p(y|x)] approx: 0.9268, learning rate: 7.813e-05, time: 0.006698
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 145, objective value: 0.07895, E[p(y|x)] approx: 0.9265, learning rate: 7.813e-05, time: 0.007252
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 146, objective value: 0.08074, E[p(y|x)] approx: 0.9248, learning rate: 7.813e-05, time: 0.006884
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 147, objective value: 0.07973, E[p(y|x)] approx: 0.9259, learning rate: 7.813e-05, time: 0.007304
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 148, objective value: 0.08086, E[p(y|x)] approx: 0.9248, learning rate: 7.813e-05, time: 0.006949
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 149, objective value: 0.08189, E[p(y|x)] approx: 0.9237, learning rate: 7.813e-05, time: 0.007436
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 150, objective value: 0.07919, E[p(y|x)] approx: 0.9261, learning rate: 7.813e-05, time: 0.006969
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 151, objective value: 0.07881, E[p(y|x)] approx: 0.9266, learning rate: 7.813e-05, time: 0.006923
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 152, objective value: 0.08218, E[p(y|x)] approx: 0.9234, learning rate: 7.813e-05, time: 0.00667
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 153, objective value: 0.08317, E[p(y|x)] approx: 0.9228, learning rate: 7.813e-05, time: 0.006604
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 154, objective value: 0.07936, E[p(y|x)] approx: 0.9264, learning rate: 7.813e-05, time: 0.006762
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 155, objective value: 0.07631, E[p(y|x)] approx: 0.9287, learning rate: 7.813e-05, time: 0.00682
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 156, objective value: 0.08314, E[p(y|x)] approx: 0.9227, learning rate: 7.813e-05, time: 0.006922
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 157, objective value: 0.07913, E[p(y|x)] approx: 0.9262, learning rate: 7.813e-05, time: 0.007008
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 158, objective value: 0.07926, E[p(y|x)] approx: 0.926, learning rate: 7.813e-05, time: 0.006736
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 159, objective value: 0.07988, E[p(y|x)] approx: 0.9255, learning rate: 3.906e-05, time: 0.007111
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 160, objective value: 0.0797, E[p(y|x)] approx: 0.9257, learning rate: 3.906e-05, time: 0.006757
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 161, objective value: 0.08194, E[p(y|x)] approx: 0.9237, learning rate: 3.906e-05, time: 0.006773
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 162, objective value: 0.0804, E[p(y|x)] approx: 0.9251, learning rate: 3.906e-05, time: 0.00656
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 163, objective value: 0.08078, E[p(y|x)] approx: 0.9249, learning rate: 3.906e-05, time: 0.006822
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 164, objective value: 0.08213, E[p(y|x)] approx: 0.9237, learning rate: 3.906e-05, time: 0.006932
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 165, objective value: 0.08568, E[p(y|x)] approx: 0.9206, learning rate: 3.906e-05, time: 0.006732
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 166, objective value: 0.08094, E[p(y|x)] approx: 0.9248, learning rate: 3.906e-05, time: 0.007121
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 167, objective value: 0.07989, E[p(y|x)] approx: 0.9257, learning rate: 3.906e-05, time: 0.006709
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 168, objective value: 0.08363, E[p(y|x)] approx: 0.9225, learning rate: 3.906e-05, time: 0.007825
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 169, objective value: 0.07842, E[p(y|x)] approx: 0.9269, learning rate: 3.906e-05, time: 0.007017
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 170, objective value: 0.08071, E[p(y|x)] approx: 0.9249, learning rate: 3.906e-05, time: 0.006607
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 171, objective value: 0.0804, E[p(y|x)] approx: 0.9253, learning rate: 3.906e-05, time: 0.006996
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 172, objective value: 0.07953, E[p(y|x)] approx: 0.926, learning rate: 3.906e-05, time: 0.006989
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 173, objective value: 0.08083, E[p(y|x)] approx: 0.9246, learning rate: 3.906e-05, time: 0.006995
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 174, objective value: 0.08241, E[p(y|x)] approx: 0.9234, learning rate: 1.953e-05, time: 0.006966
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 175, objective value: 0.08191, E[p(y|x)] approx: 0.9238, learning rate: 1.953e-05, time: 0.006978
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 176, objective value: 0.08098, E[p(y|x)] approx: 0.9246, learning rate: 1.953e-05, time: 0.007458
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 177, objective value: 0.079, E[p(y|x)] approx: 0.9264, learning rate: 1.953e-05, time: 0.006574
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 178, objective value: 0.08282, E[p(y|x)] approx: 0.9229, learning rate: 1.953e-05, time: 0.007049
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 179, objective value: 0.07983, E[p(y|x)] approx: 0.9259, learning rate: 1.953e-05, time: 0.006806
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 180, objective value: 0.08147, E[p(y|x)] approx: 0.9243, learning rate: 1.953e-05, time: 0.006933
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 181, objective value: 0.08062, E[p(y|x)] approx: 0.9249, learning rate: 1.953e-05, time: 0.006742
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 182, objective value: 0.08025, E[p(y|x)] approx: 0.9254, learning rate: 1.953e-05, time: 0.007004
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 183, objective value: 0.0798, E[p(y|x)] approx: 0.9256, learning rate: 1.953e-05, time: 0.006746
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 184, objective value: 0.08099, E[p(y|x)] approx: 0.9246, learning rate: 1.953e-05, time: 0.007373
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 185, objective value: 0.08122, E[p(y|x)] approx: 0.9246, learning rate: 1.953e-05, time: 0.007794
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 186, objective value: 0.07976, E[p(y|x)] approx: 0.9257, learning rate: 1.953e-05, time: 0.007436
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 187, objective value: 0.08135, E[p(y|x)] approx: 0.9242, learning rate: 1.953e-05, time: 0.006853
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 188, objective value: 0.08188, E[p(y|x)] approx: 0.9236, learning rate: 1.953e-05, time: 0.006828
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 189, objective value: 0.08089, E[p(y|x)] approx: 0.9248, learning rate: 1.953e-05, time: 0.006933
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 190, objective value: 0.07854, E[p(y|x)] approx: 0.9267, learning rate: 1.953e-05, time: 0.006973
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 191, objective value: 0.08023, E[p(y|x)] approx: 0.9253, learning rate: 1.953e-05, time: 0.006832
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 192, objective value: 0.081, E[p(y|x)] approx: 0.9247, learning rate: 1.953e-05, time: 0.007019
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 193, objective value: 0.08003, E[p(y|x)] approx: 0.9255, learning rate: 1.953e-05, time: 0.00666
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 194, objective value: 0.07906, E[p(y|x)] approx: 0.9264, learning rate: 1.953e-05, time: 0.006977
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 195, objective value: 0.08209, E[p(y|x)] approx: 0.9237, learning rate: 1.953e-05, time: 0.006924
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 196, objective value: 0.08243, E[p(y|x)] approx: 0.9234, learning rate: 1.953e-05, time: 0.006857
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 197, objective value: 0.08156, E[p(y|x)] approx: 0.9241, learning rate: 1.953e-05, time: 0.00775
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 198, objective value: 0.07926, E[p(y|x)] approx: 0.9263, learning rate: 1.953e-05, time: 0.006923
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 199, objective value: 0.07774, E[p(y|x)] approx: 0.9274, learning rate: 1.953e-05, time: 0.007051
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 200, objective value: 0.08304, E[p(y|x)] approx: 0.9232, learning rate: 1.953e-05, time: 0.006589
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 201, objective value: 0.0811, E[p(y|x)] approx: 0.9244, learning rate: 1.953e-05, time: 0.006903
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 202, objective value: 0.08131, E[p(y|x)] approx: 0.9242, learning rate: 1.953e-05, time: 0.006904
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 203, objective value: 0.07849, E[p(y|x)] approx: 0.9267, learning rate: 1.953e-05, time: 0.006963
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 204, objective value: 0.07944, E[p(y|x)] approx: 0.926, learning rate: 1.953e-05, time: 0.006813
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 205, objective value: 0.08068, E[p(y|x)] approx: 0.9249, learning rate: 1.953e-05, time: 0.006746
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 206, objective value: 0.08186, E[p(y|x)] approx: 0.924, learning rate: 1.953e-05, time: 0.006838
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 207, objective value: 0.07817, E[p(y|x)] approx: 0.927, learning rate: 1.953e-05, time: 0.007073
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 208, objective value: 0.079, E[p(y|x)] approx: 0.9264, learning rate: 1.953e-05, time: 0.007305
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 209, objective value: 0.08159, E[p(y|x)] approx: 0.924, learning rate: 1.953e-05, time: 0.007417
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 210, objective value: 0.08092, E[p(y|x)] approx: 0.9247, learning rate: 1.953e-05, time: 0.006907
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 211, objective value: 0.07936, E[p(y|x)] approx: 0.926, learning rate: 1.953e-05, time: 0.00666
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 212, objective value: 0.07997, E[p(y|x)] approx: 0.9254, learning rate: 1.953e-05, time: 0.007249
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 213, objective value: 0.07993, E[p(y|x)] approx: 0.9254, learning rate: 1.953e-05, time: 0.007378
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 214, objective value: 0.08106, E[p(y|x)] approx: 0.9246, learning rate: 1.953e-05, time: 0.007334
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 215, objective value: 0.07868, E[p(y|x)] approx: 0.9267, learning rate: 1.953e-05, time: 0.00671
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 216, objective value: 0.08018, E[p(y|x)] approx: 0.9253, learning rate: 1.953e-05, time: 0.006719
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 217, objective value: 0.08041, E[p(y|x)] approx: 0.9251, learning rate: 1.953e-05, time: 0.00654
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 218, objective value: 0.07957, E[p(y|x)] approx: 0.9257, learning rate: 1.953e-05, time: 0.006739
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 219, objective value: 0.08255, E[p(y|x)] approx: 0.9235, learning rate: 1.953e-05, time: 0.006788
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 220, objective value: 0.07847, E[p(y|x)] approx: 0.9267, learning rate: 1.953e-05, time: 0.006946
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 221, objective value: 0.07848, E[p(y|x)] approx: 0.9266, learning rate: 1.953e-05, time: 0.00692
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 222, objective value: 0.07823, E[p(y|x)] approx: 0.9269, learning rate: 1.953e-05, time: 0.006589
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 223, objective value: 0.07773, E[p(y|x)] approx: 0.9274, learning rate: 1.953e-05, time: 0.007756
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 224, objective value: 0.07982, E[p(y|x)] approx: 0.9255, learning rate: 1.953e-05, time: 0.007785
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 225, objective value: 0.08076, E[p(y|x)] approx: 0.9249, learning rate: 1.953e-05, time: 0.007701
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 226, objective value: 0.08391, E[p(y|x)] approx: 0.9219, learning rate: 1.953e-05, time: 0.007373
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 227, objective value: 0.07729, E[p(y|x)] approx: 0.9278, learning rate: 1.953e-05, time: 0.006902
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 228, objective value: 0.08049, E[p(y|x)] approx: 0.925, learning rate: 1.953e-05, time: 0.006797
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 229, objective value: 0.08017, E[p(y|x)] approx: 0.9254, learning rate: 1.953e-05, time: 0.007137
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 230, objective value: 0.08175, E[p(y|x)] approx: 0.9237, learning rate: 1.953e-05, time: 0.006947
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 231, objective value: 0.0799, E[p(y|x)] approx: 0.9256, learning rate: 1.953e-05, time: 0.007038
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 232, objective value: 0.08088, E[p(y|x)] approx: 0.9248, learning rate: 1.953e-05, time: 0.007219
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 233, objective value: 0.08097, E[p(y|x)] approx: 0.9246, learning rate: 1.953e-05, time: 0.006987
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 234, objective value: 0.08106, E[p(y|x)] approx: 0.9247, learning rate: 1.953e-05, time: 0.007055
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 235, objective value: 0.07936, E[p(y|x)] approx: 0.9259, learning rate: 9.766e-06, time: 0.006946
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 236, objective value: 0.07964, E[p(y|x)] approx: 0.9257, learning rate: 9.766e-06, time: 0.006911
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 237, objective value: 0.07983, E[p(y|x)] approx: 0.9256, learning rate: 9.766e-06, time: 0.006837
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 238, objective value: 0.08127, E[p(y|x)] approx: 0.9247, learning rate: 9.766e-06, time: 0.006971
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 239, objective value: 0.08, E[p(y|x)] approx: 0.9253, learning rate: 9.766e-06, time: 0.007401
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 240, objective value: 0.08111, E[p(y|x)] approx: 0.9247, learning rate: 9.766e-06, time: 0.006912
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 241, objective value: 0.08015, E[p(y|x)] approx: 0.9253, learning rate: 9.766e-06, time: 0.006892
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 242, objective value: 0.08052, E[p(y|x)] approx: 0.925, learning rate: 9.766e-06, time: 0.007115
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 243, objective value: 0.08076, E[p(y|x)] approx: 0.9248, learning rate: 9.766e-06, time: 0.006961
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 244, objective value: 0.08102, E[p(y|x)] approx: 0.9245, learning rate: 9.766e-06, time: 0.006668
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 245, objective value: 0.08052, E[p(y|x)] approx: 0.9251, learning rate: 9.766e-06, time: 0.006623
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 246, objective value: 0.07827, E[p(y|x)] approx: 0.9271, learning rate: 9.766e-06, time: 0.007695
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 247, objective value: 0.08257, E[p(y|x)] approx: 0.9235, learning rate: 4.883e-06, time: 0.006947
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 248, objective value: 0.07823, E[p(y|x)] approx: 0.927, learning rate: 4.883e-06, time: 0.006955
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 249, objective value: 0.08285, E[p(y|x)] approx: 0.9241, learning rate: 4.883e-06, time: 0.007003
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 250, objective value: 0.08048, E[p(y|x)] approx: 0.9252, learning rate: 4.883e-06, time: 0.006897
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 251, objective value: 0.08077, E[p(y|x)] approx: 0.9247, learning rate: 4.883e-06, time: 0.006798
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 252, objective value: 0.0808, E[p(y|x)] approx: 0.9248, learning rate: 4.883e-06, time: 0.007781
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 253, objective value: 0.08053, E[p(y|x)] approx: 0.9253, learning rate: 4.883e-06, time: 0.006988
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 254, objective value: 0.07775, E[p(y|x)] approx: 0.9274, learning rate: 4.883e-06, time: 0.006878
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 255, objective value: 0.08113, E[p(y|x)] approx: 0.9244, learning rate: 4.883e-06, time: 0.006911
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 256, objective value: 0.07895, E[p(y|x)] approx: 0.9261, learning rate: 4.883e-06, time: 0.006717
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 257, objective value: 0.07687, E[p(y|x)] approx: 0.9281, learning rate: 4.883e-06, time: 0.007193
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 258, objective value: 0.07884, E[p(y|x)] approx: 0.9264, learning rate: 4.883e-06, time: 0.00715
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 259, objective value: 0.07865, E[p(y|x)] approx: 0.9265, learning rate: 4.883e-06, time: 0.006868
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 260, objective value: 0.07955, E[p(y|x)] approx: 0.9259, learning rate: 4.883e-06, time: 0.006625
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 261, objective value: 0.0824, E[p(y|x)] approx: 0.9233, learning rate: 4.883e-06, time: 0.006666
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 262, objective value: 0.0803, E[p(y|x)] approx: 0.9253, learning rate: 4.883e-06, time: 0.006897
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 263, objective value: 0.08194, E[p(y|x)] approx: 0.9239, learning rate: 4.883e-06, time: 0.007002
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 264, objective value: 0.07972, E[p(y|x)] approx: 0.926, learning rate: 4.883e-06, time: 0.006943
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 265, objective value: 0.08065, E[p(y|x)] approx: 0.9252, learning rate: 4.883e-06, time: 0.006908
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 266, objective value: 0.07828, E[p(y|x)] approx: 0.927, learning rate: 4.883e-06, time: 0.007067
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 267, objective value: 0.08123, E[p(y|x)] approx: 0.9245, learning rate: 4.883e-06, time: 0.00708
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 268, objective value: 0.08006, E[p(y|x)] approx: 0.9254, learning rate: 4.883e-06, time: 0.006958
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 269, objective value: 0.08027, E[p(y|x)] approx: 0.9253, learning rate: 4.883e-06, time: 0.008793
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 270, objective value: 0.07923, E[p(y|x)] approx: 0.9261, learning rate: 4.883e-06, time: 0.007419
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 271, objective value: 0.07822, E[p(y|x)] approx: 0.927, learning rate: 2.441e-06, time: 0.007373
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 272, objective value: 0.07825, E[p(y|x)] approx: 0.9272, learning rate: 2.441e-06, time: 0.007765
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 273, objective value: 0.08009, E[p(y|x)] approx: 0.9255, learning rate: 2.441e-06, time: 0.007284
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 274, objective value: 0.07876, E[p(y|x)] approx: 0.9265, learning rate: 2.441e-06, time: 0.007202
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 275, objective value: 0.08284, E[p(y|x)] approx: 0.9231, learning rate: 2.441e-06, time: 0.007376
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 276, objective value: 0.08091, E[p(y|x)] approx: 0.9246, learning rate: 2.441e-06, time: 0.007246
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 277, objective value: 0.07883, E[p(y|x)] approx: 0.9264, learning rate: 2.441e-06, time: 0.007327
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 278, objective value: 0.0805, E[p(y|x)] approx: 0.925, learning rate: 2.441e-06, time: 0.007122
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 279, objective value: 0.0817, E[p(y|x)] approx: 0.924, learning rate: 2.441e-06, time: 0.007436
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 280, objective value: 0.07952, E[p(y|x)] approx: 0.9257, learning rate: 2.441e-06, time: 0.008101
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 281, objective value: 0.08057, E[p(y|x)] approx: 0.9249, learning rate: 2.441e-06, time: 0.007322
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 282, objective value: 0.07694, E[p(y|x)] approx: 0.9281, learning rate: 2.441e-06, time: 0.007305
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 283, objective value: 0.08058, E[p(y|x)] approx: 0.925, learning rate: 2.441e-06, time: 0.007185
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 284, objective value: 0.07922, E[p(y|x)] approx: 0.9261, learning rate: 2.441e-06, time: 0.007333
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 285, objective value: 0.07992, E[p(y|x)] approx: 0.9254, learning rate: 1.221e-06, time: 0.007107
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 286, objective value: 0.08195, E[p(y|x)] approx: 0.924, learning rate: 1.221e-06, time: 0.007494
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 287, objective value: 0.08063, E[p(y|x)] approx: 0.9249, learning rate: 1.221e-06, time: 0.007303
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 288, objective value: 0.07784, E[p(y|x)] approx: 0.9274, learning rate: 1.221e-06, time: 0.007358
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 289, objective value: 0.08031, E[p(y|x)] approx: 0.9252, learning rate: 1.221e-06, time: 0.007161
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 290, objective value: 0.08217, E[p(y|x)] approx: 0.9238, learning rate: 1.221e-06, time: 0.007088
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 291, objective value: 0.07924, E[p(y|x)] approx: 0.926, learning rate: 1.221e-06, time: 0.007323
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 292, objective value: 0.08114, E[p(y|x)] approx: 0.9246, learning rate: 1.221e-06, time: 0.00735
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 293, objective value: 0.08245, E[p(y|x)] approx: 0.9233, learning rate: 1.221e-06, time: 0.00722
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 294, objective value: 0.08191, E[p(y|x)] approx: 0.9241, learning rate: 1.221e-06, time: 0.007189
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 295, objective value: 0.08077, E[p(y|x)] approx: 0.9248, learning rate: 1.221e-06, time: 0.007381
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 296, objective value: 0.08185, E[p(y|x)] approx: 0.924, learning rate: 1.221e-06, time: 0.007303
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 297, objective value: 0.07943, E[p(y|x)] approx: 0.9259, learning rate: 1.221e-06, time: 0.007271
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 298, objective value: 0.07801, E[p(y|x)] approx: 0.9273, learning rate: 1.221e-06, time: 0.007939
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 299, objective value: 0.07924, E[p(y|x)] approx: 0.9261, learning rate: 1.221e-06, time: 0.007189
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 300, objective value: 0.07931, E[p(y|x)] approx: 0.9261, learning rate: 6.104e-07, time: 0.007444
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 301, objective value: 0.07976, E[p(y|x)] approx: 0.9257, learning rate: 6.104e-07, time: 0.007416
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 302, objective value: 0.08134, E[p(y|x)] approx: 0.9245, learning rate: 6.104e-07, time: 0.007316
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 303, objective value: 0.08066, E[p(y|x)] approx: 0.9249, learning rate: 6.104e-07, time: 0.007237
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 304, objective value: 0.08049, E[p(y|x)] approx: 0.9253, learning rate: 6.104e-07, time: 0.007351
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 305, objective value: 0.07953, E[p(y|x)] approx: 0.9259, learning rate: 6.104e-07, time: 0.007356
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 306, objective value: 0.0808, E[p(y|x)] approx: 0.9247, learning rate: 6.104e-07, time: 0.007257
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 307, objective value: 0.081, E[p(y|x)] approx: 0.9246, learning rate: 6.104e-07, time: 0.007243
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 308, objective value: 0.0799, E[p(y|x)] approx: 0.9257, learning rate: 6.104e-07, time: 0.007402
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 309, objective value: 0.08061, E[p(y|x)] approx: 0.9249, learning rate: 6.104e-07, time: 0.007402
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 310, objective value: 0.07959, E[p(y|x)] approx: 0.9258, learning rate: 6.104e-07, time: 0.007191
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 311, objective value: 0.07764, E[p(y|x)] approx: 0.9274, learning rate: 6.104e-07, time: 0.007338
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 312, objective value: 0.08099, E[p(y|x)] approx: 0.9247, learning rate: 6.104e-07, time: 0.007345
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 313, objective value: 0.08186, E[p(y|x)] approx: 0.9239, learning rate: 6.104e-07, time: 0.007287
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 314, objective value: 0.07919, E[p(y|x)] approx: 0.9263, learning rate: 6.104e-07, time: 0.007143
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 315, objective value: 0.08005, E[p(y|x)] approx: 0.9254, learning rate: 6.104e-07, time: 0.007235
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 316, objective value: 0.08132, E[p(y|x)] approx: 0.9244, learning rate: 6.104e-07, time: 0.007293
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 317, objective value: 0.0808, E[p(y|x)] approx: 0.9247, learning rate: 3.052e-07, time: 0.007282
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 318, objective value: 0.08035, E[p(y|x)] approx: 0.9253, learning rate: 3.052e-07, time: 0.007392
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 319, objective value: 0.07909, E[p(y|x)] approx: 0.9263, learning rate: 3.052e-07, time: 0.007385
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 320, objective value: 0.0796, E[p(y|x)] approx: 0.9259, learning rate: 3.052e-07, time: 0.007331
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 321, objective value: 0.07996, E[p(y|x)] approx: 0.9253, learning rate: 3.052e-07, time: 0.007291
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 322, objective value: 0.07991, E[p(y|x)] approx: 0.9255, learning rate: 3.052e-07, time: 0.00718
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 323, objective value: 0.07993, E[p(y|x)] approx: 0.9255, learning rate: 3.052e-07, time: 0.007055
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 324, objective value: 0.08027, E[p(y|x)] approx: 0.9258, learning rate: 3.052e-07, time: 0.007343
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 325, objective value: 0.08031, E[p(y|x)] approx: 0.9251, learning rate: 3.052e-07, time: 0.007246
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 326, objective value: 0.07762, E[p(y|x)] approx: 0.9274, learning rate: 3.052e-07, time: 0.007024
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 327, objective value: 0.08072, E[p(y|x)] approx: 0.9248, learning rate: 3.052e-07, time: 0.007271
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 328, objective value: 0.08057, E[p(y|x)] approx: 0.9248, learning rate: 3.052e-07, time: 0.008658
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 329, objective value: 0.08232, E[p(y|x)] approx: 0.9234, learning rate: 3.052e-07, time: 0.0073
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 330, objective value: 0.08271, E[p(y|x)] approx: 0.9231, learning rate: 3.052e-07, time: 0.007293
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 331, objective value: 0.07904, E[p(y|x)] approx: 0.9263, learning rate: 3.052e-07, time: 0.00726
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 332, objective value: 0.08304, E[p(y|x)] approx: 0.9229, learning rate: 3.052e-07, time: 0.007281
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 333, objective value: 0.08186, E[p(y|x)] approx: 0.9237, learning rate: 3.052e-07, time: 0.007159
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 334, objective value: 0.07962, E[p(y|x)] approx: 0.9258, learning rate: 3.052e-07, time: 0.007392
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 335, objective value: 0.08266, E[p(y|x)] approx: 0.9232, learning rate: 3.052e-07, time: 0.007118
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 336, objective value: 0.07857, E[p(y|x)] approx: 0.9267, learning rate: 3.052e-07, time: 0.007244
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 337, objective value: 0.08217, E[p(y|x)] approx: 0.9235, learning rate: 3.052e-07, time: 0.007308
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 338, objective value: 0.08116, E[p(y|x)] approx: 0.9246, learning rate: 1.526e-07, time: 0.007378
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 339, objective value: 0.08164, E[p(y|x)] approx: 0.9242, learning rate: 1.526e-07, time: 0.007205
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 340, objective value: 0.08103, E[p(y|x)] approx: 0.9246, learning rate: 1.526e-07, time: 0.007361
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 341, objective value: 0.08245, E[p(y|x)] approx: 0.9234, learning rate: 1.526e-07, time: 0.007293
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 342, objective value: 0.07948, E[p(y|x)] approx: 0.9259, learning rate: 1.526e-07, time: 0.007269
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 343, objective value: 0.08119, E[p(y|x)] approx: 0.9245, learning rate: 1.526e-07, time: 0.007258
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 344, objective value: 0.08238, E[p(y|x)] approx: 0.9235, learning rate: 1.526e-07, time: 0.007353
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 345, objective value: 0.07746, E[p(y|x)] approx: 0.9277, learning rate: 1.526e-07, time: 0.007148
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 346, objective value: 0.08073, E[p(y|x)] approx: 0.9248, learning rate: 1.526e-07, time: 0.007502
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 347, objective value: 0.07941, E[p(y|x)] approx: 0.9259, learning rate: 1.526e-07, time: 0.007295
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 348, objective value: 0.08266, E[p(y|x)] approx: 0.923, learning rate: 1.526e-07, time: 0.00726
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 349, objective value: 0.07923, E[p(y|x)] approx: 0.9262, learning rate: 1.526e-07, time: 0.007489
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 350, objective value: 0.08093, E[p(y|x)] approx: 0.9251, learning rate: 1.526e-07, time: 0.006497
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 351, objective value: 0.07841, E[p(y|x)] approx: 0.9268, learning rate: 1.526e-07, time: 0.007214
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 352, objective value: 0.08056, E[p(y|x)] approx: 0.9248, learning rate: 1.526e-07, time: 0.007339
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 353, objective value: 0.08199, E[p(y|x)] approx: 0.9238, learning rate: 1.526e-07, time: 0.007168
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 354, objective value: 0.07871, E[p(y|x)] approx: 0.9266, learning rate: 1.526e-07, time: 0.007346
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 355, objective value: 0.08304, E[p(y|x)] approx: 0.9229, learning rate: 1.526e-07, time: 0.007027
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 356, objective value: 0.08002, E[p(y|x)] approx: 0.9254, learning rate: 1.526e-07, time: 0.007262
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 357, objective value: 0.08014, E[p(y|x)] approx: 0.9255, learning rate: 1.526e-07, time: 0.007268
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 358, objective value: 0.07954, E[p(y|x)] approx: 0.9258, learning rate: 1.526e-07, time: 0.007374
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 359, objective value: 0.07829, E[p(y|x)] approx: 0.927, learning rate: 1.526e-07, time: 0.007468
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 360, objective value: 0.08063, E[p(y|x)] approx: 0.9248, learning rate: 1.526e-07, time: 0.007237
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 361, objective value: 0.08063, E[p(y|x)] approx: 0.9249, learning rate: 1.526e-07, time: 0.007326
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 362, objective value: 0.08022, E[p(y|x)] approx: 0.9253, learning rate: 1.526e-07, time: 0.007384
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 363, objective value: 0.08228, E[p(y|x)] approx: 0.9236, learning rate: 1.526e-07, time: 0.00729
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 364, objective value: 0.07962, E[p(y|x)] approx: 0.9258, learning rate: 1.526e-07, time: 0.007236
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 365, objective value: 0.08056, E[p(y|x)] approx: 0.9251, learning rate: 7.629e-08, time: 0.007032
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 366, objective value: 0.07856, E[p(y|x)] approx: 0.9267, learning rate: 7.629e-08, time: 0.00758
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 367, objective value: 0.08303, E[p(y|x)] approx: 0.923, learning rate: 7.629e-08, time: 0.007224
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 368, objective value: 0.08273, E[p(y|x)] approx: 0.9232, learning rate: 7.629e-08, time: 0.007345
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 369, objective value: 0.08351, E[p(y|x)] approx: 0.9224, learning rate: 7.629e-08, time: 0.007368
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 370, objective value: 0.08186, E[p(y|x)] approx: 0.9239, learning rate: 7.629e-08, time: 0.007247
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 371, objective value: 0.07982, E[p(y|x)] approx: 0.9258, learning rate: 7.629e-08, time: 0.007297
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 372, objective value: 0.08195, E[p(y|x)] approx: 0.9238, learning rate: 7.629e-08, time: 0.007321
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 373, objective value: 0.08209, E[p(y|x)] approx: 0.9236, learning rate: 7.629e-08, time: 0.007327
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 374, objective value: 0.07916, E[p(y|x)] approx: 0.9262, learning rate: 7.629e-08, time: 0.007124
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 375, objective value: 0.07879, E[p(y|x)] approx: 0.9266, learning rate: 7.629e-08, time: 0.007262
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 376, objective value: 0.08115, E[p(y|x)] approx: 0.9245, learning rate: 7.629e-08, time: 0.00722
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 377, objective value: 0.08121, E[p(y|x)] approx: 0.9243, learning rate: 3.815e-08, time: 0.006905
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 378, objective value: 0.0797, E[p(y|x)] approx: 0.9259, learning rate: 3.815e-08, time: 0.00742
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 379, objective value: 0.07971, E[p(y|x)] approx: 0.9257, learning rate: 3.815e-08, time: 0.007336
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 380, objective value: 0.07996, E[p(y|x)] approx: 0.9253, learning rate: 3.815e-08, time: 0.007256
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 381, objective value: 0.07873, E[p(y|x)] approx: 0.9266, learning rate: 3.815e-08, time: 0.007141
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 382, objective value: 0.07871, E[p(y|x)] approx: 0.9266, learning rate: 3.815e-08, time: 0.006854
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 383, objective value: 0.07956, E[p(y|x)] approx: 0.9259, learning rate: 3.815e-08, time: 0.007648
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 384, objective value: 0.08036, E[p(y|x)] approx: 0.9252, learning rate: 3.815e-08, time: 0.007221
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 385, objective value: 0.08012, E[p(y|x)] approx: 0.9253, learning rate: 3.815e-08, time: 0.007287
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 386, objective value: 0.08121, E[p(y|x)] approx: 0.9245, learning rate: 3.815e-08, time: 0.007433
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 387, objective value: 0.07752, E[p(y|x)] approx: 0.9276, learning rate: 3.815e-08, time: 0.007292
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 388, objective value: 0.08171, E[p(y|x)] approx: 0.924, learning rate: 3.815e-08, time: 0.007322
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 389, objective value: 0.08161, E[p(y|x)] approx: 0.9241, learning rate: 3.815e-08, time: 0.007631
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 390, objective value: 0.07832, E[p(y|x)] approx: 0.9269, learning rate: 3.815e-08, time: 0.007281
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 391, objective value: 0.082, E[p(y|x)] approx: 0.9237, learning rate: 3.815e-08, time: 0.00824
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 392, objective value: 0.07941, E[p(y|x)] approx: 0.926, learning rate: 3.815e-08, time: 0.007357
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 393, objective value: 0.08301, E[p(y|x)] approx: 0.9228, learning rate: 3.815e-08, time: 0.00718
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 394, objective value: 0.07792, E[p(y|x)] approx: 0.9272, learning rate: 3.815e-08, time: 0.007326
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 395, objective value: 0.07777, E[p(y|x)] approx: 0.9273, learning rate: 3.815e-08, time: 0.007444
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 396, objective value: 0.08055, E[p(y|x)] approx: 0.925, learning rate: 3.815e-08, time: 0.006932
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 397, objective value: 0.07915, E[p(y|x)] approx: 0.9262, learning rate: 3.815e-08, time: 0.007271
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 398, objective value: 0.08149, E[p(y|x)] approx: 0.9243, learning rate: 1.907e-08, time: 0.007299
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 399, objective value: 0.082, E[p(y|x)] approx: 0.9238, learning rate: 1.907e-08, time: 0.007633
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 400, objective value: 0.07905, E[p(y|x)] approx: 0.9265, learning rate: 1.907e-08, time: 0.007345
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 401, objective value: 0.08016, E[p(y|x)] approx: 0.9254, learning rate: 1.907e-08, time: 0.007161
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 402, objective value: 0.08175, E[p(y|x)] approx: 0.924, learning rate: 1.907e-08, time: 0.007182
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 403, objective value: 0.07969, E[p(y|x)] approx: 0.926, learning rate: 1.907e-08, time: 0.00718
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 404, objective value: 0.0817, E[p(y|x)] approx: 0.9241, learning rate: 1.907e-08, time: 0.007481
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 405, objective value: 0.08061, E[p(y|x)] approx: 0.9248, learning rate: 1.907e-08, time: 0.007694
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 406, objective value: 0.08144, E[p(y|x)] approx: 0.9242, learning rate: 1.907e-08, time: 0.007203
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 407, objective value: 0.08291, E[p(y|x)] approx: 0.923, learning rate: 1.907e-08, time: 0.007474
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 408, objective value: 0.0804, E[p(y|x)] approx: 0.925, learning rate: 1.907e-08, time: 0.007251
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 409, objective value: 0.07922, E[p(y|x)] approx: 0.9261, learning rate: 1.907e-08, time: 0.007015
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 410, objective value: 0.0815, E[p(y|x)] approx: 0.9242, learning rate: 1.907e-08, time: 0.007329
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 411, objective value: 0.08072, E[p(y|x)] approx: 0.9248, learning rate: 1.907e-08, time: 0.00719
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 412, objective value: 0.08043, E[p(y|x)] approx: 0.925, learning rate: 1.907e-08, time: 0.007319
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 413, objective value: 0.08004, E[p(y|x)] approx: 0.9255, learning rate: 1.907e-08, time: 0.007311
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 414, objective value: 0.07895, E[p(y|x)] approx: 0.9264, learning rate: 9.537e-09, time: 0.007284
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 415, objective value: 0.08026, E[p(y|x)] approx: 0.9252, learning rate: 9.537e-09, time: 0.007332
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 416, objective value: 0.08074, E[p(y|x)] approx: 0.9248, learning rate: 9.537e-09, time: 0.007421
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 417, objective value: 0.08175, E[p(y|x)] approx: 0.9239, learning rate: 9.537e-09, time: 0.007342
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 418, objective value: 0.08115, E[p(y|x)] approx: 0.9246, learning rate: 9.537e-09, time: 0.007176
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 419, objective value: 0.08304, E[p(y|x)] approx: 0.9228, learning rate: 9.537e-09, time: 0.007451
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 420, objective value: 0.08243, E[p(y|x)] approx: 0.9233, learning rate: 9.537e-09, time: 0.007261
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 421, objective value: 0.08119, E[p(y|x)] approx: 0.9244, learning rate: 9.537e-09, time: 0.007217
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 422, objective value: 0.07981, E[p(y|x)] approx: 0.9256, learning rate: 9.537e-09, time: 0.007218
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 423, objective value: 0.07933, E[p(y|x)] approx: 0.9259, learning rate: 9.537e-09, time: 0.007409
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 424, objective value: 0.07842, E[p(y|x)] approx: 0.9269, learning rate: 9.537e-09, time: 0.008537
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 425, objective value: 0.07711, E[p(y|x)] approx: 0.928, learning rate: 9.537e-09, time: 0.007224
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 426, objective value: 0.07709, E[p(y|x)] approx: 0.9279, learning rate: 9.537e-09, time: 0.007186
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 427, objective value: 0.08076, E[p(y|x)] approx: 0.9247, learning rate: 9.537e-09, time: 0.00739
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 428, objective value: 0.08119, E[p(y|x)] approx: 0.9243, learning rate: 9.537e-09, time: 0.007219
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 429, objective value: 0.07646, E[p(y|x)] approx: 0.9285, learning rate: 9.537e-09, time: 0.008046
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 430, objective value: 0.07821, E[p(y|x)] approx: 0.9269, learning rate: 9.537e-09, time: 0.007176
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 431, objective value: 0.07792, E[p(y|x)] approx: 0.9275, learning rate: 9.537e-09, time: 0.007382
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 432, objective value: 0.07809, E[p(y|x)] approx: 0.927, learning rate: 9.537e-09, time: 0.00736
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 433, objective value: 0.08004, E[p(y|x)] approx: 0.9255, learning rate: 9.537e-09, time: 0.00739
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 434, objective value: 0.08305, E[p(y|x)] approx: 0.9228, learning rate: 9.537e-09, time: 0.007256
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 435, objective value: 0.07833, E[p(y|x)] approx: 0.9271, learning rate: 9.537e-09, time: 0.007246
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 436, objective value: 0.07891, E[p(y|x)] approx: 0.9263, learning rate: 9.537e-09, time: 0.007345
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 437, objective value: 0.08131, E[p(y|x)] approx: 0.9242, learning rate: 9.537e-09, time: 0.007469
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 438, objective value: 0.07992, E[p(y|x)] approx: 0.9255, learning rate: 9.537e-09, time: 0.007231
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 439, objective value: 0.07918, E[p(y|x)] approx: 0.9261, learning rate: 9.537e-09, time: 0.007223
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 440, objective value: 0.07909, E[p(y|x)] approx: 0.9262, learning rate: 9.537e-09, time: 0.007336
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 441, objective value: 0.08152, E[p(y|x)] approx: 0.9241, learning rate: 9.537e-09, time: 0.00729
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 442, objective value: 0.08052, E[p(y|x)] approx: 0.9252, learning rate: 9.537e-09, time: 0.007329
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 443, objective value: 0.07705, E[p(y|x)] approx: 0.928, learning rate: 4.768e-09, time: 0.007121
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 444, objective value: 0.07856, E[p(y|x)] approx: 0.9266, learning rate: 4.768e-09, time: 0.007407
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 445, objective value: 0.07796, E[p(y|x)] approx: 0.927, learning rate: 4.768e-09, time: 0.007375
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 446, objective value: 0.0801, E[p(y|x)] approx: 0.9254, learning rate: 4.768e-09, time: 0.00713
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 447, objective value: 0.08037, E[p(y|x)] approx: 0.9251, learning rate: 4.768e-09, time: 0.007179
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 448, objective value: 0.08118, E[p(y|x)] approx: 0.9245, learning rate: 4.768e-09, time: 0.007552
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 449, objective value: 0.08139, E[p(y|x)] approx: 0.9242, learning rate: 4.768e-09, time: 0.007322
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 450, objective value: 0.07965, E[p(y|x)] approx: 0.9258, learning rate: 4.768e-09, time: 0.007688
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 451, objective value: 0.07992, E[p(y|x)] approx: 0.9255, learning rate: 4.768e-09, time: 0.007305
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 452, objective value: 0.0803, E[p(y|x)] approx: 0.9252, learning rate: 4.768e-09, time: 0.007277
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 453, objective value: 0.0794, E[p(y|x)] approx: 0.926, learning rate: 4.768e-09, time: 0.007305
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 454, objective value: 0.08, E[p(y|x)] approx: 0.9253, learning rate: 4.768e-09, time: 0.007503
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 455, objective value: 0.08078, E[p(y|x)] approx: 0.9249, learning rate: 4.768e-09, time: 0.007113
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 456, objective value: 0.08024, E[p(y|x)] approx: 0.9256, learning rate: 2.384e-09, time: 0.007601
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 457, objective value: 0.08339, E[p(y|x)] approx: 0.9225, learning rate: 2.384e-09, time: 0.007593
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 458, objective value: 0.07841, E[p(y|x)] approx: 0.9269, learning rate: 2.384e-09, time: 0.007265
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 459, objective value: 0.07927, E[p(y|x)] approx: 0.9259, learning rate: 2.384e-09, time: 0.007388
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 460, objective value: 0.08005, E[p(y|x)] approx: 0.9257, learning rate: 2.384e-09, time: 0.00719
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 461, objective value: 0.07974, E[p(y|x)] approx: 0.9257, learning rate: 2.384e-09, time: 0.007791
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 462, objective value: 0.07671, E[p(y|x)] approx: 0.9282, learning rate: 2.384e-09, time: 0.007258
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 463, objective value: 0.08126, E[p(y|x)] approx: 0.9247, learning rate: 2.384e-09, time: 0.007198
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 464, objective value: 0.07951, E[p(y|x)] approx: 0.926, learning rate: 2.384e-09, time: 0.007235
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 465, objective value: 0.081, E[p(y|x)] approx: 0.9245, learning rate: 2.384e-09, time: 0.007306
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 466, objective value: 0.07918, E[p(y|x)] approx: 0.9262, learning rate: 2.384e-09, time: 0.00729
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 467, objective value: 0.08197, E[p(y|x)] approx: 0.9237, learning rate: 2.384e-09, time: 0.007564
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 468, objective value: 0.08091, E[p(y|x)] approx: 0.9247, learning rate: 2.384e-09, time: 0.007638
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 469, objective value: 0.07847, E[p(y|x)] approx: 0.9268, learning rate: 2.384e-09, time: 0.007303
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 470, objective value: 0.0788, E[p(y|x)] approx: 0.9266, learning rate: 2.384e-09, time: 0.007318
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 471, objective value: 0.08069, E[p(y|x)] approx: 0.9251, learning rate: 2.384e-09, time: 0.007426
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 472, objective value: 0.08001, E[p(y|x)] approx: 0.9255, learning rate: 2.384e-09, time: 0.007331
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 473, objective value: 0.07964, E[p(y|x)] approx: 0.9257, learning rate: 2.384e-09, time: 0.007497
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 474, objective value: 0.08279, E[p(y|x)] approx: 0.9229, learning rate: 2.384e-09, time: 0.007586
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 475, objective value: 0.08012, E[p(y|x)] approx: 0.9254, learning rate: 2.384e-09, time: 0.007153
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 476, objective value: 0.08107, E[p(y|x)] approx: 0.9243, learning rate: 2.384e-09, time: 0.007503
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 477, objective value: 0.07911, E[p(y|x)] approx: 0.9263, learning rate: 2.384e-09, time: 0.007301
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 478, objective value: 0.07901, E[p(y|x)] approx: 0.9262, learning rate: 1.192e-09, time: 0.007322
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 479, objective value: 0.07696, E[p(y|x)] approx: 0.928, learning rate: 1.192e-09, time: 0.007297
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 480, objective value: 0.07994, E[p(y|x)] approx: 0.9256, learning rate: 1.192e-09, time: 0.007413
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 481, objective value: 0.08008, E[p(y|x)] approx: 0.9254, learning rate: 1.192e-09, time: 0.007374
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 482, objective value: 0.08312, E[p(y|x)] approx: 0.923, learning rate: 1.192e-09, time: 0.007349
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 483, objective value: 0.08091, E[p(y|x)] approx: 0.9246, learning rate: 1.192e-09, time: 0.007414
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 484, objective value: 0.08156, E[p(y|x)] approx: 0.9239, learning rate: 1.192e-09, time: 0.00731
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 485, objective value: 0.07792, E[p(y|x)] approx: 0.9272, learning rate: 1.192e-09, time: 0.00826
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 486, objective value: 0.0764, E[p(y|x)] approx: 0.9286, learning rate: 1.192e-09, time: 0.007901
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 487, objective value: 0.08026, E[p(y|x)] approx: 0.9253, learning rate: 1.192e-09, time: 0.007273
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 488, objective value: 0.07979, E[p(y|x)] approx: 0.9258, learning rate: 1.192e-09, time: 0.007371
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 489, objective value: 0.08244, E[p(y|x)] approx: 0.9233, learning rate: 1.192e-09, time: 0.007512
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 490, objective value: 0.0805, E[p(y|x)] approx: 0.9251, learning rate: 1.192e-09, time: 0.007246
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 491, objective value: 0.08018, E[p(y|x)] approx: 0.9253, learning rate: 1.192e-09, time: 0.007365
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 492, objective value: 0.08384, E[p(y|x)] approx: 0.9223, learning rate: 1.192e-09, time: 0.007285
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 493, objective value: 0.08068, E[p(y|x)] approx: 0.9249, learning rate: 1.192e-09, time: 0.008424
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 494, objective value: 0.07828, E[p(y|x)] approx: 0.9269, learning rate: 1.192e-09, time: 0.00724
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 495, objective value: 0.08191, E[p(y|x)] approx: 0.9239, learning rate: 1.192e-09, time: 0.007359
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 496, objective value: 0.08333, E[p(y|x)] approx: 0.9227, learning rate: 1.192e-09, time: 0.007708
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 497, objective value: 0.07828, E[p(y|x)] approx: 0.927, learning rate: 5.96e-10, time: 0.007275
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 498, objective value: 0.07778, E[p(y|x)] approx: 0.9274, learning rate: 5.96e-10, time: 0.007401
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 499, objective value: 0.08052, E[p(y|x)] approx: 0.925, learning rate: 5.96e-10, time: 0.008065
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 500, objective value: 0.07942, E[p(y|x)] approx: 0.9258, learning rate: 5.96e-10, time: 0.007185
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 501, objective value: 0.08012, E[p(y|x)] approx: 0.9253, learning rate: 5.96e-10, time: 0.007758
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 502, objective value: 0.082, E[p(y|x)] approx: 0.9239, learning rate: 5.96e-10, time: 0.007399
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 503, objective value: 0.0781, E[p(y|x)] approx: 0.9271, learning rate: 5.96e-10, time: 0.007447
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 504, objective value: 0.0821, E[p(y|x)] approx: 0.9237, learning rate: 5.96e-10, time: 0.007402
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 505, objective value: 0.08102, E[p(y|x)] approx: 0.925, learning rate: 5.96e-10, time: 0.007342
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 506, objective value: 0.08159, E[p(y|x)] approx: 0.9241, learning rate: 5.96e-10, time: 0.007251
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 507, objective value: 0.078, E[p(y|x)] approx: 0.9271, learning rate: 5.96e-10, time: 0.007389
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 508, objective value: 0.0828, E[p(y|x)] approx: 0.9229, learning rate: 5.96e-10, time: 0.007935
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 509, objective value: 0.0809, E[p(y|x)] approx: 0.9247, learning rate: 5.96e-10, time: 0.007798
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 510, objective value: 0.08046, E[p(y|x)] approx: 0.925, learning rate: 5.96e-10, time: 0.007374
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 511, objective value: 0.07979, E[p(y|x)] approx: 0.9258, learning rate: 5.96e-10, time: 0.007516
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 512, objective value: 0.07771, E[p(y|x)] approx: 0.9275, learning rate: 5.96e-10, time: 0.007401
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 513, objective value: 0.08105, E[p(y|x)] approx: 0.9247, learning rate: 5.96e-10, time: 0.007249
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 514, objective value: 0.07943, E[p(y|x)] approx: 0.9259, learning rate: 2.98e-10, time: 0.007389
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 515, objective value: 0.07928, E[p(y|x)] approx: 0.926, learning rate: 2.98e-10, time: 0.007214
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 516, objective value: 0.07905, E[p(y|x)] approx: 0.9262, learning rate: 2.98e-10, time: 0.007174
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 517, objective value: 0.07943, E[p(y|x)] approx: 0.9259, learning rate: 2.98e-10, time: 0.007354
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 518, objective value: 0.07915, E[p(y|x)] approx: 0.9263, learning rate: 2.98e-10, time: 0.007335
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 519, objective value: 0.07865, E[p(y|x)] approx: 0.9265, learning rate: 2.98e-10, time: 0.007203
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 520, objective value: 0.07933, E[p(y|x)] approx: 0.9261, learning rate: 2.98e-10, time: 0.007394
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 521, objective value: 0.08188, E[p(y|x)] approx: 0.9239, learning rate: 2.98e-10, time: 0.007387
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 522, objective value: 0.08001, E[p(y|x)] approx: 0.9254, learning rate: 2.98e-10, time: 0.007168
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 523, objective value: 0.08166, E[p(y|x)] approx: 0.9241, learning rate: 2.98e-10, time: 0.007496
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 524, objective value: 0.07805, E[p(y|x)] approx: 0.9272, learning rate: 2.98e-10, time: 0.00749
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 525, objective value: 0.08331, E[p(y|x)] approx: 0.9232, learning rate: 2.98e-10, time: 0.006935
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 526, objective value: 0.08, E[p(y|x)] approx: 0.9255, learning rate: 2.98e-10, time: 0.00819
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 527, objective value: 0.08274, E[p(y|x)] approx: 0.9232, learning rate: 2.98e-10, time: 0.007263
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 528, objective value: 0.07878, E[p(y|x)] approx: 0.9265, learning rate: 2.98e-10, time: 0.007841
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 529, objective value: 0.08021, E[p(y|x)] approx: 0.9251, learning rate: 2.98e-10, time: 0.007446
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 530, objective value: 0.07949, E[p(y|x)] approx: 0.9259, learning rate: 2.98e-10, time: 0.007732
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 531, objective value: 0.08083, E[p(y|x)] approx: 0.9249, learning rate: 1.49e-10, time: 0.007754
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 532, objective value: 0.08146, E[p(y|x)] approx: 0.9242, learning rate: 1.49e-10, time: 0.007202
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 533, objective value: 0.08086, E[p(y|x)] approx: 0.9248, learning rate: 1.49e-10, time: 0.007336
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 534, objective value: 0.07971, E[p(y|x)] approx: 0.9256, learning rate: 1.49e-10, time: 0.007364
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 535, objective value: 0.07748, E[p(y|x)] approx: 0.9277, learning rate: 1.49e-10, time: 0.006982
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 536, objective value: 0.07989, E[p(y|x)] approx: 0.9255, learning rate: 1.49e-10, time: 0.007274
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 537, objective value: 0.07885, E[p(y|x)] approx: 0.9264, learning rate: 1.49e-10, time: 0.007267
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 538, objective value: 0.07971, E[p(y|x)] approx: 0.9257, learning rate: 1.49e-10, time: 0.007298
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 539, objective value: 0.07998, E[p(y|x)] approx: 0.9256, learning rate: 1.49e-10, time: 0.007356
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 540, objective value: 0.07746, E[p(y|x)] approx: 0.9277, learning rate: 1.49e-10, time: 0.00727
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 541, objective value: 0.08289, E[p(y|x)] approx: 0.923, learning rate: 1.49e-10, time: 0.007683
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 542, objective value: 0.08083, E[p(y|x)] approx: 0.9249, learning rate: 1.49e-10, time: 0.007247
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 543, objective value: 0.08198, E[p(y|x)] approx: 0.9237, learning rate: 1.49e-10, time: 0.007697
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 544, objective value: 0.08252, E[p(y|x)] approx: 0.9235, learning rate: 1.49e-10, time: 0.007343
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 545, objective value: 0.08329, E[p(y|x)] approx: 0.9226, learning rate: 1.49e-10, time: 0.007791
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 546, objective value: 0.0792, E[p(y|x)] approx: 0.9261, learning rate: 1.49e-10, time: 0.007155
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 547, objective value: 0.07923, E[p(y|x)] approx: 0.9261, learning rate: 1.49e-10, time: 0.007413
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 548, objective value: 0.08107, E[p(y|x)] approx: 0.9245, learning rate: 1.49e-10, time: 0.007645
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 549, objective value: 0.08155, E[p(y|x)] approx: 0.9241, learning rate: 1.49e-10, time: 0.00729
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 550, objective value: 0.07811, E[p(y|x)] approx: 0.9271, learning rate: 1.49e-10, time: 0.008303
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 551, objective value: 0.08011, E[p(y|x)] approx: 0.9253, learning rate: 7.451e-11, time: 0.00755
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 552, objective value: 0.07863, E[p(y|x)] approx: 0.9266, learning rate: 7.451e-11, time: 0.007393
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 553, objective value: 0.07948, E[p(y|x)] approx: 0.9258, learning rate: 7.451e-11, time: 0.007377
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 554, objective value: 0.07625, E[p(y|x)] approx: 0.9286, learning rate: 7.451e-11, time: 0.007102
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 555, objective value: 0.07891, E[p(y|x)] approx: 0.9263, learning rate: 7.451e-11, time: 0.007329
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 556, objective value: 0.07984, E[p(y|x)] approx: 0.9256, learning rate: 7.451e-11, time: 0.007406
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 557, objective value: 0.08142, E[p(y|x)] approx: 0.9243, learning rate: 7.451e-11, time: 0.007423
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 558, objective value: 0.07924, E[p(y|x)] approx: 0.9261, learning rate: 7.451e-11, time: 0.007236
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 559, objective value: 0.08161, E[p(y|x)] approx: 0.9241, learning rate: 7.451e-11, time: 0.007301
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 560, objective value: 0.07946, E[p(y|x)] approx: 0.9261, learning rate: 7.451e-11, time: 0.006996
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 561, objective value: 0.07975, E[p(y|x)] approx: 0.9258, learning rate: 7.451e-11, time: 0.008362
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 562, objective value: 0.0791, E[p(y|x)] approx: 0.9262, learning rate: 7.451e-11, time: 0.007816
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 563, objective value: 0.0807, E[p(y|x)] approx: 0.9248, learning rate: 7.451e-11, time: 0.00703
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 564, objective value: 0.08089, E[p(y|x)] approx: 0.9246, learning rate: 7.451e-11, time: 0.007862
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 565, objective value: 0.08065, E[p(y|x)] approx: 0.9248, learning rate: 7.451e-11, time: 0.007086
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 566, objective value: 0.0814, E[p(y|x)] approx: 0.9244, learning rate: 3.725e-11, time: 0.007195
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 567, objective value: 0.08387, E[p(y|x)] approx: 0.9222, learning rate: 3.725e-11, time: 0.007314
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 568, objective value: 0.07959, E[p(y|x)] approx: 0.9257, learning rate: 3.725e-11, time: 0.007175
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 569, objective value: 0.08082, E[p(y|x)] approx: 0.9245, learning rate: 3.725e-11, time: 0.007207
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 570, objective value: 0.08102, E[p(y|x)] approx: 0.9245, learning rate: 3.725e-11, time: 0.00716
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 571, objective value: 0.08134, E[p(y|x)] approx: 0.9243, learning rate: 3.725e-11, time: 0.007284
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 572, objective value: 0.08001, E[p(y|x)] approx: 0.9254, learning rate: 3.725e-11, time: 0.007276
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 573, objective value: 0.08121, E[p(y|x)] approx: 0.9244, learning rate: 3.725e-11, time: 0.007531
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 574, objective value: 0.08196, E[p(y|x)] approx: 0.9237, learning rate: 3.725e-11, time: 0.007333
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 575, objective value: 0.08109, E[p(y|x)] approx: 0.9245, learning rate: 3.725e-11, time: 0.007214
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 576, objective value: 0.08262, E[p(y|x)] approx: 0.9233, learning rate: 1.863e-11, time: 0.007223
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 577, objective value: 0.08131, E[p(y|x)] approx: 0.9245, learning rate: 1.863e-11, time: 0.007226
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 578, objective value: 0.0806, E[p(y|x)] approx: 0.925, learning rate: 1.863e-11, time: 0.007134
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 579, objective value: 0.07989, E[p(y|x)] approx: 0.9255, learning rate: 1.863e-11, time: 0.007419
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 580, objective value: 0.08022, E[p(y|x)] approx: 0.9252, learning rate: 1.863e-11, time: 0.007227
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 581, objective value: 0.08143, E[p(y|x)] approx: 0.9241, learning rate: 1.863e-11, time: 0.007155
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 582, objective value: 0.08048, E[p(y|x)] approx: 0.9249, learning rate: 1.863e-11, time: 0.007219
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 583, objective value: 0.07894, E[p(y|x)] approx: 0.9263, learning rate: 1.863e-11, time: 0.007476
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 584, objective value: 0.07826, E[p(y|x)] approx: 0.9269, learning rate: 1.863e-11, time: 0.007695
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 585, objective value: 0.08102, E[p(y|x)] approx: 0.9247, learning rate: 1.863e-11, time: 0.009006
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 586, objective value: 0.0817, E[p(y|x)] approx: 0.9241, learning rate: 1.863e-11, time: 0.008169
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 587, objective value: 0.08153, E[p(y|x)] approx: 0.924, learning rate: 1.863e-11, time: 0.006606
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 588, objective value: 0.07577, E[p(y|x)] approx: 0.9291, learning rate: 1.863e-11, time: 0.00713
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 589, objective value: 0.07858, E[p(y|x)] approx: 0.9268, learning rate: 1.863e-11, time: 0.007297
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 590, objective value: 0.07955, E[p(y|x)] approx: 0.9259, learning rate: 1.863e-11, time: 0.007214
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 591, objective value: 0.07807, E[p(y|x)] approx: 0.9272, learning rate: 1.863e-11, time: 0.007345
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 592, objective value: 0.0775, E[p(y|x)] approx: 0.9276, learning rate: 1.863e-11, time: 0.007242
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 593, objective value: 0.07921, E[p(y|x)] approx: 0.9261, learning rate: 1.863e-11, time: 0.00689
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 594, objective value: 0.08281, E[p(y|x)] approx: 0.9236, learning rate: 1.863e-11, time: 0.007261
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 595, objective value: 0.08038, E[p(y|x)] approx: 0.9251, learning rate: 1.863e-11, time: 0.00742
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 596, objective value: 0.07962, E[p(y|x)] approx: 0.9259, learning rate: 1.863e-11, time: 0.00729
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 597, objective value: 0.07964, E[p(y|x)] approx: 0.9259, learning rate: 1.863e-11, time: 0.007177
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 598, objective value: 0.0799, E[p(y|x)] approx: 0.9256, learning rate: 1.863e-11, time: 0.007218
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 599, objective value: 0.08141, E[p(y|x)] approx: 0.9241, learning rate: 1.863e-11, time: 0.007393
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 600, objective value: 0.07683, E[p(y|x)] approx: 0.9281, learning rate: 1.863e-11, time: 0.007376
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 601, objective value: 0.07855, E[p(y|x)] approx: 0.9266, learning rate: 1.863e-11, time: 0.007265
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 602, objective value: 0.08233, E[p(y|x)] approx: 0.9236, learning rate: 1.863e-11, time: 0.007269
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 603, objective value: 0.08181, E[p(y|x)] approx: 0.9239, learning rate: 9.313e-12, time: 0.007219
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 604, objective value: 0.0774, E[p(y|x)] approx: 0.9279, learning rate: 9.313e-12, time: 0.007223
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 605, objective value: 0.08052, E[p(y|x)] approx: 0.925, learning rate: 9.313e-12, time: 0.00709
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 606, objective value: 0.08085, E[p(y|x)] approx: 0.9249, learning rate: 9.313e-12, time: 0.007356
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 607, objective value: 0.08161, E[p(y|x)] approx: 0.9242, learning rate: 9.313e-12, time: 0.007148
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 608, objective value: 0.08095, E[p(y|x)] approx: 0.9245, learning rate: 9.313e-12, time: 0.007444
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 609, objective value: 0.08136, E[p(y|x)] approx: 0.9242, learning rate: 9.313e-12, time: 0.007409
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 610, objective value: 0.07976, E[p(y|x)] approx: 0.9255, learning rate: 9.313e-12, time: 0.007147
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 611, objective value: 0.08227, E[p(y|x)] approx: 0.9235, learning rate: 9.313e-12, time: 0.007171
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 612, objective value: 0.0806, E[p(y|x)] approx: 0.9252, learning rate: 9.313e-12, time: 0.007211
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 613, objective value: 0.07992, E[p(y|x)] approx: 0.9253, learning rate: 9.313e-12, time: 0.007036
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 614, objective value: 0.08367, E[p(y|x)] approx: 0.9223, learning rate: 9.313e-12, time: 0.007404
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 615, objective value: 0.07808, E[p(y|x)] approx: 0.9272, learning rate: 4.657e-12, time: 0.007098
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 616, objective value: 0.08331, E[p(y|x)] approx: 0.9227, learning rate: 4.657e-12, time: 0.006982
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 617, objective value: 0.07752, E[p(y|x)] approx: 0.9275, learning rate: 4.657e-12, time: 0.007282
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 618, objective value: 0.081, E[p(y|x)] approx: 0.9248, learning rate: 4.657e-12, time: 0.007226
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 619, objective value: 0.08345, E[p(y|x)] approx: 0.9224, learning rate: 4.657e-12, time: 0.007424
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 620, objective value: 0.08028, E[p(y|x)] approx: 0.9251, learning rate: 4.657e-12, time: 0.007878
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 621, objective value: 0.07981, E[p(y|x)] approx: 0.9257, learning rate: 4.657e-12, time: 0.007231
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 622, objective value: 0.08183, E[p(y|x)] approx: 0.924, learning rate: 4.657e-12, time: 0.007262
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 623, objective value: 0.07868, E[p(y|x)] approx: 0.9265, learning rate: 4.657e-12, time: 0.008324
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 624, objective value: 0.08193, E[p(y|x)] approx: 0.9238, learning rate: 4.657e-12, time: 0.007332
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 625, objective value: 0.08138, E[p(y|x)] approx: 0.9244, learning rate: 4.657e-12, time: 0.007345
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 626, objective value: 0.07823, E[p(y|x)] approx: 0.9268, learning rate: 4.657e-12, time: 0.007256
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 627, objective value: 0.07869, E[p(y|x)] approx: 0.9266, learning rate: 4.657e-12, time: 0.006879
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 628, objective value: 0.08139, E[p(y|x)] approx: 0.9244, learning rate: 4.657e-12, time: 0.007288
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 629, objective value: 0.08069, E[p(y|x)] approx: 0.9247, learning rate: 4.657e-12, time: 0.007145
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 630, objective value: 0.08351, E[p(y|x)] approx: 0.9229, learning rate: 4.657e-12, time: 0.007762
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 631, objective value: 0.08207, E[p(y|x)] approx: 0.9236, learning rate: 4.657e-12, time: 0.007241
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 632, objective value: 0.08143, E[p(y|x)] approx: 0.9245, learning rate: 4.657e-12, time: 0.007227
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 633, objective value: 0.07956, E[p(y|x)] approx: 0.9259, learning rate: 4.657e-12, time: 0.006487
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 634, objective value: 0.08257, E[p(y|x)] approx: 0.9232, learning rate: 4.657e-12, time: 0.007049
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 635, objective value: 0.07978, E[p(y|x)] approx: 0.9256, learning rate: 4.657e-12, time: 0.00662
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 636, objective value: 0.07892, E[p(y|x)] approx: 0.9265, learning rate: 4.657e-12, time: 0.00735
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 637, objective value: 0.08208, E[p(y|x)] approx: 0.9239, learning rate: 4.657e-12, time: 0.007232
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 638, objective value: 0.08253, E[p(y|x)] approx: 0.9232, learning rate: 4.657e-12, time: 0.007809
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 639, objective value: 0.08055, E[p(y|x)] approx: 0.9251, learning rate: 4.657e-12, time: 0.007238
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 640, objective value: 0.07998, E[p(y|x)] approx: 0.9256, learning rate: 2.328e-12, time: 0.007974
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 641, objective value: 0.08233, E[p(y|x)] approx: 0.9234, learning rate: 2.328e-12, time: 0.007196
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 642, objective value: 0.08438, E[p(y|x)] approx: 0.9225, learning rate: 2.328e-12, time: 0.007091
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 643, objective value: 0.07963, E[p(y|x)] approx: 0.9256, learning rate: 2.328e-12, time: 0.007206
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 644, objective value: 0.08121, E[p(y|x)] approx: 0.9244, learning rate: 2.328e-12, time: 0.007066
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 645, objective value: 0.0773, E[p(y|x)] approx: 0.9278, learning rate: 2.328e-12, time: 0.00716
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 646, objective value: 0.07872, E[p(y|x)] approx: 0.9267, learning rate: 2.328e-12, time: 0.007257
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 647, objective value: 0.07809, E[p(y|x)] approx: 0.9273, learning rate: 2.328e-12, time: 0.007066
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 648, objective value: 0.08107, E[p(y|x)] approx: 0.9247, learning rate: 2.328e-12, time: 0.007325
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 649, objective value: 0.08203, E[p(y|x)] approx: 0.9235, learning rate: 2.328e-12, time: 0.007263
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 650, objective value: 0.0783, E[p(y|x)] approx: 0.9269, learning rate: 2.328e-12, time: 0.007406
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 651, objective value: 0.07746, E[p(y|x)] approx: 0.9278, learning rate: 2.328e-12, time: 0.007263
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 652, objective value: 0.08072, E[p(y|x)] approx: 0.9249, learning rate: 2.328e-12, time: 0.007321
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 653, objective value: 0.07902, E[p(y|x)] approx: 0.9263, learning rate: 2.328e-12, time: 0.00725
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 654, objective value: 0.08209, E[p(y|x)] approx: 0.9239, learning rate: 2.328e-12, time: 0.007196
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 655, objective value: 0.07901, E[p(y|x)] approx: 0.9262, learning rate: 2.328e-12, time: 0.007265
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 656, objective value: 0.08322, E[p(y|x)] approx: 0.9229, learning rate: 2.328e-12, time: 0.007338
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 657, objective value: 0.07922, E[p(y|x)] approx: 0.9264, learning rate: 2.328e-12, time: 0.007255
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 658, objective value: 0.08312, E[p(y|x)] approx: 0.9227, learning rate: 2.328e-12, time: 0.007285
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 659, objective value: 0.07986, E[p(y|x)] approx: 0.9256, learning rate: 2.328e-12, time: 0.007006
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 660, objective value: 0.08013, E[p(y|x)] approx: 0.9252, learning rate: 2.328e-12, time: 0.007209
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 661, objective value: 0.07959, E[p(y|x)] approx: 0.9257, learning rate: 2.328e-12, time: 0.007257
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 662, objective value: 0.08309, E[p(y|x)] approx: 0.9229, learning rate: 2.328e-12, time: 0.007261
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 663, objective value: 0.08184, E[p(y|x)] approx: 0.9237, learning rate: 2.328e-12, time: 0.006752
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 664, objective value: 0.08101, E[p(y|x)] approx: 0.9245, learning rate: 1.164e-12, time: 0.007207
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 665, objective value: 0.08033, E[p(y|x)] approx: 0.9252, learning rate: 1.164e-12, time: 0.007167
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 666, objective value: 0.08034, E[p(y|x)] approx: 0.9255, learning rate: 1.164e-12, time: 0.007264
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 667, objective value: 0.08074, E[p(y|x)] approx: 0.9249, learning rate: 1.164e-12, time: 0.007226
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 668, objective value: 0.07945, E[p(y|x)] approx: 0.9261, learning rate: 1.164e-12, time: 0.007273
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 669, objective value: 0.08191, E[p(y|x)] approx: 0.924, learning rate: 1.164e-12, time: 0.007201
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 670, objective value: 0.0817, E[p(y|x)] approx: 0.9243, learning rate: 1.164e-12, time: 0.007169
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 671, objective value: 0.07918, E[p(y|x)] approx: 0.926, learning rate: 1.164e-12, time: 0.006978
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 672, objective value: 0.07958, E[p(y|x)] approx: 0.9258, learning rate: 1.164e-12, time: 0.007013
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 673, objective value: 0.08049, E[p(y|x)] approx: 0.9251, learning rate: 1.164e-12, time: 0.007329
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 674, objective value: 0.07948, E[p(y|x)] approx: 0.9258, learning rate: 1.164e-12, time: 0.007387
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 675, objective value: 0.07652, E[p(y|x)] approx: 0.9284, learning rate: 1.164e-12, time: 0.00716
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 676, objective value: 0.07939, E[p(y|x)] approx: 0.926, learning rate: 1.164e-12, time: 0.007279
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 677, objective value: 0.07867, E[p(y|x)] approx: 0.9265, learning rate: 1.164e-12, time: 0.007595
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 678, objective value: 0.08174, E[p(y|x)] approx: 0.9241, learning rate: 1.164e-12, time: 0.007192
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 679, objective value: 0.0837, E[p(y|x)] approx: 0.9224, learning rate: 1.164e-12, time: 0.007304
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 680, objective value: 0.07626, E[p(y|x)] approx: 0.9287, learning rate: 1.164e-12, time: 0.00695
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 681, objective value: 0.07964, E[p(y|x)] approx: 0.9257, learning rate: 1.164e-12, time: 0.007273
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 682, objective value: 0.07892, E[p(y|x)] approx: 0.9265, learning rate: 1.164e-12, time: 0.00708
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 683, objective value: 0.07972, E[p(y|x)] approx: 0.9258, learning rate: 1.164e-12, time: 0.00726
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 684, objective value: 0.08072, E[p(y|x)] approx: 0.9249, learning rate: 1.164e-12, time: 0.007189
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 685, objective value: 0.08009, E[p(y|x)] approx: 0.9255, learning rate: 1.164e-12, time: 0.006998
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 686, objective value: 0.07883, E[p(y|x)] approx: 0.9265, learning rate: 1.164e-12, time: 0.007234
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 687, objective value: 0.0796, E[p(y|x)] approx: 0.9259, learning rate: 1.164e-12, time: 0.007405
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 688, objective value: 0.08038, E[p(y|x)] approx: 0.9252, learning rate: 1.164e-12, time: 0.007143
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 689, objective value: 0.08141, E[p(y|x)] approx: 0.9245, learning rate: 1.164e-12, time: 0.007253
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 690, objective value: 0.08133, E[p(y|x)] approx: 0.9242, learning rate: 1.164e-12, time: 0.00734
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 691, objective value: 0.07903, E[p(y|x)] approx: 0.9262, learning rate: 1.164e-12, time: 0.0073
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 692, objective value: 0.08529, E[p(y|x)] approx: 0.9211, learning rate: 1.164e-12, time: 0.007319
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 693, objective value: 0.07942, E[p(y|x)] approx: 0.9259, learning rate: 1.164e-12, time: 0.007156
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 694, objective value: 0.07929, E[p(y|x)] approx: 0.9267, learning rate: 5.821e-13, time: 0.007154
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 695, objective value: 0.08231, E[p(y|x)] approx: 0.9237, learning rate: 5.821e-13, time: 0.007145
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 696, objective value: 0.08066, E[p(y|x)] approx: 0.9252, learning rate: 5.821e-13, time: 0.007113
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 697, objective value: 0.08187, E[p(y|x)] approx: 0.924, learning rate: 5.821e-13, time: 0.007236
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 698, objective value: 0.08141, E[p(y|x)] approx: 0.9242, learning rate: 5.821e-13, time: 0.007359
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 699, objective value: 0.08142, E[p(y|x)] approx: 0.9241, learning rate: 5.821e-13, time: 0.007909
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 700, objective value: 0.08281, E[p(y|x)] approx: 0.923, learning rate: 5.821e-13, time: 0.007396
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 701, objective value: 0.07897, E[p(y|x)] approx: 0.9264, learning rate: 5.821e-13, time: 0.00676
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 702, objective value: 0.07829, E[p(y|x)] approx: 0.9271, learning rate: 5.821e-13, time: 0.007155
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 703, objective value: 0.07783, E[p(y|x)] approx: 0.9275, learning rate: 5.821e-13, time: 0.007222
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 704, objective value: 0.08147, E[p(y|x)] approx: 0.9242, learning rate: 5.821e-13, time: 0.007214
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 705, objective value: 0.08409, E[p(y|x)] approx: 0.922, learning rate: 2.91e-13, time: 0.007125
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 706, objective value: 0.08099, E[p(y|x)] approx: 0.9246, learning rate: 2.91e-13, time: 0.007214
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 707, objective value: 0.07995, E[p(y|x)] approx: 0.9255, learning rate: 2.91e-13, time: 0.007545
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 708, objective value: 0.08019, E[p(y|x)] approx: 0.9255, learning rate: 2.91e-13, time: 0.007008
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 709, objective value: 0.07916, E[p(y|x)] approx: 0.9263, learning rate: 2.91e-13, time: 0.007315
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 710, objective value: 0.07923, E[p(y|x)] approx: 0.9262, learning rate: 2.91e-13, time: 0.00747
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 711, objective value: 0.08132, E[p(y|x)] approx: 0.9244, learning rate: 2.91e-13, time: 0.007197
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 712, objective value: 0.07963, E[p(y|x)] approx: 0.9258, learning rate: 2.91e-13, time: 0.008017
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 713, objective value: 0.07832, E[p(y|x)] approx: 0.9269, learning rate: 2.91e-13, time: 0.007125
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 714, objective value: 0.07966, E[p(y|x)] approx: 0.9259, learning rate: 2.91e-13, time: 0.007062
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 715, objective value: 0.08007, E[p(y|x)] approx: 0.9254, learning rate: 2.91e-13, time: 0.007872
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 716, objective value: 0.08036, E[p(y|x)] approx: 0.9252, learning rate: 2.91e-13, time: 0.007222
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 717, objective value: 0.07841, E[p(y|x)] approx: 0.9269, learning rate: 2.91e-13, time: 0.007137
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 718, objective value: 0.08167, E[p(y|x)] approx: 0.9243, learning rate: 2.91e-13, time: 0.007226
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 719, objective value: 0.0807, E[p(y|x)] approx: 0.9249, learning rate: 2.91e-13, time: 0.007221
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 720, objective value: 0.07983, E[p(y|x)] approx: 0.9257, learning rate: 2.91e-13, time: 0.007359
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 721, objective value: 0.08263, E[p(y|x)] approx: 0.9232, learning rate: 2.91e-13, time: 0.007122
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 722, objective value: 0.08212, E[p(y|x)] approx: 0.9236, learning rate: 2.91e-13, time: 0.006953
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 723, objective value: 0.0808, E[p(y|x)] approx: 0.9249, learning rate: 2.91e-13, time: 0.007055
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 724, objective value: 0.08029, E[p(y|x)] approx: 0.9252, learning rate: 2.91e-13, time: 0.007236
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 725, objective value: 0.08248, E[p(y|x)] approx: 0.9233, learning rate: 2.91e-13, time: 0.007027
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 726, objective value: 0.07841, E[p(y|x)] approx: 0.9268, learning rate: 2.91e-13, time: 0.007345
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 727, objective value: 0.081, E[p(y|x)] approx: 0.9246, learning rate: 2.91e-13, time: 0.006887
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 728, objective value: 0.08121, E[p(y|x)] approx: 0.9244, learning rate: 1.455e-13, time: 0.007237
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 729, objective value: 0.08296, E[p(y|x)] approx: 0.9228, learning rate: 1.455e-13, time: 0.007281
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 730, objective value: 0.08299, E[p(y|x)] approx: 0.9233, learning rate: 1.455e-13, time: 0.007128
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 731, objective value: 0.08038, E[p(y|x)] approx: 0.9252, learning rate: 1.455e-13, time: 0.007247
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 732, objective value: 0.08012, E[p(y|x)] approx: 0.9253, learning rate: 1.455e-13, time: 0.007261
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 733, objective value: 0.07965, E[p(y|x)] approx: 0.9258, learning rate: 1.455e-13, time: 0.007218
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 734, objective value: 0.08053, E[p(y|x)] approx: 0.925, learning rate: 1.455e-13, time: 0.008763
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 735, objective value: 0.07928, E[p(y|x)] approx: 0.9261, learning rate: 1.455e-13, time: 0.007243
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 736, objective value: 0.07714, E[p(y|x)] approx: 0.9282, learning rate: 1.455e-13, time: 0.007737
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 737, objective value: 0.07714, E[p(y|x)] approx: 0.9278, learning rate: 1.455e-13, time: 0.007259
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 738, objective value: 0.08272, E[p(y|x)] approx: 0.9231, learning rate: 1.455e-13, time: 0.007862
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 739, objective value: 0.07982, E[p(y|x)] approx: 0.9256, learning rate: 1.455e-13, time: 0.007243
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 740, objective value: 0.07743, E[p(y|x)] approx: 0.9277, learning rate: 1.455e-13, time: 0.007058
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 741, objective value: 0.08136, E[p(y|x)] approx: 0.9242, learning rate: 1.455e-13, time: 0.007175
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 742, objective value: 0.07984, E[p(y|x)] approx: 0.9255, learning rate: 1.455e-13, time: 0.00713
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 743, objective value: 0.08285, E[p(y|x)] approx: 0.923, learning rate: 1.455e-13, time: 0.007196
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 744, objective value: 0.07872, E[p(y|x)] approx: 0.9267, learning rate: 1.455e-13, time: 0.00727
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 745, objective value: 0.08069, E[p(y|x)] approx: 0.9249, learning rate: 1.455e-13, time: 0.007304
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 746, objective value: 0.08346, E[p(y|x)] approx: 0.9225, learning rate: 1.455e-13, time: 0.007281
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 747, objective value: 0.0789, E[p(y|x)] approx: 0.9264, learning rate: 1.455e-13, time: 0.007109
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 748, objective value: 0.08118, E[p(y|x)] approx: 0.9244, learning rate: 1.455e-13, time: 0.007152
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 749, objective value: 0.08176, E[p(y|x)] approx: 0.9239, learning rate: 1.455e-13, time: 0.00704
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 750, objective value: 0.07794, E[p(y|x)] approx: 0.9271, learning rate: 1.455e-13, time: 0.007153
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 751, objective value: 0.08017, E[p(y|x)] approx: 0.9254, learning rate: 7.276e-14, time: 0.007151
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 752, objective value: 0.08015, E[p(y|x)] approx: 0.9253, learning rate: 7.276e-14, time: 0.007186
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 753, objective value: 0.08292, E[p(y|x)] approx: 0.923, learning rate: 7.276e-14, time: 0.007239
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 754, objective value: 0.08008, E[p(y|x)] approx: 0.9253, learning rate: 7.276e-14, time: 0.007294
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 755, objective value: 0.08307, E[p(y|x)] approx: 0.9228, learning rate: 7.276e-14, time: 0.008003
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 756, objective value: 0.08196, E[p(y|x)] approx: 0.9237, learning rate: 7.276e-14, time: 0.007132
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 757, objective value: 0.07858, E[p(y|x)] approx: 0.9265, learning rate: 7.276e-14, time: 0.00736
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 758, objective value: 0.07726, E[p(y|x)] approx: 0.9279, learning rate: 7.276e-14, time: 0.007152
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 759, objective value: 0.08134, E[p(y|x)] approx: 0.9243, learning rate: 7.276e-14, time: 0.007151
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 760, objective value: 0.08417, E[p(y|x)] approx: 0.9219, learning rate: 7.276e-14, time: 0.007204
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 761, objective value: 0.08105, E[p(y|x)] approx: 0.9245, learning rate: 7.276e-14, time: 0.007407
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 762, objective value: 0.08102, E[p(y|x)] approx: 0.9245, learning rate: 7.276e-14, time: 0.007061
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 763, objective value: 0.08436, E[p(y|x)] approx: 0.9217, learning rate: 7.276e-14, time: 0.007267
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 764, objective value: 0.08114, E[p(y|x)] approx: 0.9244, learning rate: 7.276e-14, time: 0.006754
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 765, objective value: 0.07876, E[p(y|x)] approx: 0.9265, learning rate: 7.276e-14, time: 0.007245
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 766, objective value: 0.08065, E[p(y|x)] approx: 0.9249, learning rate: 7.276e-14, time: 0.006958
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 767, objective value: 0.08299, E[p(y|x)] approx: 0.923, learning rate: 7.276e-14, time: 0.007316
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 768, objective value: 0.08044, E[p(y|x)] approx: 0.9252, learning rate: 7.276e-14, time: 0.007172
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 769, objective value: 0.07923, E[p(y|x)] approx: 0.926, learning rate: 7.276e-14, time: 0.007228
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 770, objective value: 0.08175, E[p(y|x)] approx: 0.9238, learning rate: 3.638e-14, time: 0.007274
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 771, objective value: 0.08148, E[p(y|x)] approx: 0.9241, learning rate: 3.638e-14, time: 0.007158
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 772, objective value: 0.08246, E[p(y|x)] approx: 0.9234, learning rate: 3.638e-14, time: 0.0073
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 773, objective value: 0.07922, E[p(y|x)] approx: 0.9261, learning rate: 3.638e-14, time: 0.007235
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 774, objective value: 0.0813, E[p(y|x)] approx: 0.9244, learning rate: 3.638e-14, time: 0.007785
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 775, objective value: 0.07847, E[p(y|x)] approx: 0.9267, learning rate: 3.638e-14, time: 0.007285
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 776, objective value: 0.07856, E[p(y|x)] approx: 0.9268, learning rate: 3.638e-14, time: 0.007132
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 777, objective value: 0.08083, E[p(y|x)] approx: 0.9248, learning rate: 3.638e-14, time: 0.00728
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 778, objective value: 0.08172, E[p(y|x)] approx: 0.9239, learning rate: 3.638e-14, time: 0.007726
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 779, objective value: 0.08039, E[p(y|x)] approx: 0.9252, learning rate: 3.638e-14, time: 0.007123
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 780, objective value: 0.07864, E[p(y|x)] approx: 0.9266, learning rate: 3.638e-14, time: 0.007301
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 781, objective value: 0.08, E[p(y|x)] approx: 0.9256, learning rate: 3.638e-14, time: 0.007264
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 782, objective value: 0.0816, E[p(y|x)] approx: 0.9241, learning rate: 3.638e-14, time: 0.00726
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 783, objective value: 0.08308, E[p(y|x)] approx: 0.9228, learning rate: 3.638e-14, time: 0.007362
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 784, objective value: 0.07817, E[p(y|x)] approx: 0.9271, learning rate: 3.638e-14, time: 0.007321
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 785, objective value: 0.08088, E[p(y|x)] approx: 0.9248, learning rate: 3.638e-14, time: 0.007393
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 786, objective value: 0.07919, E[p(y|x)] approx: 0.9261, learning rate: 3.638e-14, time: 0.00732
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 787, objective value: 0.07913, E[p(y|x)] approx: 0.9264, learning rate: 3.638e-14, time: 0.007132
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 788, objective value: 0.08067, E[p(y|x)] approx: 0.9248, learning rate: 3.638e-14, time: 0.007842
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 789, objective value: 0.0807, E[p(y|x)] approx: 0.9249, learning rate: 3.638e-14, time: 0.007161
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 790, objective value: 0.07958, E[p(y|x)] approx: 0.9259, learning rate: 3.638e-14, time: 0.007609
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 791, objective value: 0.08199, E[p(y|x)] approx: 0.9237, learning rate: 3.638e-14, time: 0.007786
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 792, objective value: 0.08185, E[p(y|x)] approx: 0.9236, learning rate: 3.638e-14, time: 0.0072
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 793, objective value: 0.07766, E[p(y|x)] approx: 0.9275, learning rate: 1.819e-14, time: 0.007212
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 794, objective value: 0.08071, E[p(y|x)] approx: 0.9249, learning rate: 1.819e-14, time: 0.006972
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 795, objective value: 0.08176, E[p(y|x)] approx: 0.924, learning rate: 1.819e-14, time: 0.007462
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 796, objective value: 0.08025, E[p(y|x)] approx: 0.9253, learning rate: 1.819e-14, time: 0.007118
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 797, objective value: 0.07658, E[p(y|x)] approx: 0.9283, learning rate: 1.819e-14, time: 0.007439
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 798, objective value: 0.08112, E[p(y|x)] approx: 0.9245, learning rate: 1.819e-14, time: 0.00702
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 799, objective value: 0.07963, E[p(y|x)] approx: 0.9258, learning rate: 1.819e-14, time: 0.00733
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 800, objective value: 0.07894, E[p(y|x)] approx: 0.9264, learning rate: 1.819e-14, time: 0.007226
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 801, objective value: 0.08301, E[p(y|x)] approx: 0.9229, learning rate: 1.819e-14, time: 0.007068
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 802, objective value: 0.07946, E[p(y|x)] approx: 0.9259, learning rate: 1.819e-14, time: 0.007363
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 803, objective value: 0.07923, E[p(y|x)] approx: 0.9261, learning rate: 1.819e-14, time: 0.007168
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 804, objective value: 0.07868, E[p(y|x)] approx: 0.9266, learning rate: 1.819e-14, time: 0.007194
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 805, objective value: 0.08111, E[p(y|x)] approx: 0.9244, learning rate: 1.819e-14, time: 0.007161
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 806, objective value: 0.08317, E[p(y|x)] approx: 0.9227, learning rate: 1.819e-14, time: 0.007166
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 807, objective value: 0.07913, E[p(y|x)] approx: 0.926, learning rate: 1.819e-14, time: 0.007264
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 808, objective value: 0.08083, E[p(y|x)] approx: 0.9247, learning rate: 1.819e-14, time: 0.007198
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 809, objective value: 0.08003, E[p(y|x)] approx: 0.9255, learning rate: 1.819e-14, time: 0.006947
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 810, objective value: 0.08114, E[p(y|x)] approx: 0.9243, learning rate: 1.819e-14, time: 0.007319
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 811, objective value: 0.08151, E[p(y|x)] approx: 0.9242, learning rate: 1.819e-14, time: 0.007015
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 812, objective value: 0.08146, E[p(y|x)] approx: 0.9241, learning rate: 1.819e-14, time: 0.008787
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 813, objective value: 0.0799, E[p(y|x)] approx: 0.9254, learning rate: 1.819e-14, time: 0.008215
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 814, objective value: 0.07728, E[p(y|x)] approx: 0.9278, learning rate: 1.819e-14, time: 0.0072
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 815, objective value: 0.08086, E[p(y|x)] approx: 0.9248, learning rate: 1.819e-14, time: 0.007243
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 816, objective value: 0.08011, E[p(y|x)] approx: 0.9254, learning rate: 9.095e-15, time: 0.007076
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 817, objective value: 0.08049, E[p(y|x)] approx: 0.9252, learning rate: 9.095e-15, time: 0.007125
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 818, objective value: 0.08237, E[p(y|x)] approx: 0.9233, learning rate: 9.095e-15, time: 0.007349
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 819, objective value: 0.07876, E[p(y|x)] approx: 0.9265, learning rate: 9.095e-15, time: 0.00708
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 820, objective value: 0.08034, E[p(y|x)] approx: 0.9252, learning rate: 9.095e-15, time: 0.007993
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 821, objective value: 0.0812, E[p(y|x)] approx: 0.9247, learning rate: 9.095e-15, time: 0.007136
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 822, objective value: 0.0793, E[p(y|x)] approx: 0.926, learning rate: 9.095e-15, time: 0.007183
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 823, objective value: 0.078, E[p(y|x)] approx: 0.9272, learning rate: 9.095e-15, time: 0.007102
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 824, objective value: 0.08108, E[p(y|x)] approx: 0.9245, learning rate: 9.095e-15, time: 0.007044
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 825, objective value: 0.07874, E[p(y|x)] approx: 0.9267, learning rate: 9.095e-15, time: 0.007338
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 826, objective value: 0.08091, E[p(y|x)] approx: 0.9245, learning rate: 9.095e-15, time: 0.007347
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 827, objective value: 0.08004, E[p(y|x)] approx: 0.9254, learning rate: 9.095e-15, time: 0.007182
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 828, objective value: 0.08049, E[p(y|x)] approx: 0.9252, learning rate: 9.095e-15, time: 0.007305
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 829, objective value: 0.08308, E[p(y|x)] approx: 0.9229, learning rate: 9.095e-15, time: 0.007338
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 830, objective value: 0.08371, E[p(y|x)] approx: 0.9223, learning rate: 9.095e-15, time: 0.007229
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 831, objective value: 0.0788, E[p(y|x)] approx: 0.9265, learning rate: 9.095e-15, time: 0.007204
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 832, objective value: 0.07784, E[p(y|x)] approx: 0.9274, learning rate: 9.095e-15, time: 0.007635
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 833, objective value: 0.08019, E[p(y|x)] approx: 0.9252, learning rate: 9.095e-15, time: 0.007323
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 834, objective value: 0.08169, E[p(y|x)] approx: 0.9252, learning rate: 4.547e-15, time: 0.007412
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 835, objective value: 0.0809, E[p(y|x)] approx: 0.9246, learning rate: 4.547e-15, time: 0.007263
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 836, objective value: 0.08046, E[p(y|x)] approx: 0.9251, learning rate: 4.547e-15, time: 0.007109
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 837, objective value: 0.07796, E[p(y|x)] approx: 0.9273, learning rate: 4.547e-15, time: 0.0073
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 838, objective value: 0.07812, E[p(y|x)] approx: 0.9273, learning rate: 4.547e-15, time: 0.007548
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 839, objective value: 0.08382, E[p(y|x)] approx: 0.9224, learning rate: 4.547e-15, time: 0.007282
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 840, objective value: 0.08055, E[p(y|x)] approx: 0.9253, learning rate: 4.547e-15, time: 0.007869
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 841, objective value: 0.07976, E[p(y|x)] approx: 0.9256, learning rate: 4.547e-15, time: 0.007343
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 842, objective value: 0.08064, E[p(y|x)] approx: 0.9248, learning rate: 4.547e-15, time: 0.007162
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 843, objective value: 0.08101, E[p(y|x)] approx: 0.9247, learning rate: 4.547e-15, time: 0.006899
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 844, objective value: 0.07956, E[p(y|x)] approx: 0.9259, learning rate: 4.547e-15, time: 0.007275
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 845, objective value: 0.0803, E[p(y|x)] approx: 0.9251, learning rate: 4.547e-15, time: 0.007207
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 846, objective value: 0.08112, E[p(y|x)] approx: 0.9244, learning rate: 4.547e-15, time: 0.007141
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 847, objective value: 0.07975, E[p(y|x)] approx: 0.9256, learning rate: 4.547e-15, time: 0.007062
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 848, objective value: 0.08058, E[p(y|x)] approx: 0.925, learning rate: 4.547e-15, time: 0.007269
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 849, objective value: 0.08086, E[p(y|x)] approx: 0.9247, learning rate: 4.547e-15, time: 0.007136
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 850, objective value: 0.08136, E[p(y|x)] approx: 0.9243, learning rate: 4.547e-15, time: 0.007269
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 851, objective value: 0.08118, E[p(y|x)] approx: 0.9245, learning rate: 2.274e-15, time: 0.007257
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 852, objective value: 0.07723, E[p(y|x)] approx: 0.928, learning rate: 2.274e-15, time: 0.007338
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 853, objective value: 0.07862, E[p(y|x)] approx: 0.9267, learning rate: 2.274e-15, time: 0.007268
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 854, objective value: 0.07972, E[p(y|x)] approx: 0.9257, learning rate: 2.274e-15, time: 0.007033
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 855, objective value: 0.08286, E[p(y|x)] approx: 0.9229, learning rate: 2.274e-15, time: 0.007229
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 856, objective value: 0.07991, E[p(y|x)] approx: 0.9254, learning rate: 2.274e-15, time: 0.007146
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 857, objective value: 0.07863, E[p(y|x)] approx: 0.9267, learning rate: 2.274e-15, time: 0.007164
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 858, objective value: 0.07904, E[p(y|x)] approx: 0.9262, learning rate: 2.274e-15, time: 0.007247
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 859, objective value: 0.078, E[p(y|x)] approx: 0.9271, learning rate: 2.274e-15, time: 0.007296
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 860, objective value: 0.07726, E[p(y|x)] approx: 0.9279, learning rate: 2.274e-15, time: 0.007335
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 861, objective value: 0.07839, E[p(y|x)] approx: 0.9269, learning rate: 2.274e-15, time: 0.007368
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 862, objective value: 0.07923, E[p(y|x)] approx: 0.9263, learning rate: 2.274e-15, time: 0.00718
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 863, objective value: 0.07797, E[p(y|x)] approx: 0.9272, learning rate: 2.274e-15, time: 0.007218
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 864, objective value: 0.08081, E[p(y|x)] approx: 0.9246, learning rate: 2.274e-15, time: 0.007125
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 865, objective value: 0.07978, E[p(y|x)] approx: 0.9258, learning rate: 2.274e-15, time: 0.007068
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 866, objective value: 0.08265, E[p(y|x)] approx: 0.9231, learning rate: 2.274e-15, time: 0.007191
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 867, objective value: 0.08101, E[p(y|x)] approx: 0.9246, learning rate: 2.274e-15, time: 0.007402
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 868, objective value: 0.08096, E[p(y|x)] approx: 0.9248, learning rate: 2.274e-15, time: 0.008948
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 869, objective value: 0.07782, E[p(y|x)] approx: 0.9274, learning rate: 2.274e-15, time: 0.0072
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 870, objective value: 0.0801, E[p(y|x)] approx: 0.9254, learning rate: 2.274e-15, time: 0.007167
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 871, objective value: 0.08142, E[p(y|x)] approx: 0.9244, learning rate: 2.274e-15, time: 0.007337
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 872, objective value: 0.07898, E[p(y|x)] approx: 0.9263, learning rate: 2.274e-15, time: 0.007324
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 873, objective value: 0.0792, E[p(y|x)] approx: 0.9262, learning rate: 2.274e-15, time: 0.007056
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 874, objective value: 0.07952, E[p(y|x)] approx: 0.9256, learning rate: 2.274e-15, time: 0.007141
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 875, objective value: 0.07869, E[p(y|x)] approx: 0.9266, learning rate: 2.274e-15, time: 0.007236
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 876, objective value: 0.07774, E[p(y|x)] approx: 0.9274, learning rate: 1.137e-15, time: 0.007247
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 877, objective value: 0.08157, E[p(y|x)] approx: 0.924, learning rate: 1.137e-15, time: 0.007404
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 878, objective value: 0.08043, E[p(y|x)] approx: 0.9252, learning rate: 1.137e-15, time: 0.007184
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 879, objective value: 0.07958, E[p(y|x)] approx: 0.9257, learning rate: 1.137e-15, time: 0.007261
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 880, objective value: 0.08173, E[p(y|x)] approx: 0.924, learning rate: 1.137e-15, time: 0.00723
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 881, objective value: 0.08255, E[p(y|x)] approx: 0.9232, learning rate: 1.137e-15, time: 0.007056
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 882, objective value: 0.08145, E[p(y|x)] approx: 0.9241, learning rate: 1.137e-15, time: 0.007212
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 883, objective value: 0.07982, E[p(y|x)] approx: 0.9256, learning rate: 1.137e-15, time: 0.007268
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 884, objective value: 0.08214, E[p(y|x)] approx: 0.9235, learning rate: 1.137e-15, time: 0.007197
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 885, objective value: 0.08071, E[p(y|x)] approx: 0.9249, learning rate: 1.137e-15, time: 0.0078
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 886, objective value: 0.08025, E[p(y|x)] approx: 0.9252, learning rate: 1.137e-15, time: 0.007301
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 887, objective value: 0.07983, E[p(y|x)] approx: 0.9256, learning rate: 5.684e-16, time: 0.007197
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 888, objective value: 0.07848, E[p(y|x)] approx: 0.9266, learning rate: 5.684e-16, time: 0.007114
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 889, objective value: 0.08018, E[p(y|x)] approx: 0.9253, learning rate: 5.684e-16, time: 0.00723
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 890, objective value: 0.08412, E[p(y|x)] approx: 0.9217, learning rate: 5.684e-16, time: 0.006921
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 891, objective value: 0.08057, E[p(y|x)] approx: 0.9249, learning rate: 5.684e-16, time: 0.007314
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 892, objective value: 0.08069, E[p(y|x)] approx: 0.925, learning rate: 5.684e-16, time: 0.007938
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 893, objective value: 0.08095, E[p(y|x)] approx: 0.9245, learning rate: 5.684e-16, time: 0.007705
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 894, objective value: 0.07934, E[p(y|x)] approx: 0.9261, learning rate: 5.684e-16, time: 0.00704
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 895, objective value: 0.08346, E[p(y|x)] approx: 0.9223, learning rate: 5.684e-16, time: 0.007248
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 896, objective value: 0.08045, E[p(y|x)] approx: 0.9249, learning rate: 5.684e-16, time: 0.007295
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 897, objective value: 0.08334, E[p(y|x)] approx: 0.9228, learning rate: 5.684e-16, time: 0.007461
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 898, objective value: 0.07797, E[p(y|x)] approx: 0.9273, learning rate: 5.684e-16, time: 0.007299
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 899, objective value: 0.07831, E[p(y|x)] approx: 0.9268, learning rate: 5.684e-16, time: 0.007409
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 900, objective value: 0.08059, E[p(y|x)] approx: 0.9249, learning rate: 5.684e-16, time: 0.007241
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 901, objective value: 0.08122, E[p(y|x)] approx: 0.9242, learning rate: 5.684e-16, time: 0.007135
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 902, objective value: 0.07917, E[p(y|x)] approx: 0.9261, learning rate: 5.684e-16, time: 0.007149
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 903, objective value: 0.07957, E[p(y|x)] approx: 0.9258, learning rate: 5.684e-16, time: 0.007299
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 904, objective value: 0.07966, E[p(y|x)] approx: 0.9258, learning rate: 5.684e-16, time: 0.006978
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 905, objective value: 0.08058, E[p(y|x)] approx: 0.925, learning rate: 5.684e-16, time: 0.006912
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 906, objective value: 0.08149, E[p(y|x)] approx: 0.9242, learning rate: 5.684e-16, time: 0.007244
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 907, objective value: 0.07962, E[p(y|x)] approx: 0.9258, learning rate: 5.684e-16, time: 0.007242
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 908, objective value: 0.08471, E[p(y|x)] approx: 0.9216, learning rate: 5.684e-16, time: 0.007258
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 909, objective value: 0.08055, E[p(y|x)] approx: 0.925, learning rate: 5.684e-16, time: 0.007079
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 910, objective value: 0.08088, E[p(y|x)] approx: 0.9247, learning rate: 5.684e-16, time: 0.007324
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 911, objective value: 0.08078, E[p(y|x)] approx: 0.9248, learning rate: 5.684e-16, time: 0.007244
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 912, objective value: 0.08267, E[p(y|x)] approx: 0.9232, learning rate: 5.684e-16, time: 0.007252
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 913, objective value: 0.07739, E[p(y|x)] approx: 0.9278, learning rate: 5.684e-16, time: 0.00718
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 914, objective value: 0.08012, E[p(y|x)] approx: 0.9252, learning rate: 5.684e-16, time: 0.007325
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 915, objective value: 0.07888, E[p(y|x)] approx: 0.9264, learning rate: 5.684e-16, time: 0.007226
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 916, objective value: 0.08076, E[p(y|x)] approx: 0.9248, learning rate: 5.684e-16, time: 0.00713
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 917, objective value: 0.08069, E[p(y|x)] approx: 0.9247, learning rate: 5.684e-16, time: 0.006981
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 918, objective value: 0.07628, E[p(y|x)] approx: 0.9287, learning rate: 2.842e-16, time: 0.00722
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 919, objective value: 0.08247, E[p(y|x)] approx: 0.9234, learning rate: 2.842e-16, time: 0.007239
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 920, objective value: 0.08025, E[p(y|x)] approx: 0.9254, learning rate: 2.842e-16, time: 0.00716
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 921, objective value: 0.07954, E[p(y|x)] approx: 0.9259, learning rate: 2.842e-16, time: 0.007378
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 922, objective value: 0.08064, E[p(y|x)] approx: 0.9249, learning rate: 2.842e-16, time: 0.007281
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 923, objective value: 0.08188, E[p(y|x)] approx: 0.9242, learning rate: 2.842e-16, time: 0.007044
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 924, objective value: 0.08326, E[p(y|x)] approx: 0.9227, learning rate: 2.842e-16, time: 0.007186
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 925, objective value: 0.07758, E[p(y|x)] approx: 0.9274, learning rate: 2.842e-16, time: 0.00704
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 926, objective value: 0.08019, E[p(y|x)] approx: 0.9253, learning rate: 2.842e-16, time: 0.007036
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 927, objective value: 0.07874, E[p(y|x)] approx: 0.9265, learning rate: 2.842e-16, time: 0.007381
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 928, objective value: 0.0798, E[p(y|x)] approx: 0.9256, learning rate: 2.842e-16, time: 0.007177
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 929, objective value: 0.08001, E[p(y|x)] approx: 0.9256, learning rate: 2.842e-16, time: 0.007239
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 930, objective value: 0.07981, E[p(y|x)] approx: 0.9256, learning rate: 2.842e-16, time: 0.007318
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 931, objective value: 0.07987, E[p(y|x)] approx: 0.9256, learning rate: 2.842e-16, time: 0.007181
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 932, objective value: 0.07877, E[p(y|x)] approx: 0.9264, learning rate: 2.842e-16, time: 0.006981
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 933, objective value: 0.0793, E[p(y|x)] approx: 0.9262, learning rate: 1.421e-16, time: 0.00723
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 934, objective value: 0.07968, E[p(y|x)] approx: 0.9257, learning rate: 1.421e-16, time: 0.007326
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 935, objective value: 0.07895, E[p(y|x)] approx: 0.9263, learning rate: 1.421e-16, time: 0.007259
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 936, objective value: 0.07809, E[p(y|x)] approx: 0.9271, learning rate: 1.421e-16, time: 0.007954
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 937, objective value: 0.07902, E[p(y|x)] approx: 0.9262, learning rate: 1.421e-16, time: 0.00718
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 938, objective value: 0.08054, E[p(y|x)] approx: 0.9249, learning rate: 1.421e-16, time: 0.007138
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 939, objective value: 0.07984, E[p(y|x)] approx: 0.9256, learning rate: 1.421e-16, time: 0.007173
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 940, objective value: 0.08065, E[p(y|x)] approx: 0.9249, learning rate: 1.421e-16, time: 0.007277
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 941, objective value: 0.08409, E[p(y|x)] approx: 0.9219, learning rate: 1.421e-16, time: 0.007201
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 942, objective value: 0.0775, E[p(y|x)] approx: 0.9279, learning rate: 1.421e-16, time: 0.007224
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 943, objective value: 0.07842, E[p(y|x)] approx: 0.9266, learning rate: 1.421e-16, time: 0.007236
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 944, objective value: 0.08173, E[p(y|x)] approx: 0.924, learning rate: 1.421e-16, time: 0.007117
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 945, objective value: 0.0826, E[p(y|x)] approx: 0.9233, learning rate: 1.421e-16, time: 0.00704
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 946, objective value: 0.0793, E[p(y|x)] approx: 0.9261, learning rate: 1.421e-16, time: 0.007209
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 947, objective value: 0.07715, E[p(y|x)] approx: 0.928, learning rate: 7.105e-17, time: 0.007309
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 948, objective value: 0.08043, E[p(y|x)] approx: 0.9255, learning rate: 7.105e-17, time: 0.007252
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 949, objective value: 0.08115, E[p(y|x)] approx: 0.9244, learning rate: 7.105e-17, time: 0.007283
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 950, objective value: 0.07787, E[p(y|x)] approx: 0.9273, learning rate: 7.105e-17, time: 0.007242
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 951, objective value: 0.08456, E[p(y|x)] approx: 0.9214, learning rate: 7.105e-17, time: 0.006868
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 952, objective value: 0.07977, E[p(y|x)] approx: 0.9256, learning rate: 7.105e-17, time: 0.007235
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 953, objective value: 0.07976, E[p(y|x)] approx: 0.9255, learning rate: 7.105e-17, time: 0.007075
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 954, objective value: 0.07833, E[p(y|x)] approx: 0.9269, learning rate: 7.105e-17, time: 0.007301
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 955, objective value: 0.08121, E[p(y|x)] approx: 0.9245, learning rate: 7.105e-17, time: 0.00716
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 956, objective value: 0.08237, E[p(y|x)] approx: 0.9235, learning rate: 7.105e-17, time: 0.007081
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 957, objective value: 0.08186, E[p(y|x)] approx: 0.9237, learning rate: 7.105e-17, time: 0.007339
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 958, objective value: 0.08061, E[p(y|x)] approx: 0.9249, learning rate: 7.105e-17, time: 0.007218
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 959, objective value: 0.08051, E[p(y|x)] approx: 0.925, learning rate: 7.105e-17, time: 0.007298
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 960, objective value: 0.08034, E[p(y|x)] approx: 0.9251, learning rate: 7.105e-17, time: 0.007216
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 961, objective value: 0.07839, E[p(y|x)] approx: 0.927, learning rate: 7.105e-17, time: 0.007237
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 962, objective value: 0.07715, E[p(y|x)] approx: 0.9279, learning rate: 7.105e-17, time: 0.007212
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 963, objective value: 0.08174, E[p(y|x)] approx: 0.9239, learning rate: 7.105e-17, time: 0.007087
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 964, objective value: 0.08169, E[p(y|x)] approx: 0.924, learning rate: 7.105e-17, time: 0.007322
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 965, objective value: 0.08026, E[p(y|x)] approx: 0.9252, learning rate: 7.105e-17, time: 0.007262
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 966, objective value: 0.07917, E[p(y|x)] approx: 0.9262, learning rate: 3.553e-17, time: 0.007204
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 967, objective value: 0.07882, E[p(y|x)] approx: 0.9266, learning rate: 3.553e-17, time: 0.007121
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 968, objective value: 0.08178, E[p(y|x)] approx: 0.9239, learning rate: 3.553e-17, time: 0.007174
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 969, objective value: 0.08473, E[p(y|x)] approx: 0.9214, learning rate: 3.553e-17, time: 0.007368
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 970, objective value: 0.08057, E[p(y|x)] approx: 0.9252, learning rate: 3.553e-17, time: 0.007164
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 971, objective value: 0.08054, E[p(y|x)] approx: 0.9248, learning rate: 3.553e-17, time: 0.008046
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 972, objective value: 0.07988, E[p(y|x)] approx: 0.9256, learning rate: 3.553e-17, time: 0.007352
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 973, objective value: 0.08031, E[p(y|x)] approx: 0.9251, learning rate: 3.553e-17, time: 0.007325
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 974, objective value: 0.07876, E[p(y|x)] approx: 0.9266, learning rate: 3.553e-17, time: 0.007279
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 975, objective value: 0.0808, E[p(y|x)] approx: 0.9248, learning rate: 3.553e-17, time: 0.007331
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 976, objective value: 0.08142, E[p(y|x)] approx: 0.9243, learning rate: 3.553e-17, time: 0.007189
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 977, objective value: 0.07799, E[p(y|x)] approx: 0.9272, learning rate: 3.553e-17, time: 0.007162
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 978, objective value: 0.07872, E[p(y|x)] approx: 0.9266, learning rate: 1.776e-17, time: 0.00731
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 979, objective value: 0.07947, E[p(y|x)] approx: 0.9263, learning rate: 1.776e-17, time: 0.007071
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 980, objective value: 0.07984, E[p(y|x)] approx: 0.9255, learning rate: 1.776e-17, time: 0.007267
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCCGUGGCCA 0.9838
+
+
+step: 981, objective value: 0.07882, E[p(y|x)] approx: 0.9263, learning rate: 1.776e-17, time: 0.007374
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUGUGGCCA 0.9838
+
+
+step: 982, objective value: 0.07951, E[p(y|x)] approx: 0.9258, learning rate: 1.776e-17, time: 0.006911
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 983, objective value: 0.07834, E[p(y|x)] approx: 0.9269, learning rate: 1.776e-17, time: 0.007122
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 984, objective value: 0.08128, E[p(y|x)] approx: 0.9243, learning rate: 1.776e-17, time: 0.00731
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 985, objective value: 0.07934, E[p(y|x)] approx: 0.9265, learning rate: 1.776e-17, time: 0.007291
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 986, objective value: 0.07969, E[p(y|x)] approx: 0.9256, learning rate: 1.776e-17, time: 0.007358
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 987, objective value: 0.08036, E[p(y|x)] approx: 0.9251, learning rate: 1.776e-17, time: 0.007316
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 988, objective value: 0.0808, E[p(y|x)] approx: 0.9247, learning rate: 1.776e-17, time: 0.006982
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 989, objective value: 0.08004, E[p(y|x)] approx: 0.9255, learning rate: 1.776e-17, time: 0.007221
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 990, objective value: 0.08164, E[p(y|x)] approx: 0.9239, learning rate: 1.776e-17, time: 0.007271
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 991, objective value: 0.08067, E[p(y|x)] approx: 0.9249, learning rate: 1.776e-17, time: 0.007936
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 992, objective value: 0.0812, E[p(y|x)] approx: 0.9245, learning rate: 1.776e-17, time: 0.007753
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 993, objective value: 0.08112, E[p(y|x)] approx: 0.9244, learning rate: 1.776e-17, time: 0.0072
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 994, objective value: 0.08105, E[p(y|x)] approx: 0.9248, learning rate: 1.776e-17, time: 0.007423
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 995, objective value: 0.08053, E[p(y|x)] approx: 0.9251, learning rate: 1.776e-17, time: 0.008296
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 996, objective value: 0.08254, E[p(y|x)] approx: 0.9235, learning rate: 1.776e-17, time: 0.007806
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 997, objective value: 0.07966, E[p(y|x)] approx: 0.9257, learning rate: 8.882e-18, time: 0.007022
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 998, objective value: 0.08126, E[p(y|x)] approx: 0.9244, learning rate: 8.882e-18, time: 0.007335
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+step: 999, objective value: 0.08233, E[p(y|x)] approx: 0.9234, learning rate: 8.882e-18, time: 0.007497
+integral solution: GGGCUAUGCCCA 0.9836
+best samples
+GGCCUAUGGCCA 0.9838
+
+
+Final Distribution
+(4, 6): AA 0.0657, AC 0.0420, AG 0.0635, AU 0.0668, CA 0.0630, CC 0.0648, CG 0.0641, CU 0.0672, GA 0.0617, GC 0.0612, GG 0.0605, GU 0.0626, UA 0.0641, UC 0.0590, UG 0.0659, UU 0.0678
+5: A 0.9965, C 0.0004, G 0.0028, U 0.0003
+11: A 0.9982, C 0.0000, G 0.0005, U 0.0012
+(3, 7): GC 0.4934, CG 0.5065, UG 0.0000, GU 0.0000, UA 0.0000, AU 0.0000
+(2, 8): GC 0.5075, CG 0.4836, UG 0.0000, GU 0.0000, UA 0.0045, AU 0.0043
+(1, 9): GC 0.4978, CG 0.4951, UG 0.0000, GU 0.0000, UA 0.0028, AU 0.0042
+(0, 10): GC 0.5076, CG 0.4923, UG 0.0000, GU 0.0000, UA 0.0000, AU 0.0000
+
+Total Time: 7.608

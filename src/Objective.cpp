@@ -16,19 +16,20 @@ double GradientDescent::linear_partition(string& rna_seq) {
     return parser.parse(rna_seq);
 }
 
-double GradientDescent::boltzmann_prob(string& rna_seq, string& rna_struct) {
+double GradientDescent::log_boltzmann_prob(string& rna_seq, string& rna_struct) {
     double log_Q = linear_partition(rna_seq); // log Q(x)
-    long deltaG = eval(rna_seq, rna_struct, false, 2); // Delta G(x, y), TODO: convert dangle mode into a parameter
+    long deltaG = eval(rna_seq, rna_struct, false, 2); // Delta G(x, y)
     double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
 
     return log_boltz_prob;
 }
 
-double GradientDescent::composite(string& rna_seq, string& rna_struct) {
-    double log_boltz_prob = boltzmann_prob(rna_seq, rna_struct); // log p(y | x)
-    double delta_delta_G = energy_diff(rna_seq, rna_struct); // Delta Delta G
+double GradientDescent::boltzmann_prob(string& rna_seq, string& rna_struct) {
+    double log_Q = linear_partition(rna_seq); // log Q(x)
+    long deltaG = eval(rna_seq, rna_struct, false, 2); // Delta G(x, y)
+    double log_boltz_prob = (deltaG / kT) - log_Q; // log p(y | x)
 
-    return -log_boltz_prob + delta_delta_G;
+    return exp(log_boltz_prob);
 }
 
 int GradientDescent::structural_dist(const string& struct_1, const string& struct_2) {
@@ -146,38 +147,38 @@ string GradientDescent::get_mfe_struct(string& rna_seq) {
     return result.structure;
 }
 
-vector<string> GradientDescent::get_mfe_structs() {
-    string command = "echo -e \"";
-    for (const Sample& sample: samples) {
-        command += sample.seq + "\\n";
-    }
-    command += "\" | ./LinearFold/linearfold -V -b 0";
+// vector<string> GradientDescent::get_mfe_structs() {
+//     string command = "echo -e \"";
+//     for (const Sample& sample: samples) {
+//         command += sample.seq + "\\n";
+//     }
+//     command += "\" | ./LinearFold/linearfold -V -b 0";
 
-    FILE* pipe = popen(command.c_str(), "r");
-    if (!pipe) {
-        std::cerr << "popen failed\n";
-        exit(1);
-    }
+//     FILE* pipe = popen(command.c_str(), "r");
+//     if (!pipe) {
+//         std::cerr << "popen failed\n";
+//         exit(1);
+//     }
 
-    vector<string> mfe_structs (samples.size());
-    char buffer[2500] = {0}; // should be longer than 500
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        buffer[strlen(buffer)-1] = '\0'; // remove newline
+//     vector<string> mfe_structs (samples.size());
+//     char buffer[2500] = {0}; // should be longer than 500
+//     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+//         buffer[strlen(buffer)-1] = '\0'; // remove newline
 
-        string line = buffer;
-        int space_idx = line.find(' ');
+//         string line = buffer;
+//         int space_idx = line.find(' ');
 
-        int idx = stoi(line.substr(0, space_idx));
-        string mfe_struct = line.substr(space_idx + 1);
+//         int idx = stoi(line.substr(0, space_idx));
+//         string mfe_struct = line.substr(space_idx + 1);
 
-        mfe_structs[idx] = mfe_struct;
-    }
+//         mfe_structs[idx] = mfe_struct;
+//     }
 
-    int status = pclose(pipe);
-    if (status == -1) {
-        std::cerr << "pclose failed\n";
-        exit(1);
-    }
+//     int status = pclose(pipe);
+//     if (status == -1) {
+//         std::cerr << "pclose failed\n";
+//         exit(1);
+//     }
 
-    return mfe_structs;
-}
+//     return mfe_structs;
+// }

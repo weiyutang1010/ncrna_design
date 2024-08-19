@@ -105,166 +105,120 @@ def eval_seq(seq, ss, scale=True):
 
     return seq, pr, ed, is_mfe, is_umfe, dist, energy_diff
 
-def graph_prob(rna_id, lines, avg_pyx, integral_pyx, sampled_pyx, boxplot, lr_idx, args):
-    plt.rcParams["figure.figsize"] = [7.50, 4.50]
+def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxplot, lr_idx, args, fontsize=14):
+    plt.rcParams["figure.figsize"] = [9.50, 4.50]
     plt.rcParams["figure.autolayout"] = True
 
     fig, ax1 = plt.subplots()
-    ax1.set_xlabel('Step')
-    ax1.set_ylabel('Boltzmann Probability')
+
+    ax1.set_xlabel('Step', fontsize=fontsize)
+    ax1.set_ylabel('Boltzmann Probability', fontsize=fontsize)
 
     n, rna_struct = len(lines[0]), lines[0]
     init = lines[1].split(', ')[1].split(': ')[1]
-    learning_rate = lines[2].split(', ')[0].split(': ')[1]
-    # sample_size = lines[3].split(', ')[0].split(': ')[1]
-    sample_size = 2500
-
-    time = 0.0
-    if lines[-2].startswith("Total Time: "):
-        time = float(lines[-2].split(': ')[1])
+    learning_rate = lines[3].split(', ')[0].split(': ')[1]
+    sample_size = lines[6].split(', ')[0].split(': ')[1]
 
     # lr change
     if len(lr_idx) > 0:
-        plt.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr Decay')
+        plt.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr decay')
         for idx in lr_idx[1:]:
             plt.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
     
     # box plot
-    num_steps = len(avg_pyx)
-    x_values = [x for x in range(0, num_steps, num_steps // 10)]
-    boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
-    marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
-    ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
+    if len(boxplot) > 0:
+        num_steps = len(avg_pyx)
+        x_values = [x for x in range(0, num_steps, (num_steps + 9) // 10)]
+        boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
+        marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
+        ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
 
+    # calculate geom. mean
+    objs_exp = np.exp(-1 * np.array(avg_obj))
     
-    # ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'Fractional $\exp \mathbb{E}[\log p(y|x)]$')
-    ax1.plot(sampled_pyx, linestyle='', marker='x', color='green', alpha=0.4, label=r'Best Sample $p(y \mid x)$')
-    ax1.plot(avg_pyx, color='red', alpha=0.8, label=r'Sampling Approx $E[p (y  \mid x)]$')
-    ax1.plot(integral_pyx, color='orange', alpha=0.9, label=r'Integral Solution $p(y \mid x)$')
+    ax1.plot(sampled_pyx, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3, label=r'best sample')
+    ax1.plot(integral_pyx, color='orange', alpha=0.9, label=r'integral solution')
+    ax1.plot(avg_pyx, color='red', alpha=0.8, label=r'arith. mean')
+    ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'geom. mean $(e^{-\mathcal{J}})$')
 
-    ax1.tick_params(axis='y')
-    ax1.legend(fontsize="8")
+    ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=13)
+
+    ax1.legend(fontsize=fontsize)
 
     if not os.path.exists(f"graphs/{args.folder}"):
         os.makedirs(f"graphs/{args.folder}")
 
-    save_path = f'graphs/{args.folder}/{rna_id}.png'
-    plt.title(f'id {rna_id}, init={init}, lr={learning_rate}, k={sample_size}, time={time:.2f}')
-    plt.savefig(save_path, format="png", bbox_inches="tight")
+    save_path = f'graphs/{args.folder}/{rna_id}.pdf'
+    # plt.title(f'id {rna_id}, init={init}, sample_size={sample_size}')
+    plt.savefig(save_path, bbox_inches="tight")
     print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)
 
-def graph_ned(rna_id, lines, avg_ned, integral_ned, sampled_ned, boxplot, lr_idx, args):
-    plt.rcParams["figure.figsize"] = [7.50, 4.50]
+def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, lr_idx, args, fontsize=14):
+    plt.rcParams["figure.figsize"] = [9.50, 4.50]
     plt.rcParams["figure.autolayout"] = True
 
     fig, ax1 = plt.subplots()
-    ax1.set_xlabel('Step')
-    ax1.set_ylabel('log NED')
+
+    ax1.set_xlabel('Step', fontsize=fontsize)
+    if objective == 'ned':
+        ax1.set_ylabel('Normalized Ensemble Defect', fontsize=fontsize)
+    elif objective == 'dist':
+        ax1.set_ylabel('Structural Distance', fontsize=fontsize)
+    elif objective == 'ddg':
+        ax1.set_ylabel('Free Energy Gap', fontsize=fontsize)
+    else:
+        ax1.set_ylabel(objective, fontsize=fontsize)
 
     n, rna_struct = len(lines[0]), lines[0]
     init = lines[1].split(', ')[1].split(': ')[1]
-    learning_rate = lines[2].split(', ')[0].split(': ')[1]
-    # sample_size = lines[3].split(', ')[0].split(': ')[1]
-    sample_size = 2500
-
-    time = 0.0
-    if lines[-2].startswith("Total Time: "):
-        time = float(lines[-2].split(': ')[1])
+    learning_rate = lines[3].split(', ')[0].split(': ')[1]
+    sample_size = lines[6].split(', ')[0].split(': ')[1]
 
     # lr change
     if len(lr_idx) > 0:
-        plt.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr Decay')
+        plt.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr decay')
         for idx in lr_idx[1:]:
             plt.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
-
-    # box plot
-    num_steps = len(avg_ned)
-    x_values = [x for x in range(0, num_steps, num_steps // 10)]
-    boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
-    marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
-    ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
     
-    # ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'Fractional $\exp \mathbb{E}[\log p(y|x)]$')
-    ax1.plot(sampled_ned, linestyle='', marker='x', color='green', alpha=0.4, label=r'Best Sample NED')
-    ax1.plot(avg_ned, color='red', alpha=0.8, label=r'Average NED')
-    ax1.plot(integral_ned, color='orange', alpha=0.9, label=r'Integral Solution NED')
+    # box plot
+    if len(boxplot) > 0:
+        num_steps = len(avg_obj)
+        x_values = [x for x in range(0, num_steps, (num_steps + 9) // 10)]
+        boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
+        marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
+        ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
 
-    ax1.tick_params(axis='y')
-    ax1.legend(fontsize="8")
+    # calculate geom. mean
+    
+    ax1.plot(sampled, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3, label=r'best sample')
+    ax1.plot(integral, color='orange', alpha=0.9, label=r'integral solution')
+    ax1.plot(avg_obj, color='blue', alpha=0.8, label=r'geom. mean $(e^{-\mathcal{J}})$')
+
+    ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=13)
+    ax1.legend(fontsize=fontsize)
 
     if not os.path.exists(f"graphs/{args.folder}"):
         os.makedirs(f"graphs/{args.folder}")
 
-    save_path = f'graphs/{args.folder}/{rna_id}.png'
-    plt.title(f'id {rna_id}, init={init}, lr={learning_rate}, k={sample_size}, time={time:.2f}')
-    plt.savefig(save_path, format="png", bbox_inches="tight")
-    print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)
-
-def graph_dist(rna_id, lines, avg_dist, integral_dist, sampled_dist, boxplot, lr_idx, args):
-    # plt.rcParams["text.usetex"] = True
-    plt.rcParams["figure.figsize"] = [7.50, 4.50]
-    plt.rcParams["figure.autolayout"] = True
-
-    fig, ax1 = plt.subplots()
-    ax1.set_xlabel('Step')
-    ax1.set_ylabel('- Nemo Objective')
-
-    n, rna_struct = len(lines[0]), lines[0]
-    init = lines[1].split(', ')[1].split(': ')[1]
-    learning_rate = lines[2].split(', ')[0].split(': ')[1]
-    # sample_size = lines[3].split(', ')[0].split(': ')[1]
-    sample_size = 2500
-
-    time = 0.0
-    if lines[-2].startswith("Total Time: "):
-        time = float(lines[-2].split(': ')[1])
-
-    # lr change
-    if len(lr_idx) > 0:
-        plt.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr Decay')
-        for idx in lr_idx[1:]:
-            plt.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
-
-    plt.axhline(y=-1.0, color='blue', linestyle='--', alpha=0.25, label='mfe found')
-
-    # box plot
-    num_steps = len(avg_dist)
-    x_values = [x for x in range(0, num_steps, num_steps // 10)]
-    boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
-    marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
-    ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
-    
-    # ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'Fractional $\exp \mathbb{E}[\log p(y|x)]$')
-    ax1.plot(sampled_dist, linestyle='', marker='x', color='green', alpha=0.4, label=r'Best Sample')
-    ax1.plot(avg_dist, color='red', alpha=0.8, label=r'Average')
-    ax1.plot(integral_dist, color='orange', alpha=0.9, label=r'Integral Solution')
-
-    ax1.tick_params(axis='y')
-    ax1.legend(fontsize="8")
-
-    if not os.path.exists(f"graphs/{args.folder}"):
-        os.makedirs(f"graphs/{args.folder}")
-
-    save_path = f'graphs/{args.folder}/{rna_id}.png'
-    plt.title(f'id {rna_id}, init={init}, lr={learning_rate}, k={sample_size}, time={time:.2f}')
-    plt.savefig(save_path, format="png", bbox_inches="tight")
+    save_path = f'graphs/{args.folder}/{rna_id}.pdf'
+    # plt.title(f'id {rna_id}, init={init}, sample_size={sample_size}')
+    plt.savefig(save_path, bbox_inches="tight")
     print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)
 
 def process_result_file(rna_id, result_file, args):
     lines = result_file.read().split('\n')
 
-    if len(lines) < 5:
+    if len(lines) < 10:
         exit(0)
 
     n, rna_struct = len(lines[0]), lines[0]
-    is_ned = 'ned' in lines[1].split(', ')[0].split(': ')[1]
-    is_dist = 'dist' in lines[1].split(', ')[0].split(': ')[1]
+    objective = lines[1].split(', ')[0].split(': ')[1]
 
     obj, avg_pyx = [], [] # avg p(y | x) of sampled sequences
     integral_seqs, integral_obj = [], [] # integral solution at each iteration
     sampled_seqs, sampled_obj = [], [] # best sampled solution at each iteration
     boxplot = []
-    prev_lr = float(lines[2].split(', ')[0].split(': ')[1])
+    prev_lr = float(lines[3].split(', ')[0].split(': ')[1])
     lr_idx = [] # track when does lr changes
     seqs = set()
     seq_step = {}
@@ -284,24 +238,26 @@ def process_result_file(rna_id, result_file, args):
         if line.startswith("step:"):
             values = line.split(', ')
             step = int(values[0].split(': ')[1])
-            seq = values[3].split(': ')[1]
 
-            seqs.add(seq)
             obj.append(float(values[1].split(': ')[1]))
             avg_pyx.append(float(values[2].split(': ')[1]))
-            integral_obj.append(float(values[4].split(': ')[1]))
 
+            lr = float(values[3].split(': ')[1])
+            if lr != prev_lr:
+                prev_lr = lr
+                lr_idx.append(step)
+
+        if line.startswith("integral solution"):
+            seq = line.split(': ')[1].split(' ')[0]
+            seq_obj = float(line.split(': ')[1].split(' ')[1])
+
+            seqs.add(seq)
+            integral_obj.append(seq_obj)
             if seq not in seq_step:
                 seq_step[seq] = step
 
-            if values[5].split(': ')[0] == 'learning rate':
-                lr = float(values[5].split(': ')[1])
-                if lr != prev_lr:
-                    prev_lr = lr
-                    lr_idx.append(step)
-
         if line.startswith("best samples"):
-            j = idx + 1
+            j = idx + 1 # evaluate the best sample
             seq = lines[j].split(' ')[0]
             seq_obj = float(lines[j].split(' ')[1])
 
@@ -314,38 +270,47 @@ def process_result_file(rna_id, result_file, args):
     if len(avg_pyx) < 1:
         exit(0)
 
-    if is_ned:
-        graph_ned(rna_id, lines, obj, integral_obj, sampled_obj, boxplot, lr_idx, args)
-    elif is_dist:
-        graph_dist(rna_id, lines, obj, integral_obj, sampled_obj, boxplot, lr_idx, args)
-    else:
-        graph_prob(rna_id, lines, avg_pyx, integral_obj, sampled_obj, boxplot, lr_idx, args)
+    # graph solutions
+    if not args.no_graph:
+        if objective == "prob":
+            graph_prob(rna_id, lines, obj, avg_pyx, integral_obj, sampled_obj, boxplot, lr_idx, args)
+        else:
+            graph(rna_id, objective, lines, obj, integral_obj, sampled_obj, boxplot, lr_idx, args)
 
-    seqs_stats = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-        results = [executor.submit(eval_seq, seq, rna_struct) for seq in seqs]
-        concurrent.futures.wait(results)
+    # use vienna to reevaluate all sequences
+    if not args.no_eval_seq:
+        seqs_stats = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:
+            results = [executor.submit(eval_seq, seq, rna_struct) for seq in seqs]
+            concurrent.futures.wait(results)
 
-        for future in results:
-            result = future.result()
-            seqs_stats.append(result)
+            for future in results:
+                result = future.result()
+                seqs_stats.append(result)
 
-    print("Total steps: ", len(obj))
-    print("Number of unique sequence: ", len(seqs_stats))
+        print("Total steps: ", len(obj))
+        print("Number of unique sequence: ", len(seqs_stats))
 
-    best_pyx_solution = max(seqs_stats, key=lambda x: x[1])
-    best_ned_solution = min(seqs_stats, key=lambda x: x[2])
-    mfe_solutions = [stat[0] for stat in seqs_stats if stat[3]]
-    umfe_solutions = [stat[0] for stat in seqs_stats if stat[4]]
-    best_dist_solution = min(seqs_stats, key=lambda x: x[5])
-    best_ediff_solution = min(seqs_stats, key=lambda x: x[6])
+        best_pyx_solution = max(seqs_stats, key=lambda x: x[1])
+        best_ned_solution = min(seqs_stats, key=lambda x: x[2])
+        mfe_solutions = [stat[0] for stat in seqs_stats if stat[3]]
+        umfe_solutions = [stat[0] for stat in seqs_stats if stat[4]]
+        best_dist_solution = min(seqs_stats, key=lambda x: x[5])
+        best_ddg_solution = min(seqs_stats, key=lambda x: x[6])
 
-    print("Best p(y|x) solution: ", best_pyx_solution[0], best_pyx_solution[1], seq_step[best_pyx_solution[0]])
-    print("Best NED solution: ", best_ned_solution[0], best_ned_solution[2], seq_step[best_ned_solution[0]])
-    print("MFE solution: ", len(mfe_solutions), *mfe_solutions[:1])
-    print("UMFE solution: ", len(umfe_solutions), *umfe_solutions[:1])
-    print("Best d(MFE(x), y) solution: ", best_dist_solution[0], best_dist_solution[5], seq_step[best_dist_solution[0]])
-    print("Best free energy diff solution: ", best_ediff_solution[0], best_ediff_solution[6], seq_step[best_ediff_solution[0]])
+        mfe_solution = "" if len(mfe_solutions) == 0 else mfe_solutions[0]
+        umfe_solution = "" if len(umfe_solutions) == 0 else umfe_solutions[0]
+        mfe_step = "" if len(mfe_solutions) == 0 else seq_step[mfe_solution]
+        umfe_step = "" if len(umfe_solutions) == 0 else seq_step[umfe_solution]
+
+        print("Format: <sequence> <value> <earliest step found>")
+        print("Best p(y*|x) solution: ", best_pyx_solution[0], best_pyx_solution[1], seq_step[best_pyx_solution[0]])
+        print("Best NED(x, y*) solution: ", best_ned_solution[0], best_ned_solution[2], seq_step[best_ned_solution[0]])
+        print("Best d(MFE(x), y) solution: ", best_dist_solution[0], best_dist_solution[5], seq_step[best_dist_solution[0]])
+        print("Best DeltaDeltaG(x, y*) solution: ", best_ddg_solution[0], best_ddg_solution[6], seq_step[best_ddg_solution[0]])
+        print("MFE/uMFE Format: <number of mfe solutions> [solution 1] [earliest step found]")
+        print("MFE solution: ", len(mfe_solutions), mfe_solution, mfe_step) # only print 1 mfe solution as example
+        print("UMFE solution: ", len(umfe_solutions), umfe_solution, umfe_step)
 
     print(f"id {rna_id} done", file=sys.stderr)
 
@@ -353,8 +318,11 @@ def process_result_file(rna_id, result_file, args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--y", type=str, default="")
-    parser.add_argument("--folder", type=str, default="temp")
-    parser.add_argument("--file", type=str, default="0")
+    parser.add_argument("--folder", type=str)
+    parser.add_argument("--file", type=str)
+    parser.add_argument("--max_workers", type=int, default=None)
+    parser.add_argument("--no_eval_seq", action="store_true", default=False, help='draw graph only')
+    parser.add_argument("--no_graph", action="store_true", default=False, help='eval seqs only')
     args = parser.parse_args()
 
     results_path = f'./results/{args.folder}/{args.file}'
