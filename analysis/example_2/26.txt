@@ -1,10 +1,10 @@
-Total steps:  1000
-Number of unique sequence:  21
+Total steps:  500
+Number of unique sequence:  60
 Format: <sequence> <value> <earliest step found>
-Best p(y*|x) solution:  AAGCCCGGGCGAAAAGCACCGGGCAA 0.9904402511637325 5
-Best NED(x, y*) solution:  AAGCCCGGGCGAAAAGCACCGGGCAA 0.0010392168842333542 5
-Best d(MFE(x), y) solution:  AAGGCCGGGCGAAAAGCACCGGCCAA 0 1
-Best DeltaDeltaG(x, y*) solution:  AAGGCCGGGCGAAAAGCACCGGCCAA 0.0 1
+Best p(y*|x) solution:  AAGCCCGGGCGAAAAGCACCGGGCAA 0.9904402511637325 7
+Best NED(x, y*) solution:  AAGCCCGGGCGAAUGGCACCGGGCAA 0.0010265751242599175 35
+Best d(MFE(x), y) solution:  AAGCGCGGGCGAAAAGCACCGCGCAA 0 5
+Best DeltaDeltaG(x, y*) solution:  AAGCGCGGGCGAAAAGCACCGCGCAA 0.0 5
 MFE/uMFE Format: <number of mfe solutions> [solution 1] [earliest step found]
-MFE solution:  21 AAGGCCGGGCGAAAAGCACCGGCCAA 1
-UMFE solution:  21 AAGGCCGGGCGAAAAGCACCGGCCAA 1
+MFE solution:  60 AAGCGCGGGCGAAAAGCACCGCGCAA 5
+UMFE solution:  60 AAGCGCGGGCGAAAAGCACCGCGCAA 5

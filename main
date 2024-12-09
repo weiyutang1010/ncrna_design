@@ -32,7 +32,7 @@ def setgflags():
     
     # number of steps
     flags.DEFINE_integer('num_steps', 2000, "set the max number of steps", short_name='step')
-    flags.DEFINE_boolean('adaptive_step', False, "turn on adaptive step")
+    flags.DEFINE_boolean('adaptive_step', True, "turn on adaptive step")
     flags.DEFINE_integer('k_ma', 50, "parameter for adaptive step")
     
     # used in linearpartition and linearfold

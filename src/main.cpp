@@ -1,8 +1,9 @@
 /*
  *main.cpp*
- The main code for Non-Coding RNA Design (gradient descent)
+ The main code for Sampling-based Continuous Optimization with
+ Coupled Variables for RNA Design
 
- author: Wei Yu Tang (Based on He Zhang's LinearPartition Code)
+ author: Wei Yu Tang
  created by: 09/2023
 */
 
@@ -603,18 +604,47 @@ Objective GradientDescent::logits_grad(const Objective& obj) {
     return new_obj;
 }
 
+double GradientDescent::distribution_entropy() {
+    // entropy of two independent distribution X, Y is given by
+    // H(X, Y) = H(X) + H(Y)
+    double entropy = 0.0;
+
+    for (const vector<int>& pos: unpaired_pos) {
+        auto& probs = dist[pos];
+
+        for (auto& prob: probs) {
+            if (prob == 0.)
+                continue;
+            entropy += prob * log2(prob);
+        }
+    }
+
+    for (const vector<int>& pos: base_pairs_pos) {
+        auto& probs = dist[pos];
+
+        for (auto& prob: probs) {
+            if (prob == 0.)
+                continue;
+            entropy += prob * log2(prob);
+        }
+    }
+
+    return -entropy;
+}
+
 void GradientDescent::gradient_descent() {
     struct timeval parse_starttime, parse_endtime;
     struct timeval total_starttime, total_endtime;
 
     gettimeofday(&total_starttime, NULL);
 
+    double best_obj = 1e9; 
+    string best_design = "";
+
+    // Initialization
     print_mode();
-
     initialize_dist();
-
     if (nesterov) old_dist = dist;
-
     if (softmax) {
         logits_to_dist();
         print_dist("Initial Logits", logits);
@@ -629,6 +659,8 @@ void GradientDescent::gradient_descent() {
     for (int step = 0; step < num_steps || adaptive_step; step++) {
         gettimeofday(&parse_starttime, NULL);
 
+        double entropy = distribution_entropy();
+
         if (nesterov) {
             nesterov_update();
         }
@@ -642,7 +674,7 @@ void GradientDescent::gradient_descent() {
             obj = objective_function(step);
         }
 
-        // get integral solution x* and evaluate its objective value
+        // get max-probability solution x* and evaluate its objective value
         string integral_seq = get_integral_solution();
         double integral_obj;
         if (objective == "prob") {
@@ -666,15 +698,24 @@ void GradientDescent::gradient_descent() {
         gettimeofday(&parse_endtime, NULL);
         double parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
         cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", learning rate: " << lr << ", time: " << parse_elapsed_time << "\n";
-        cout << "integral solution: " << integral_seq << " " << integral_obj << "\n";
+        cout << "max-probability solution: " << integral_seq << " " << integral_obj << "\n";
+        cout << "distribution entropy: " << entropy << "\n";
+
 
         // print out best k samples and stats
         sort(samples.begin(), samples.end(), [&](const Sample& a, const Sample& b) {
             return a.obj < b.obj;
         });
 
+        // update best design
+        if (samples[0].obj < best_obj) {
+            best_obj = samples[0].obj;
+            best_design = samples[0].seq;
+        }
+
+        // print out the objective values of the sample for boxplot
         if (boxplot) {
-            cout << "Boxplot: " << std::scientific << std::setprecision(3);
+            cout << "boxplot: " << std::scientific << std::setprecision(3);
             for (const Sample& sample: samples) {
                 if (objective == "prob")
                     cout << sample.boltz_prob << " ";
@@ -703,11 +744,6 @@ void GradientDescent::gradient_descent() {
         }
         cout << "\n";
 
-        // For substring analysis
-        // if (kmers) {
-        //     kmers_analysis(samples);
-        // }
-
         // calculate k moving avg
         moving_avg += obj.score;
         last_k_obj.push(obj.score);
@@ -725,6 +761,7 @@ void GradientDescent::gradient_descent() {
 
         if (adaptive_step){
             // adaptive step condition: if k moving avg hasn't improved since last k steps
+            //                          then stop
             if (step >= k_ma && moving_avg / k_ma < last_best_avg.first) {
                 // update step of best moving avg
                 last_best_avg = {moving_avg / k_ma, step};
@@ -739,7 +776,8 @@ void GradientDescent::gradient_descent() {
         bool decay = false;
         if (lr_decay) {
             if (adaptive_lr) {
-                // todo: adaptive learning rate
+                // adaptive learning rate decay with criteria similar to adaptive step
+                // if obj hasn't improve for k steps, then reduce lr
                 if (moving_avg_lr / last_k_obj_lr.size() < last_best_avg_lr.first) {
                     // update step of best moving avg
                     last_best_avg_lr = {moving_avg_lr / last_k_obj_lr.size(), step};
@@ -786,6 +824,8 @@ void GradientDescent::gradient_descent() {
     }
 
     print_dist("Final Distribution", dist);
+
+    cout << "Best Design: " << best_design << endl;
 
     gettimeofday(&total_endtime, NULL);
     double total_elapsed_time = total_endtime.tv_sec - total_starttime.tv_sec + (total_endtime.tv_usec-total_starttime.tv_usec)/1000000.0;
@@ -924,50 +964,3 @@ int main(int argc, char** argv){
     return 0;
 }
 
-
-
-
-// void GradientDescent::kmers_analysis(const vector<Sample>& samples) {
-//     int n = samples[0].seq.size();
-
-//     if (kmers_count.size() < n + 1) {
-//         kmers_count.resize(n+1);
-//     }
-
-//     if (freq_cnt.size() < n + 1) {
-//         freq_cnt.resize(n+1);
-//     }
-
-//     for (int k = n; k >= max(3, n / 6); k -= n / 6) {
-//         long long cnt = 0;
-//         for (const Sample& sample: samples) {
-//             for (int i = 0; i <= n - k; i++) {
-//                 freq_cnt[k][sample.seq.substr(i, k)] = 1;
-//                 cnt++;
-//             }
-//         }
-//         kmers_count[k] += cnt;
-//         cout << "k: " << k << ", uniq_kmers: " << freq_cnt[k].size() << ", total count: " << kmers_count[k] << endl;
-//     }
-
-//     // compute average positional entropy
-//     double entropy = 0;
-//     for (const vector<int>& pos: unpaired_pos) {
-//         auto& probs = dist[pos];
-
-//         for (auto& prob: probs) {
-//             entropy += prob * log2(prob + SMALL_NUM);
-//         }
-//     }
-
-//     for (const vector<int>& pos: base_pairs_pos) {
-//         auto& probs = dist[pos];
-
-//         for (auto& prob: probs) {
-//             entropy += prob * log2(prob + SMALL_NUM);
-//         }
-//     }
-
-//     entropy = -entropy / (unpaired_pos.size() + base_pairs_pos.size());
-//     cout << "entropy: " << entropy << endl;
-// }

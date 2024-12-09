@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# weiyu: only works if running from the root directory
+# weiyu: should be run from the root directory
 
 # Check if file argument is provided
-if [ $# -eq 0 ]; then
+if [ $# -lt 2 ]; then
     echo "Usage: $0 <data file> <result folder>"
     exit 1
 fi
@@ -31,13 +31,13 @@ while IFS= read -r line; do
     # Split line by space
     puzzles=($line)
 
-    # format: replace [] below
+    # format:
     # echo "${puzzles[1]}" | ./main [args] > results/[folder]/${puzzles[0]}.txt
 
-    # example: softmax mode
+    # example: default softmax mode with boxplot (max 500 steps)
     echo "${puzzles[1]}" | ./main --step 500 --boxplot > results/$2/${puzzles[0]}.txt
 
-    # example_2: projection mode with adaptive lr decay
-    # echo "${puzzles[1]}" | ./main --step 500 --projection --init targeted --eps 1.0 --lr 0.01 --lr_decay --adaptive_lr --lr_decay_rate 0.5 > results/$2/${puzzles[0]}.txt
+    # example_2: softmax mode optimizing for NED with boxplot (max 500 steps)
+    # echo "${puzzles[1]}" | ./main --step 500 --obj ned --boxplot > results/$2/${puzzles[0]}.txt
 done < "data/$1"
 

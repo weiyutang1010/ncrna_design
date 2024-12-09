@@ -1,11 +1,17 @@
 import os, sys
 import numpy as np
 import argparse
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import concurrent.futures
 from collections import defaultdict
 
 import RNA
+
+# for boldsymbol
+plt.rc('text', usetex=True)
+plt.rc('text.latex', preamble=r'\usepackage{amsmath} \usepackage{amssymb}')
 
 def prob(seq, ss, scale=True):
     """viennaRNA boltzmann probability"""
@@ -105,14 +111,17 @@ def eval_seq(seq, ss, scale=True):
 
     return seq, pr, ed, is_mfe, is_umfe, dist, energy_diff
 
-def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxplot, lr_idx, args, fontsize=14):
-    plt.rcParams["figure.figsize"] = [9.50, 4.50]
+def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxplot, entropy, lr_idx, args, fontsize=18):
+    plt.rcParams["figure.figsize"] = [10.50, 6.50]
     plt.rcParams["figure.autolayout"] = True
 
-    fig, ax1 = plt.subplots()
+    fig, (ax1, ax2) = plt.subplots(2, 1,  gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
 
-    ax1.set_xlabel('Step', fontsize=fontsize)
-    ax1.set_ylabel('Boltzmann Probability', fontsize=fontsize)
+    # axis labels
+    ticklabelpad = mpl.rcParams['xtick.major.pad']
+    ax1.annotate('Step', xy=(1,0), xytext=(5, -ticklabelpad), ha='left', va='top',
+            xycoords='axes fraction', textcoords='offset points', fontsize=fontsize+2)
+    ax1.set_ylabel('$p(\\boldsymbol{y}^\\star \\mid \\boldsymbol{x})$', fontsize=fontsize+2)
 
     n, rna_struct = len(lines[0]), lines[0]
     init = lines[1].split(', ')[1].split(': ')[1]
@@ -126,22 +135,32 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
             plt.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
     
     # box plot
+    num_steps = len(avg_pyx)
+    x_values = [x for x in range(0, num_steps, (num_steps + 9) // 10)]
     if len(boxplot) > 0:
-        num_steps = len(avg_pyx)
-        x_values = [x for x in range(0, num_steps, (num_steps + 9) // 10)]
         boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
         marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
         ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
 
-    # calculate geom. mean
+    # learning curves
     objs_exp = np.exp(-1 * np.array(avg_obj))
     
-    ax1.plot(sampled_pyx, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3, label=r'best sample')
-    ax1.plot(integral_pyx, color='orange', alpha=0.9, label=r'integral solution')
+    ax1.plot([], linestyle='', marker='o', ms=10, markerfacecolor='None', color='green', alpha=0.7, label=r'best sample')
+    ax1.plot(sampled_pyx, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3)
+    ax1.plot(integral_pyx, color='orange', alpha=0.9, label=r'max-probability solution')
     ax1.plot(avg_pyx, color='red', alpha=0.8, label=r'arith. mean')
     ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'geom. mean $(e^{-\mathcal{J}})$')
 
-    ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=13)
+    # entropy subplot
+    entropy = [data for idx, data in enumerate(entropy) if idx in x_values]
+    ax2.bar(x_values, entropy, width=num_steps / 20)
+    ax2.set_ylim(0, max(entropy) *1.1)
+    ax2.invert_yaxis()
+    ax2.set_ylabel("Entropy of $p_{\\boldsymbol{y}^\\star} (\\cdot; \\mathbf{\\Theta})$", fontsize=fontsize+2)
+
+    plt.margins(x=0.05, y=0.2)
+    ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=fontsize+2)
+    ax2.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
 
     ax1.legend(fontsize=fontsize)
 
@@ -149,25 +168,26 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
         os.makedirs(f"graphs/{args.folder}")
 
     save_path = f'graphs/{args.folder}/{rna_id}.pdf'
-    # plt.title(f'id {rna_id}, init={init}, sample_size={sample_size}')
     plt.savefig(save_path, bbox_inches="tight")
     print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)
 
-def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, lr_idx, args, fontsize=14):
-    plt.rcParams["figure.figsize"] = [9.50, 4.50]
+def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, entropy, lr_idx, args, fontsize=18):
+    plt.rcParams["figure.figsize"] = [10.50, 6.50]
     plt.rcParams["figure.autolayout"] = True
 
-    fig, ax1 = plt.subplots()
+    fig, (ax1, ax2) = plt.subplots(2, 1,  gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
 
-    ax1.set_xlabel('Step', fontsize=fontsize)
+    ticklabelpad = mpl.rcParams['xtick.major.pad']
+    ax1.annotate('Step', xy=(1,0), xytext=(5, -ticklabelpad), ha='left', va='top',
+            xycoords='axes fraction', textcoords='offset points', fontsize=fontsize+2)
     if objective == 'ned':
-        ax1.set_ylabel('Normalized Ensemble Defect', fontsize=fontsize)
+        ax1.set_ylabel('NED$(\\boldsymbol{x},\\boldsymbol{y}^\\star)$', fontsize=fontsize+2)
     elif objective == 'dist':
-        ax1.set_ylabel('Structural Distance', fontsize=fontsize)
+        ax1.set_ylabel('$d(\\text{MFE}(\\boldsymbol{x}),\\boldsymbol{y}^\\star)$', fontsize=fontsize+2)
     elif objective == 'ddg':
-        ax1.set_ylabel('Free Energy Gap', fontsize=fontsize)
+        ax1.set_ylabel('$\\Delta \\Delta G^{\\circ}(\\boldsymbol{x},\\boldsymbol{y}^\\star)$ (kcal/mol)', fontsize=fontsize+2)
     else:
-        ax1.set_ylabel(objective, fontsize=fontsize)
+        ax1.set_ylabel(objective, fontsize=fontsize+2)
 
     n, rna_struct = len(lines[0]), lines[0]
     init = lines[1].split(', ')[1].split(': ')[1]
@@ -181,27 +201,34 @@ def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, lr_idx,
             plt.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
     
     # box plot
+    num_steps = len(avg_obj)
+    x_values = [x for x in range(0, num_steps, (num_steps + 9) // 10)]
     if len(boxplot) > 0:
-        num_steps = len(avg_obj)
-        x_values = [x for x in range(0, num_steps, (num_steps + 9) // 10)]
         boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
         marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
         ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
 
-    # calculate geom. mean
-    
-    ax1.plot(sampled, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3, label=r'best sample')
-    ax1.plot(integral, color='orange', alpha=0.9, label=r'integral solution')
-    ax1.plot(avg_obj, color='blue', alpha=0.8, label=r'geom. mean $(e^{-\mathcal{J}})$')
+    #  learning curves
+    ax1.plot([], linestyle='', marker='o', ms=10, markerfacecolor='None', color='green', alpha=0.7, label=r'best sample')
+    ax1.plot(sampled, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3)
+    ax1.plot(integral, color='orange', alpha=0.9, label=r'max-probability solution')
+    ax1.plot(avg_obj, color='red', alpha=0.8, label=r'arith. mean$')
 
-    ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=13)
-    ax1.legend(fontsize=fontsize)
+    # entropy subplot
+    entropy = [data for idx, data in enumerate(entropy) if idx in x_values]
+    ax2.bar(x_values, entropy, width=num_steps / 20)
+    ax2.set_ylim(0, max(entropy) *1.1)
+    ax2.invert_yaxis()
+    ax2.set_ylabel("Entropy of $p_{\\boldsymbol{y}^\\star} (\\cdot; \\mathbf{\\Theta})$", fontsize=fontsize+2)
+
+    plt.margins(x=0.05, y=0.2)
+    ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=fontsize+2)
+    ax2.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
 
     if not os.path.exists(f"graphs/{args.folder}"):
         os.makedirs(f"graphs/{args.folder}")
 
     save_path = f'graphs/{args.folder}/{rna_id}.pdf'
-    # plt.title(f'id {rna_id}, init={init}, sample_size={sample_size}')
     plt.savefig(save_path, bbox_inches="tight")
     print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)
 
@@ -217,6 +244,7 @@ def process_result_file(rna_id, result_file, args):
     obj, avg_pyx = [], [] # avg p(y | x) of sampled sequences
     integral_seqs, integral_obj = [], [] # integral solution at each iteration
     sampled_seqs, sampled_obj = [], [] # best sampled solution at each iteration
+    entropy = []
     boxplot = []
     prev_lr = float(lines[3].split(', ')[0].split(': ')[1])
     lr_idx = [] # track when does lr changes
@@ -225,7 +253,7 @@ def process_result_file(rna_id, result_file, args):
 
     # File reading
     for idx, line in enumerate(lines):
-        if line.startswith("Boxplot: "):
+        if line.startswith("boxplot: "):
             values = line.split(': ')[1].split(' ')
             try:
                 values = [float(value) for value in values if len(value) > 0]
@@ -247,7 +275,7 @@ def process_result_file(rna_id, result_file, args):
                 prev_lr = lr
                 lr_idx.append(step)
 
-        if line.startswith("integral solution"):
+        if line.startswith("max-probability solution"):
             seq = line.split(': ')[1].split(' ')[0]
             seq_obj = float(line.split(': ')[1].split(' ')[1])
 
@@ -255,6 +283,10 @@ def process_result_file(rna_id, result_file, args):
             integral_obj.append(seq_obj)
             if seq not in seq_step:
                 seq_step[seq] = step
+
+        if line.startswith("distribution entropy"):
+            entropy_value = float(line.split(': ')[1])
+            entropy.append(entropy_value)
 
         if line.startswith("best samples"):
             j = idx + 1 # evaluate the best sample
@@ -273,9 +305,9 @@ def process_result_file(rna_id, result_file, args):
     # graph solutions
     if not args.no_graph:
         if objective == "prob":
-            graph_prob(rna_id, lines, obj, avg_pyx, integral_obj, sampled_obj, boxplot, lr_idx, args)
+            graph_prob(rna_id, lines, obj, avg_pyx, integral_obj, sampled_obj, boxplot, entropy, lr_idx, args)
         else:
-            graph(rna_id, objective, lines, obj, integral_obj, sampled_obj, boxplot, lr_idx, args)
+            graph(rna_id, objective, lines, obj, integral_obj, sampled_obj, boxplot, entropy, lr_idx, args)
 
     # use vienna to reevaluate all sequences
     if not args.no_eval_seq:
@@ -317,12 +349,11 @@ def process_result_file(rna_id, result_file, args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--y", type=str, default="")
     parser.add_argument("--folder", type=str)
     parser.add_argument("--file", type=str)
     parser.add_argument("--max_workers", type=int, default=None)
-    parser.add_argument("--no_eval_seq", action="store_true", default=False, help='draw graph only')
-    parser.add_argument("--no_graph", action="store_true", default=False, help='eval seqs only')
+    parser.add_argument("--no_eval_seq", action="store_true", default=False, help='Draw graphs only (does not re-evaluate sequences)')
+    parser.add_argument("--no_graph", action="store_true", default=False, help='Re-evalaute sequences with Vienna 2.0 and store in ./analysis/ (does not draw any graphs)')
     args = parser.parse_args()
 
     results_path = f'./results/{args.folder}/{args.file}'

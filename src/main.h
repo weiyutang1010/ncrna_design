@@ -249,6 +249,8 @@ public:
     void gradient_descent();
     string get_integral_solution();
     
+    double distribution_entropy();
+
     // sampling
     Objective sampling_approx(int step);
 

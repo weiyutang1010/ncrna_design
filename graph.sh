@@ -27,7 +27,7 @@ if [ $# -eq 1 ]; then
         if [ -f "./results/$1/$filename_without_extension.txt" ]; then
             # Print the file name
             echo "Processing ./results/$1/$filename_without_extension.txt"
-            python analysis.py --folder "$1" --file $filename_without_extension.txt > ./analysis/$1/$filename_without_extension.txt &
+            python analysis.py --folder "$1" --file $filename_without_extension.txt > ./analysis/$1/$filename_without_extension.txt
         fi
     done
 fi
