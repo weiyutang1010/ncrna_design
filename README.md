@@ -1,17 +1,19 @@
-# ncRNA Design: Sampling-based Continuous Optimization for RNA Design
+# Sampling-based Continuous Optimization with Coupled Variables for RNA Design
+Wei Yu Tang, Ning Dai, Tianshuo Zhou, David H. Mathews, and Liang Huang
 
 ## Compile
 ```
 make
 ```
+Compiler version: g++ (Spack GCC) 8.3.0
 
-## Conda Environment (python scripts)
-`environment.yml`
+## Conda Environment (for python scripts)
+`conda env create --name ncrna_design --file=environments.yml`
 
 ## Scripts
-`./main` - run optimization for rna design
+`./main` - run rna design algorithm.
 
-`python analysis.py` - graph learning curve and re-evaluate samples using vienna RNA packages
+`python analysis.py` - draw learning curve and re-evaluate samples using viennaRNA 2.0
 
 `python excel.py` - compile results and give overall statistics
 
@@ -20,6 +22,7 @@ make
 `./graph.sh` - run `python analysis.py` in batch
 
 ## Examples
+Example commands for running rna design for the shortest 18 structures (up to 50 nucleotides) in Eterna100
 ```
 ./run.sh eterna/eterna_n50.txt example
 ./graph.sh example
