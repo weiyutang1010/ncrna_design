@@ -12,6 +12,7 @@ if [ ! -d "results/$1" ]; then
     exit 1
 fi
 
+# draw graphs and evaluate sequences for all files in the result folder
 if [ $# -eq 1 ]; then
     # Check if directory exists
     if [ ! -d "./analysis/$1" ]; then
@@ -32,6 +33,7 @@ if [ $# -eq 1 ]; then
     done
 fi
 
+# draw graphs and evaluate sequences for all id in the specified data file
 if [ $# -eq 2 ]; then
     if [ ! -f "./data/eterna/$2.txt" ]; then
         echo "data file $2.txt not found!"

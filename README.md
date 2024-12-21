@@ -24,7 +24,7 @@ Compiler version: g++ (Spack GCC) 8.3.0
 ## Examples
 Example commands for running rna design for the shortest 18 structures (up to 50 nucleotides) in Eterna100
 ```
-./run.sh eterna/eterna_n50.txt example
+./run.sh eterna/eterna_n50 example
 ./graph.sh example
 python excel.py eterna_n50 example
 ```

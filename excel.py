@@ -62,14 +62,12 @@ def main():
     umfe_count = 0
     avg_dist = []
     avg_ddg = []
-    print("id, length, p(y | x), p(y | x) seq, ned, ned seq, is_mfe, mfe seq, is_umfe, umfe seq, init")
+    print("id,length,p(y | x),p(y | x) seq,ned,ned seq,dist,dist seq,ddg,ddg seq,is_mfe,mfe seq,is_umfe,umfe seq")
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
 
         if len(results[rna_id]) == 0:
             continue
-
-            
 
         result = max(results[rna_id], key=lambda x: x[0])
         pyx = result[0]
@@ -95,12 +93,10 @@ def main():
         print(f"{int(rna_id)}", end=",")
         print(f"{len(rna_struct)}", end=",")
 
-        # print(f"{pyx_step}", end=",")
-        # print(f"{total_step}", end=",")
-        print(f"{pyx:.5e}", end=",")
+        print(f"{pyx:.3f}", end=",")
         print(f"{pyx_seq}", end=",")
-        # print(f"{ned_step}", end=",")
-        print(f"{ned:.5f}", end=",")
+
+        print(f"{ned:.3f}", end=",")
         print(f"{ned_seq}", end=",")
 
         print(f"{dist}", end=",")
@@ -131,7 +127,7 @@ def main():
     undesignable_ids = [50, 52, 57, 60, 61, 67, 72, 78, 80, 81, 86, 87, 88, 90, 91, 92, 96, 99]
     pyx_no_undesignable = [pyx for pyx, line in zip(avg_pyx, lines) if int(line[0]) not in undesignable_ids]
 
-    # print(f"avg p(y|x) step: {np.average(steps)}")
+    print("")
     print(f"arith. mean pyx: {np.mean(avg_pyx):.3f}", file=sys.stderr)
     print(f"geom. mean pyx (w/o undesignable): {gmean(pyx_no_undesignable):.5f}", file=sys.stderr)
     print(f"average ned: {np.mean(avg_ned):.4f}", file=sys.stderr)

@@ -15,9 +15,9 @@ def setgflags():
     flags.DEFINE_string('initializations', "targeted", "initializations: uniform / targeted", short_name='init')
     flags.DEFINE_float('eps', 0.75, "eps * uniform + (1 - eps) * targeted")
 
-    # TODO: adam should require softmax
     # parameterization
     flags.DEFINE_boolean('projection', False, "use projection instead of softmax parameterization")
+    # adam mode would require softmax to be on
     flags.DEFINE_boolean('no_adam', False, "turn off adam optimizer")
     flags.DEFINE_boolean('nesterov', False, "use nesterov's accelerated gradient descent")
     flags.DEFINE_float('beta_1', 0.9, "Adam's first moment decay rate", short_name='b1')
@@ -25,15 +25,18 @@ def setgflags():
     
     # learning rate
     flags.DEFINE_float('initial_lr', 0.01, "set learning rate", short_name='lr')
+    
+    # learning rate decay
     flags.DEFINE_boolean('lr_decay', False, "use learning rate decay")
-    flags.DEFINE_float('lr_decay_rate', 0.96, "decay rate")
+    flags.DEFINE_float('lr_decay_rate', 0.5, "decay rate")
     flags.DEFINE_boolean('adaptive_lr', False, "use adaptive learning rate decay")
-    flags.DEFINE_integer('k_ma_lr', 10, "parameter for adaptive lr decay")
+    flags.DEFINE_integer('k_ma_lr', 20, "how many steps since objective function improve before reducing lr")
+    flags.DEFINE_integer('lr_decay_step', 50, "decay every k steps (when adapative lr decay is not used)")
     
     # number of steps
     flags.DEFINE_integer('num_steps', 2000, "set the max number of steps", short_name='step')
     flags.DEFINE_boolean('adaptive_step', True, "turn on adaptive step")
-    flags.DEFINE_integer('k_ma', 50, "parameter for adaptive step")
+    flags.DEFINE_integer('k_ma', 50, "stop when objective function hasn't improved for k steps")
     
     # used in linearpartition and linearfold
     flags.DEFINE_integer('beamsize', 250, "set beam size", short_name='b')
@@ -42,7 +45,7 @@ def setgflags():
 
     # sampling
     flags.DEFINE_integer('sample_size', 2500, "number of samples", short_name='k')
-    flags.DEFINE_integer('best_k', 1, "print out best k samples")
+    flags.DEFINE_integer('best_k', 1, "print out best k samples each step")
 
     # ablation studies
     flags.DEFINE_boolean('no_mismatch', False, "ablate 4 x 4 coupled mismatch")
@@ -52,9 +55,6 @@ def setgflags():
     flags.DEFINE_integer('seed', 42, "random seed")
     flags.DEFINE_integer('num_threads', 0, "number of threads used in openmp (0 for default)")
     flags.DEFINE_boolean('boxplot', False, "print out the objective of all samples")
-
-    # flags.DEFINE_boolean('kmers', False, "kmers analysis")
-    flags.DEFINE_boolean('test', False, "test mode")
 
     argv = FLAGS(sys.argv)
 
@@ -76,6 +76,7 @@ def main():
     lr_decay_rate = str(FLAGS.lr_decay_rate)
     adaptive_lr= '1' if FLAGS.adaptive_lr else '0'
     k_ma_lr = str(FLAGS.k_ma_lr)
+    lr_decay_step = str(FLAGS.lr_decay_step)
 
     num_steps = str(FLAGS.step)
     adaptive_step= '1' if FLAGS.adaptive_step else '0'
@@ -96,13 +97,10 @@ def main():
     num_threads = str(FLAGS.num_threads)
     boxplot = '1' if FLAGS.boxplot else '0'
 
-    # kmers = '1' if FLAGS.kmers else '0'
-    exe_file = 'bin/main_test' if FLAGS.test else 'bin/main'
-
-    # TODO: error handling
+    exe_file = 'bin/main'
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, verbose, seed, num_threads, boxplot]
+    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, verbose, seed, num_threads, boxplot]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

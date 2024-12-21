@@ -26,8 +26,6 @@
 #include "Utils/utility.h"
 #include "Utils/utility_v.h"
 
-// TODO: change to include .h but need to update MAKEFILE and deal with 
-//       multiple definition when including utility files
 #include "LinearFold.cpp"
 #include "LinearFoldEval.h"
 #include "LinearPartition.cpp"
@@ -52,6 +50,7 @@ GradientDescent::GradientDescent(string rna_struct,
                                 double lr_decay_rate,
                                 bool adaptive_lr,
                                 int k_ma_lr,
+                                int lr_decay_step,
                                 int num_steps,
                                 bool adaptive_step,
                                 int k_ma,
@@ -80,6 +79,7 @@ GradientDescent::GradientDescent(string rna_struct,
       lr_decay_rate(lr_decay_rate),
       adaptive_lr(adaptive_lr),
       k_ma_lr(k_ma_lr),
+      lr_decay_step(lr_decay_step),
       num_steps(num_steps),
       adaptive_step(adaptive_step),
       k_ma(k_ma),
@@ -90,7 +90,6 @@ GradientDescent::GradientDescent(string rna_struct,
       mismatch(mismatch),
       trimismatch(trimismatch),
       best_k(best_k),
-    //   kmers(kmers),
       seed(seed),
       is_verbose(verbose),
       num_threads(num_threads),
@@ -200,8 +199,6 @@ void GradientDescent::adam_update(Objective& obj, int step) {
         for (int i = 0; i < arr.size(); i++) {
             first_moment[pos][i] = beta.first * first_moment[pos][i] + (1.0 - beta.first) * grad[pos][i];
             second_moment[pos][i] = beta.second * second_moment[pos][i] + (1.0 - beta.second) * (grad[pos][i] * grad[pos][i]);
-            // double first_mt_corrected = first_moment[pos][i] / (1.0 - pow(beta.first, step+1));
-            // double second_mt_corrected = second_moment[pos][i] / (1.0 - pow(beta.second, step+1));
             double first_mt_corrected = first_moment[pos][i] / (1.0 - beta_pow.first);
             double second_mt_corrected = second_moment[pos][i] / (1.0 - beta_pow.second);
             beta_pow.first *= beta.first;
@@ -213,7 +210,6 @@ void GradientDescent::adam_update(Objective& obj, int step) {
 }
 
 void GradientDescent::nesterov_update() {
-    // TODO: implement softmax version
     map<vector<int>, vector<double>> temp = dist;
 
     // compute extrapolated point
@@ -232,6 +228,7 @@ void GradientDescent::nesterov_update() {
 }
 
 string GradientDescent::get_integral_solution() {
+    // max-probability solution
     string nucs = "ACGU";
     string seq = string(rna_struct.size(), 'A');
 
@@ -257,6 +254,7 @@ string GradientDescent::get_integral_solution() {
 }
 
 void GradientDescent::initialize_dist_no_mismatch() {
+    // initialize without mismatch position
     stack<int> stk;
 
     // coupling positions
@@ -311,7 +309,7 @@ void GradientDescent::initialize_dist_no_mismatch() {
             }
         }
     } else {
-        throw std::runtime_error("Initialization not implemented yet!");
+        throw std::runtime_error("Initialization not implemented yet.");
     }
 }
 
@@ -427,7 +425,7 @@ void GradientDescent::initialize_dist() {
                     dist[pos][nucs_to_idx["A"]] = (1. * eps) + (.25 * (1 - eps));
                 }
             } else {
-                // coupled mismatch
+                // uniform for mismatch and trimismatch
                 if (softmax) {
                     logits[pos] = vector<double> (num, 0.);
                 } else {
@@ -444,11 +442,6 @@ void GradientDescent::initialize_dist() {
                 if (num == 6) {
                     logits[pos][pairs_to_idx["CG"]] = log((.5 * eps) + (1./double(num) * (1. - eps)));
                     logits[pos][pairs_to_idx["GC"]] = log((.5 * eps) + (1./double(num) * (1. - eps)));
-                } else if (num == 36) { // two pair stacking
-                    logits[pos][pairs_to_idx["CGCG"]] = log((.25 * eps) + (1./double(num) * (1. - eps)));
-                    logits[pos][pairs_to_idx["CGGC"]] = log((.25 * eps) + (1./double(num) * (1. - eps)));
-                    logits[pos][pairs_to_idx["GCCG"]] = log((.25 * eps) + (1./double(num) * (1. - eps)));
-                    logits[pos][pairs_to_idx["GCGC"]] = log((.25 * eps) + (1./double(num) * (1. - eps)));
                 }
             } else {
                 dist[pos] = vector<double> (num, (0. * eps) + (1./double(num) * (1 - eps)));
@@ -456,16 +449,11 @@ void GradientDescent::initialize_dist() {
                 if (num == 6) {
                     dist[pos][pairs_to_idx["CG"]] = (.5 * eps) + (1./double(num) * (1. - eps));
                     dist[pos][pairs_to_idx["GC"]] = (.5 * eps) + (1./double(num) * (1. - eps));
-                } else if (num == 36) { // two pair stacking
-                    dist[pos][pairs_to_idx["CGCG"]] = (.25 * eps) + (1./double(num) * (1. - eps));
-                    dist[pos][pairs_to_idx["CGGC"]] = (.25 * eps) + (1./double(num) * (1. - eps));
-                    dist[pos][pairs_to_idx["GCCG"]] = (.25 * eps) + (1./double(num) * (1. - eps));
-                    dist[pos][pairs_to_idx["GCGC"]] = (.25 * eps) + (1./double(num) * (1. - eps));
                 }
             }
         }
     } else {
-        throw std::runtime_error("Initialization not implemented yet!");
+        throw std::runtime_error("Initialization not implemented yet.");
     }
 
     return;
@@ -474,7 +462,7 @@ void GradientDescent::initialize_dist() {
 void GradientDescent::print_dist(string label, map<vector<int>, vector<double>>& dist) {
     cout << label << endl;
 
-    int dc = 4; // decimal place
+    int dc = 4; // number of decimal place for probability
     for (const vector<int>& pos: unpaired_pos) {
         auto& probs = dist[pos];
 
@@ -525,7 +513,8 @@ void GradientDescent::print_mode() {
     
     cout << "initial lr: " << initial_lr
          << ", lr decay: " << lr_decay << ", lr decay rate: " << lr_decay_rate
-         << ", adaptive lr decay: " << adaptive_lr << ", k_ma_lr: " << k_ma_lr << "\n";
+         << ", adaptive lr decay: " << adaptive_lr << ", k_ma_lr: " << k_ma_lr
+         << ", lr_decay_step: " << lr_decay_step << "\n";
 
     cout << "max number of steps: " << num_steps
          << ", adaptive step: " << adaptive_step << ", k moving avg: " << k_ma << "\n";
@@ -587,9 +576,9 @@ void GradientDescent::logits_to_dist() {
 }
 
 Objective GradientDescent::logits_grad(const Objective& obj) {
-    // ref: https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative/
     Objective new_obj;
     new_obj.score = obj.score;
+
     for (const auto& [pos, grad]: obj.gradient) {
         int n = grad.size();
         new_obj.gradient[pos] = vector<double> (n, 0.);
@@ -632,6 +621,33 @@ double GradientDescent::distribution_entropy() {
     return -entropy;
 }
 
+void is_valid_target_structure(const string& structure) {
+    stack<char> s;
+    string validChars = "().";
+
+    for (char c : structure) {
+        // Ensure all characters are valid
+        if (validChars.find(c) == string::npos) {
+            throw std::runtime_error("Invalid target structure.");
+        }
+
+        // Check for balanced parentheses
+        if (c == '(') {
+            s.push(c);
+        } else if (c == ')') {
+            if (s.empty() || s.top() != '(') {
+                throw std::runtime_error("Invalid target structure.");
+            }
+            s.pop();
+        }
+    }
+
+    // Ensure no unmatched parentheses remain
+    if (!s.empty()) {
+        throw std::runtime_error("Invalid target structure.");
+    }
+}
+
 void GradientDescent::gradient_descent() {
     struct timeval parse_starttime, parse_endtime;
     struct timeval total_starttime, total_endtime;
@@ -644,6 +660,7 @@ void GradientDescent::gradient_descent() {
     // Initialization
     print_mode();
     initialize_dist();
+
     if (nesterov) old_dist = dist;
     if (softmax) {
         logits_to_dist();
@@ -776,8 +793,7 @@ void GradientDescent::gradient_descent() {
         bool decay = false;
         if (lr_decay) {
             if (adaptive_lr) {
-                // adaptive learning rate decay with criteria similar to adaptive step
-                // if obj hasn't improve for k steps, then reduce lr
+                // adaptive learning rate decay: if obj hasn't improve for k steps, then reduce lr
                 if (moving_avg_lr / last_k_obj_lr.size() < last_best_avg_lr.first) {
                     // update step of best moving avg
                     last_best_avg_lr = {moving_avg_lr / last_k_obj_lr.size(), step};
@@ -789,7 +805,10 @@ void GradientDescent::gradient_descent() {
                     last_best_avg_lr = {moving_avg_lr / last_k_obj_lr.size(), step};
                 }
             } else {
-                lr *= lr_decay_rate;
+                // decay every k steps
+                if (step % lr_decay_step == 0) {
+                    lr *= lr_decay_rate;
+                }
             }
         }
 
@@ -824,8 +843,10 @@ void GradientDescent::gradient_descent() {
     }
 
     print_dist("Final Distribution", dist);
-
-    cout << "Best Design: " << best_design << endl;
+    if (objective == "prob") {
+        best_obj = exp(best_obj * -1);
+    }
+    cout << "Best Design: " << best_design << " " << best_obj <<  endl;
 
     gettimeofday(&total_endtime, NULL);
     double total_elapsed_time = total_endtime.tv_sec - total_starttime.tv_sec + (total_endtime.tv_usec-total_starttime.tv_usec)/1000000.0;
@@ -844,7 +865,7 @@ int main(int argc, char** argv){
 
     double initial_lr = 0.01, lr_decay_rate = 0.96;
     bool lr_decay = false, adaptive_lr = false;
-    int k_ma_lr = 10;
+    int k_ma_lr = 10, lr_decay_step = 50;
 
     int num_steps = -1;
     bool adaptive_step = false;
@@ -865,7 +886,6 @@ int main(int argc, char** argv){
     int seed = 42;
     int num_threads = 0;
     bool boxplot = false;
-    // bool kmers = false;
 
     if (argc > 1) {
         mode = argv[1];
@@ -885,43 +905,43 @@ int main(int argc, char** argv){
         lr_decay_rate = atof(argv[12]);
         adaptive_lr = atoi(argv[13]) == 1;
         k_ma_lr = atoi(argv[14]);
+        lr_decay_step = atoi(argv[15]);
 
-        num_steps = atoi(argv[15]);
-        adaptive_step = atoi(argv[16]) == 1;
-        k_ma = atoi(argv[17]);
+        num_steps = atoi(argv[16]);
+        adaptive_step = atoi(argv[17]) == 1;
+        k_ma = atoi(argv[18]);
 
-        beamsize = atoi(argv[18]);
-        sharpturn = atoi(argv[19]) == 1;
-        is_lazy = atoi(argv[20]) == 1;
+        beamsize = atoi(argv[19]);
+        sharpturn = atoi(argv[20]) == 1;
+        is_lazy = atoi(argv[21]) == 1;
 
-        sample_size = atoi(argv[21]);
-        best_k = atoi(argv[22]);
+        sample_size = atoi(argv[22]);
+        best_k = atoi(argv[23]);
 
-        mismatch = atoi(argv[23]) == 1;
-        trimismatch = atoi(argv[24]) == 1;
+        mismatch = atoi(argv[24]) == 1;
+        trimismatch = atoi(argv[25]) == 1;
 
-        seed = atoi(argv[25]);
-        verbose = atoi(argv[26]) == 1;
-        num_threads = atoi(argv[27]);
-        boxplot = atoi(argv[28]) == 1;
-        // kmers = atoi(argv[24]) == 1;
+        seed = atoi(argv[26]);
+        verbose = atoi(argv[27]) == 1;
+        num_threads = atoi(argv[28]);
+        boxplot = atoi(argv[29]) == 1;
     }
 
     if (mode == "eval") {
-        // weiyu: for internal testing. to eval using vienna package, check vienna.py
+        // weiyu: to eval using vienna package, check vienna.py
         string rna_struct;
         for (string rna_seq; getline(cin, rna_seq);){
             getline(cin, rna_struct);
 
             if (rna_seq.size() > 0 && rna_struct.size() > 0) {
                 if (rna_seq.size() != rna_struct.size()) {
-                    std::cerr << "Sequence size does not match structure size!" << std::endl;
+                    std::cerr << "Sequence length does not match structure length." << std::endl;
                     return 1;
                 }
 
                 try {
-                    // implement eval mode for evaluating: p(y* | x), ned(x, y*), d(mfe(x), y*)
-                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
+                    is_valid_target_structure(rna_struct);
+                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     
                     string mfe_struct = parser.get_mfe_struct(rna_seq);
                     double prob = parser.boltzmann_prob(rna_seq, rna_struct);
@@ -935,7 +955,7 @@ int main(int argc, char** argv){
                     cout << "p(y* | x): " << prob << "\n";
                     cout << "ned(x, y*): " << ned << "\n";
                     cout << "d(MFE(x), y*): " << dist << "\n";
-                    cout << "\\DDG(x, y*): " << ddg << endl;
+                    cout << "DDG(x, y*): " << ddg << endl;
 
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;
@@ -945,10 +965,11 @@ int main(int argc, char** argv){
         }
     } else if (mode == "ncrna_design") {
         for (string rna_struct; getline(cin, rna_struct);){
-            // TODO: verify that rna structure is valid
             if (rna_struct.size() > 0) {
                 try {
-                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
+                    // TODO: check if rna structure is valid
+                    is_valid_target_structure(rna_struct);
+                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;
@@ -957,7 +978,7 @@ int main(int argc, char** argv){
             }
         }
     } else {
-        std::cerr << "Mode not implemented!" << std::endl;
+        std::cerr << "Mode not implemented." << std::endl;
         return 1;
     }
 

@@ -130,9 +130,9 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
 
     # lr change
     if len(lr_idx) > 0:
-        plt.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr decay')
+        ax1.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr decay')
         for idx in lr_idx[1:]:
-            plt.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
+            ax1.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
     
     # box plot
     num_steps = len(avg_pyx)
@@ -196,9 +196,9 @@ def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, entropy
 
     # lr change
     if len(lr_idx) > 0:
-        plt.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr decay')
+        ax1.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr decay')
         for idx in lr_idx[1:]:
-            plt.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
+            ax1.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
     
     # box plot
     num_steps = len(avg_obj)

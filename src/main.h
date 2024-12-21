@@ -172,7 +172,7 @@ public:
 
     double initial_lr, lr, lr_decay_rate;
     bool lr_decay, adaptive_lr;
-    int k_ma_lr;
+    int k_ma_lr, lr_decay_step;
 
     int num_steps, k_ma;
     bool adaptive_step;
@@ -181,7 +181,6 @@ public:
     bool nosharpturn;
     bool is_lazy;
 
-    // for sampling method
     int sample_size, best_k = 1;
 
     bool mismatch;
@@ -190,16 +189,14 @@ public:
     int seed, num_threads;
     bool is_verbose, boxplot;
 
-    // bool kmers;
 
     map<vector<int>, vector<double>> old_dist; // used in nesterov, save previous distribution
     map<vector<int>, vector<double>> dist;
 
     map<vector<int>, vector<double>> logits;
 
-    // 
-    vector<vector<int>> base_pairs_pos; // [i, j] for paired position, [i1, j1, i2, j2] for 2 pair stacking
-    vector<vector<int>> unpaired_pos; // [i] for unpaired, [i, j] and [i, j, k] for coupled terminal mismatches
+    vector<vector<int>> base_pairs_pos; // key: [i, j] for paired position
+    vector<vector<int>> unpaired_pos; // key: [i] for unpaired, [i, j] for mismatches and [i, j, k] for trimismatches
 
     // Adam optimizer
     pair<double, double> beta;
@@ -224,6 +221,7 @@ public:
                     double lr_decay_rate,
                     bool adaptive_lr,
                     int k_ma_lr,
+                    int lr_decay_step,
                     int num_steps,
                     bool adaptive_step,
                     int k_ma,
@@ -255,9 +253,9 @@ public:
     Objective sampling_approx(int step);
 
     // softmax conversion
-    void softmax_func(const vector<vector<int>>& positions);
+    void softmax_func(const vector<vector<int>>& positions); //softmax function
     void logits_to_dist(); // convert logits to distribution
-    Objective logits_grad(const Objective& grad); // compute softmax logits
+    Objective logits_grad(const Objective& grad); // compute gradient for softmax logits
 
     // objective functions
     Objective objective_function(int step);
@@ -270,7 +268,6 @@ public:
     int structural_dist_mfe(string& seq, const string& rna_struct); // d(MFE(x), y*)
     double base_pair_dist(string& y, string& y_star); // BPD(y, y') used in nemo
     string get_mfe_struct(string& rna_seq); // MFE(x)
-    // vector<string> get_mfe_structs(); // MFE(x) set but uses LinearFold
 
 private:
     void get_parentheses(char* result, string& seq);
@@ -284,25 +281,12 @@ private:
     void nesterov_update();
     void projection();
 
-    // // weiyu: used in dp version of ncrna design
-    // double inside_partition(vector<array<double, 4>>& dist);
-    // double free_energy(vector<array<double, 4>>& dist, string& rna_struct, bool is_verbose);
-    // void outside_partition(vector<array<double, 4>>& dist);
-
-    // vector<vector<vector<int>>> bulge_score;
-    // vector<vector<int>> stacking_score;
-
-    // vector<int> if_tetraloops;
-    // vector<int> if_hexaloops;
-    // vector<int> if_triloops;
-
     int *nucs;
 
     // random
     std::mt19937 gen;
     int selectRandomIndex(const std::vector<double>& weights);
 
-    // sampling (TODO)
     struct Sample {
         string seq;
         double sample_prob; // p(x; \theta)
@@ -315,13 +299,6 @@ private:
     vector<Sample> samples;
     priority_queue<pair<double, string>> best_samples;
     unordered_map<string, Sample> samples_cache;
-
-    // // for analysis
-    // double calculate_mean();
-    // double calculate_variance();
-    // void kmers_analysis(const vector<Sample>& samples);
-    // vector<unordered_map<string, int>> freq_cnt;
-    // vector<long long> kmers_count;
 };
 
 #endif //FASTCKY_BEAMCKYPAR_H
