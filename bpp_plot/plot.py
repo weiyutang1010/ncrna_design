@@ -286,11 +286,14 @@ def draw_rna_linear(bpp, seq_len, pairs, folder, puzzle_id, opening_size=0.1, nu
 
     # Place indices on the axis
     indices_height = seq_len * (-0.015)
-    plt.text(0, indices_height, str(1), ha='center', va='center', fontsize=13, color='black',)
-    plt.text(seq_len-1, indices_height, str(seq_len), ha='center', va='center', fontsize=13, color='black',)
+    # plt.text(0, indices_height, str(1), ha='center', va='center', fontsize=13, color='black',)
+    # plt.text(seq_len-1, indices_height, str(seq_len), ha='center', va='center', fontsize=13, color='black',)
     
-    index_gap = max(1, seq_len // (num_index_labels-2))
-    for index in range(index_gap, seq_len - 1, index_gap):
+    # index_gap = max(1, seq_len // (num_index_labels-2))
+    # for index in range(index_gap, seq_len - 1, index_gap):
+    #     plt.text(index, indices_height, str(index + 1), ha='center', va='center', fontsize=13, color='black',)
+
+    for index in np.linspace(0, seq_len - 1, 10).round().astype(int):
         plt.text(index, indices_height, str(index + 1), ha='center', va='center', fontsize=13, color='black',)
 
     # Draw segments for pairs
