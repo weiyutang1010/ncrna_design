@@ -1,6 +1,6 @@
 ## Evaluation Data
 
-Contains the designed solution for our work in ``Sampling-based Continuous Optimization for RNA Design''
+Designed sequences of this work used in ''Sampling-based Continuous Optimization for RNA Design''
 
 - pyx_projection.csv: This Work (projection) optimizing for $p(y^\star \mid x)$ (Boltzmann probability)
 - pyx_softmax.csv: This Work (softmax) optimizing for $p(y^\star \mid x)$ (Boltzmann probability)
@@ -11,15 +11,15 @@ Contains the designed solution for our work in ``Sampling-based Continuous Optim
 ### CSV Columns
 - ID: Eterna puzzle ID
 - Name: puzzle name
-- Length: structure length
+- Length: puzzle length
 - Structure: secondary structure $y^\star$ (Eterna puzzle)
 - Unpaired: number of unpaired nucleotides $\lvert \mathit{unpaired}(y) \rvert$
-- Pairs: number of pairs nucleotides $\lvert \mathit{pairs}(y) \rvert$
-- Total: number of valid sequences $\lvert \mathcal{X}(y^\star) \rvert$
-- p(y | x): best $p(y^\star \mid x)$ found
-- p(y|x): best $p(y^\star \mid x)$ sequence found
-- NED: best NED$(x, y^\star)$ found
-- NED seq: best NED$(x, y^\star)$ sequence found
+- Pairs: number of base pairs $\lvert \mathit{pairs}(y) \rvert$
+- Designability: designable/undesignable/unknown
+- p(y|x): best $p(y^\star \mid x)$ found
+- p(y|x) seq: best $p(y^\star \mid x)$ sequence found
+- NED: best $\mathrm{NED}(x, y^\star)$ found
+- NED seq: best $\mathrm{NED}(x, y^\star)$ sequence found
 - dist: best $d(\mathrm{MFE}(x), y^\star)$ found
 - dist seq: best $d(\mathrm{MFE}(x), y^\star)$ sequence found
 - DDG: best $\Delta \Delta G^{\circ}(x, y^\star)$ found
