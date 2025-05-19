@@ -1,4 +1,5 @@
-"""Given a sequence and structure, output its p(y | x), NED, is_mfe, is_umfe"""
+"""Given a sequence and structure, output its Boltzmann probability, normalized ensemble defect, 
+   structural distance, free energy gap, is MFE, and is uMFE"""
 """Reference: https://github.com/shanry/SAMFEO/blob/main/utils/vienna.py"""
 
 import os, sys
@@ -126,11 +127,10 @@ if __name__ == '__main__':
     # seqs    = lines[:n//2]
     # structs = lines[n//2:]
 
-    seq =    "AACAGCAAGGGCCAAAAGGCGCACAAAAGCGCCGGCCCGGGGAAAGGCCGAAAAGGCCCCCCGCCAAGGCAAACGCCGGCACCCAAACCGGAAAGCCCUAAAAUGGGCCCGGGGCAAGCCAAAAAGGCGCCGGACCGAAAGGCCACCCCAAAACGGAAGCCGAAAAAGGCCCGGGACCGAAAAGGCCGCCGAAAGGCACCUGCAAAAAGGACCGAAGAAGGCCGCCGAAAAGGCGCGAAAGCAGCCCGCAAAAAAGGCAAAAACGCCGCGAAAAGCAAAGGGCCCCUAUGGGGCCCAAAUAAAGCGGGCAAAACAGCAGGAAAAAGGGGAAAAGGGAAAGCGAGGAACGUGACGGCAAAACCAAAAGGGCGAAAGCGGGCCCAAAGGGCCCAGCCGCAGG"
-    struct = "..(.((..(((((....(((((......))))))))))((((...((((.....))))))))(((..(((....)))))).(((...((((...((((......))))))))(((..(((.....))))))((.((....)))).((((....(((..(((......))))))((.((.....))))(((....))).(((((.....((.((......))))(((.....)))((....)).((((((......(((......)))((.....))...(((((((...))))))).......))))))......))))).....))))....)))...))..)...(.((.((((....((....))((....))((((((...)))))).)))))).)"
+    # seq =    "GGGAAACCAGGGAAACCAGCGAAAGCACCUACGGG" # good design on fig 1.
+    seq =    "GCUGCGGCAGCUACGGCAGGGCAACCAGGGGAACC" # bad design on fig 1.
 
-    # seq = "AAAAAUAAGAAUACAAAGUGGAAGACUAACCCACCCAAAGCACGAUUGUGCAGCUACAACACCCGGCACAAGAACACAGACUUUGGACAUGGACUGAGGCGCCGGACUGUCGGCGAACCGCUCCGCGGACGCACACAGCAUGGCCACUUAGCAUAUGUCUGUAUUCUGAAGGCUUGAAGAGGGAAGGGUGGCAGGGAAGCGCACCCGCGGAAGCCACGAGGGCAGAAGGCUGCGAGGGCCCGAGGGUCUCGGGCCAGGAUGGACGCAGGGUAGAGAACUACCCACGCGCAUAUCACGGCCACAGGCUACCGGGUCCAGAAGGCCCCGAGCCCAGAAGGCACUAGCGGGACCGGAUAACCGGAAAGCGAGGGGAAGGAUACGACGAAGCAAGCAAUAAAAG"
-    # struct = "(....)..(....(...(..(.(..(...(((.(((...((((....)))).(((((..(.(((..(.((((..(.((((..(.((((((((.((((((.(((((.((((.((((..((((...)))).))).)))))).))))).)))))).)))))))..).))))..).))))..).)))..).))))).)))...(((.(((((.(..(((.(..((((.(..((((.(..(((((((.((((((.(((((.((((((.(((.((((((....))))))..)))).)))).))))).)))))).)))))))).)..)))).)..)))).)..))).)..))))).((((....))))...))).)))...)..).)..)...)....)..(....)"
+    struct = "((....)).((....)).((....)).((....))" # target
 
     seqs = [seq]
     structs = [struct]
@@ -145,6 +145,7 @@ if __name__ == '__main__':
         ss_mfe = mfe(seq)[0]
         subopt_data = subopt(seq)
 
+        free_energy = energy(seq, struct)
         mfe_structs = [st for e, st in subopt_data['ss_list']]
         is_mfe = struct in mfe_structs
         is_umfe = is_mfe and subopt_data['counter'] == 1
@@ -157,12 +158,13 @@ if __name__ == '__main__':
         print(f"seq        : {seq}")
         print(f"structure  : {struct}")
         # print(f"mfe(seq) : {mfe_structs}")
-        print(f"is_mfe     : {is_mfe}")
-        print(f"is_umfe    : {is_umfe}")
-        print(f"dist       : {dist}")
-        print(f"ediff      : {delta_delta_G}")
-        print(f"p(y | x)   : {pyx}")
-        print(f"ned        : {ned}")
+        print(f"delta G    : {free_energy}") # free energy (kcal / mol)
+        print(f"is_mfe     : {is_mfe}") # MFE criteria
+        print(f"is_umfe    : {is_umfe}") # uMFE criteria
+        print(f"dist       : {dist}") # structural distance
+        print(f"ediff      : {delta_delta_G}") # free energy gap
+        print(f"p(y | x)   : {pyx}") # Boltzmann probability
+        print(f"ned        : {ned}") # Normalized ensemble defect
         # print(f"pos defect : {pos_def}")
         print(f"mfe_struct : {ss_mfe}")
         print()

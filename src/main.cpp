@@ -1,7 +1,7 @@
 /*
  *main.cpp*
- The main code for Sampling-based Continuous Optimization with
- Coupled Variables for RNA Design
+ The main code for SamplingDesign: RNA Design via Continuous Optimization
+with Coupled Variables and Monte-Carlo Sampling
 
  author: Wei Yu Tang
  created by: 09/2023
@@ -122,6 +122,7 @@ GradientDescent::GradientDescent(string rna_struct,
 }
 
 void GradientDescent::projection() {
+    // project distribution onto probability simplex
     int n = dist.size(), z = 1;
 
     map<vector<int>, vector<double>> sorted_dist (dist);
@@ -183,7 +184,7 @@ void GradientDescent::update(Objective& obj) {
 }
 
 void GradientDescent::adam_update(Objective& obj, int step) {
-    // only for softmax
+    // apply ADAM update for softmax parameterization
     map<vector<int>, vector<double>>& grad = obj.gradient;
     
     // m_t = b_1 * m_{t-1} + (1 - b_1) * g_t
@@ -228,7 +229,7 @@ void GradientDescent::nesterov_update() {
 }
 
 string GradientDescent::get_integral_solution() {
-    // max-probability solution
+    // get max-probability solution from the distribution
     string nucs = "ACGU";
     string seq = string(rna_struct.size(), 'A');
 
@@ -254,7 +255,7 @@ string GradientDescent::get_integral_solution() {
 }
 
 void GradientDescent::initialize_dist_no_mismatch() {
-    // initialize without mismatch position
+    // initialize without coupled position
     stack<int> stk;
 
     // coupling positions
@@ -314,7 +315,10 @@ void GradientDescent::initialize_dist_no_mismatch() {
 }
 
 void GradientDescent::initialize_dist() {
+    // Initialize logits or distributions (based on parameterization)
+
     if (!mismatch) {
+        // distribution (v0) - no coupled positions
         initialize_dist_no_mismatch();
         return;
     }
@@ -323,7 +327,7 @@ void GradientDescent::initialize_dist() {
     tuple<int, int> inner_loop {-1, -1};
     unordered_set<int> idx; 
 
-    // coupled positions: base pairs and terminal mismatch
+    // coupling positions: base pairs, mismatches, and trimismatches
     for (int j = 0; j < rna_struct.size(); j++) {
         if (rna_struct[j] == '(') {
             if (!stk.empty()) { // +1 for outer loop page
@@ -337,56 +341,43 @@ void GradientDescent::initialize_dist() {
             stk.pop();
 
             if (page == 0) {
+                // hairpin (mismatch)
                 unpaired_pos.push_back({i+1, j-1});
                 idx.insert(i+1); idx.insert(j-1);
             } else if (page == 1) {
                 // i ... p ... q ... j
                 if (p - i - 1 == 1 && j - q - 1 == 1) {
-                    // 1x1 internal loops
+                    // 1x1 internal loops (mismatch)
                     unpaired_pos.push_back({i+1, j-1});
                     idx.insert(i+1); idx.insert(j-1);
                 } else if (trimismatch && p - i - 1 == 1 && j - q - 1 > 0) {
-                    // 1x2, 1x3, 1xn internal loops
+                    // 1x2, 1x3, 1xn internal loops (trimismatch)
                     unpaired_pos.push_back({i+1, q+1, j-1});
                     idx.insert(i+1); idx.insert(q+1); idx.insert(j-1);
                 } else if (trimismatch && j - q - 1 == 1 && p - i - 1 > 0) {
-                    // 2x1, 3x1, nx1 internal loops
+                    // 2x1, 3x1, nx1 internal loops (trimismatch)
                     unpaired_pos.push_back({i+1, p-1, j-1});
                     idx.insert(i+1); idx.insert(p-1); idx.insert(j-1);
                 } else if (p - i - 1 > 1 && j - q - 1 > 1) {
-                    // 2x2, 2x3, generic internal loops
+                    // 2x2, 2x3, generic internal loops (mismatches)
                     unpaired_pos.push_back({i+1, j-1});
                     unpaired_pos.push_back({p-1, q+1});
                     idx.insert(i+1); idx.insert(j-1);
                     idx.insert(p-1); idx.insert(q+1);
                 }
             }
-            
+
+            // base pairs
+            base_pairs_pos.push_back({i, j});
+            idx.insert(i); idx.insert(j);
+
             //update inner_loop
             inner_loop = make_tuple(i, j);
-
-            // 2 pair stacking condition (coupling two consecutive pairs)
-            bool two_pair_stacking = false; // TODO: turn this into an argument
-            bool two_pair_cond = two_pair_stacking &&
-                                p - i - 1 == 0 &&
-                                j - q - 1 == 0 &&
-                                rna_struct[p+1] == '.' &&
-                                rna_struct[q-1] == '.' &&
-                                (i - 1 < 0 || rna_struct[i-1] == '.') &&
-                                (j + 1 >= rna_struct.size() || rna_struct[j+1] == '.');
-
-            if (two_pair_cond) {
-                int last_index = base_pairs_pos.size() - 1;
-                base_pairs_pos[last_index].push_back(i);
-                base_pairs_pos[last_index].push_back(j);
-            } else {
-                base_pairs_pos.push_back({i, j});
-            }
-            idx.insert(i); idx.insert(j);
         }
     }
 
     for (int j = 0; j < rna_struct.size(); j++) {
+        // add remaining nucleotides as unpaired position
         if (idx.find(j) == idx.end()) {
             unpaired_pos.push_back({j});
         }
@@ -460,6 +451,7 @@ void GradientDescent::initialize_dist() {
 }
 
 void GradientDescent::print_dist(string label, map<vector<int>, vector<double>>& dist) {
+    // print distribution in a readable format
     cout << label << endl;
 
     int dc = 4; // number of decimal place for probability
@@ -504,6 +496,7 @@ void GradientDescent::print_dist(string label, map<vector<int>, vector<double>>&
 }
 
 void GradientDescent::print_mode() {
+    // print settings
     cout << rna_struct << endl;
     cout << "objective: " << objective << ", initializaiton: " << init << ", eps: " << eps << "\n";
     
@@ -534,7 +527,6 @@ void GradientDescent::print_mode() {
 
 Objective GradientDescent::objective_function(int step) {
     if (objective == "prob" || objective == "ned" || objective == "dist" || objective == "ddg") {
-        // ddg stands for Delta Delta G (free energy gap)
         Objective obj = sampling_approx(step);
         return obj;
     } else {
@@ -545,15 +537,12 @@ Objective GradientDescent::objective_function(int step) {
     return {0., gradient};
 }
 
-double round_number(double num, int dc) {
-    return round(num * pow(10, dc)) / pow(10, dc);
-}
-
 struct ExpFunc {
     double operator()(double x) const { return std::exp(x); }
 };
 
 void GradientDescent::softmax_func(const vector<vector<int>>& positions) {
+    // softmax equations
     for (const vector<int>& pos: positions) {
         double max_logit = *max_element(logits[pos].begin(), logits[pos].end());
 
@@ -570,12 +559,14 @@ void GradientDescent::softmax_func(const vector<vector<int>>& positions) {
 }
 
 void GradientDescent::logits_to_dist() {
+    // convert logits to a distribution by applying softmax functions
     dist.clear();
     softmax_func(unpaired_pos);
     softmax_func(base_pairs_pos);
 }
 
 Objective GradientDescent::logits_grad(const Objective& obj) {
+    // compute gradient with respect to logits
     Objective new_obj;
     new_obj.score = obj.score;
 
@@ -671,9 +662,10 @@ void GradientDescent::gradient_descent() {
     // adaptive step and lr
     double moving_avg = 0., moving_avg_lr = 0.;
     queue<double> last_k_obj, last_k_obj_lr;
-    pair<double, int> last_best_avg = {1000000, -1}, last_best_avg_lr = {1000000, -1};
+    pair<double, int> last_best_avg = {1000000, 1}, last_best_avg_lr = {1000000, 1};
 
-    for (int step = 0; step < num_steps || adaptive_step; step++) {
+    for (int step = 0; step < num_steps && adaptive_step; step++) {
+        
         gettimeofday(&parse_starttime, NULL);
 
         double entropy = distribution_entropy();
@@ -719,12 +711,12 @@ void GradientDescent::gradient_descent() {
         cout << "distribution entropy: " << entropy << "\n";
 
 
-        // print out best k samples and stats
+        // sort samples by their objective values
         sort(samples.begin(), samples.end(), [&](const Sample& a, const Sample& b) {
             return a.obj < b.obj;
         });
 
-        // update best design
+        // update best design seen
         if (samples[0].obj < best_obj) {
             best_obj = samples[0].obj;
             best_design = samples[0].seq;
@@ -761,7 +753,8 @@ void GradientDescent::gradient_descent() {
         }
         cout << "\n";
 
-        // calculate k moving avg
+        // early stopping
+        // calculate average of the objective function from last k steps
         moving_avg += obj.score;
         last_k_obj.push(obj.score);
         if (last_k_obj.size() > k_ma) {
@@ -769,16 +762,8 @@ void GradientDescent::gradient_descent() {
             last_k_obj.pop();
         }
 
-        moving_avg_lr += obj.score;
-        last_k_obj_lr.push(obj.score);
-        if (last_k_obj_lr.size() > k_ma_lr) {
-            moving_avg_lr -= last_k_obj_lr.front(); 
-            last_k_obj_lr.pop();
-        }
-
         if (adaptive_step){
-            // adaptive step condition: if k moving avg hasn't improved since last k steps
-            //                          then stop
+            // adaptive step condition: if k moving avg hasn't improved since last k steps then stop
             if (step >= k_ma && moving_avg / k_ma < last_best_avg.first) {
                 // update step of best moving avg
                 last_best_avg = {moving_avg / k_ma, step};
@@ -790,7 +775,13 @@ void GradientDescent::gradient_descent() {
         }
 
         // learning rate decay
-        bool decay = false;
+        moving_avg_lr += obj.score;
+        last_k_obj_lr.push(obj.score);
+        if (last_k_obj_lr.size() > k_ma_lr) {
+            moving_avg_lr -= last_k_obj_lr.front(); 
+            last_k_obj_lr.pop();
+        }
+
         if (lr_decay) {
             if (adaptive_lr) {
                 // adaptive learning rate decay: if obj hasn't improve for k steps, then reduce lr
@@ -928,7 +919,6 @@ int main(int argc, char** argv){
     }
 
     if (mode == "eval") {
-        // weiyu: to eval using vienna package, check vienna.py
         string rna_struct;
         for (string rna_seq; getline(cin, rna_seq);){
             getline(cin, rna_struct);
@@ -967,8 +957,7 @@ int main(int argc, char** argv){
         for (string rna_struct; getline(cin, rna_struct);){
             if (rna_struct.size() > 0) {
                 try {
-                    // TODO: check if rna structure is valid
-                    is_valid_target_structure(rna_struct);
+                    is_valid_target_structure(rna_struct); // throws error if target structure is not valid
                     GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {

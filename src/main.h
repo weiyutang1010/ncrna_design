@@ -266,7 +266,6 @@ public:
     double energy_diff(string& rna_seq, string& rna_struct); // Delta Delta G(x, y*)
     int structural_dist(const string& struct_1, const string& struct_2); // d(y, y')
     int structural_dist_mfe(string& seq, const string& rna_struct); // d(MFE(x), y*)
-    double base_pair_dist(string& y, string& y_star); // BPD(y, y') used in nemo
     string get_mfe_struct(string& rna_seq); // MFE(x)
 
 private:

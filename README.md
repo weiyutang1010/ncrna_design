@@ -1,4 +1,4 @@
-# Sampling-based Continuous Optimization with Coupled Variables for RNA Design
+# SamplingDesign: RNA Design via Continuous Optimization with Coupled Variables and Monte-Carlo Sampling
 Wei Yu Tang, Ning Dai, Tianshuo Zhou, David H. Mathews, and Liang Huang
 
 ## Compile
@@ -10,34 +10,30 @@ Compiler version: g++ (Spack GCC) 8.3.0
 ## Conda Environment (for python scripts)
 `conda env create --name ncrna_design --file=environments.yml`
 
-## Scripts
-`./main` - run rna design algorithm.
-
-`python analysis.py` - draw learning curve and re-evaluate samples using viennaRNA 2.0
-
-`python excel.py` - compile results and give overall statistics
-
-`./run.sh` - run `./main` in batch
-
-`./graph.sh` - run `python analysis.py` in batch
-
-## Examples
-Example commands for running rna design for the shortest 18 structures (up to 50 nucleotides) in Eterna100
+## Script
+Run SamplingDesign for the shortest five structures (up to 30 nucleotides) in Eterna100 (100 steps).
 ```
-./run.sh eterna/eterna_n50 example
-./graph.sh example
-python excel.py eterna_n50 example
+./run.sh example ./data/example.txt
 ```
+
+```
+./run.sh <result folder> <data file path>
+```
+The results are stored in `./results/`. The script also output learning curves in `./graphs/` and solution in `./analysis/`
 
 ## ./main
-### Example command
+### Command
 ```
-echo "(((...)))" | ./main [args] > ./result.txt
+echo "[target structure]" | ./main [args] > ./result.txt
+```
+Example:
+```
+echo "(((...)))" | ./main --steps 50 --verbose > ./result.txt
 ```
 
 ### Arguments
 
-Objective functions: $p(\mathbf{y}^\star \mid \mathbf{x})$ - "prob", $\text{NED}(\mathbf{x}, \mathbf{y}^\star)$ - "ned", $d(\text{MFE}(\mathbf{x}), \mathbf{y}^\star)$ - "dist", $\Delta\Delta G(\mathbf{x}, \mathbf{y}^\star)$ - "ddg". (default: "prob")
+Objective functions: "prob" - Boltzmann probability, "ned" - normalized ensemble defect, "dist" - structural distance, "ddg" - free energy gap. (default: "prob")
 ```
 --obj [prob/ned/dist/ddg]
 ```
@@ -132,16 +128,12 @@ num_threads: max number of threads used by openMP, if 0 then use default number 
 --num_threads [value]
 ```
 
-boxplot: print out the objective of all samples, use to generate boxplot in the learning curve (default: False)
+boxplot: print out the objective of all samples at each step (for generating the boxplot in the learning curve) (default: False)
 ```
 --boxplot
 ```
 
-## ./run.sh
-Runs ./main in batch and store results in `./result/[folder]`. Need to manually change the script to add arguments
-```
-./run.sh <data file> <result folder name>
-```
+
 
 ## analysis.py
 
@@ -149,7 +141,7 @@ Runs ./main in batch and store results in `./result/[folder]`. Need to manually 
 ```
 python analysis.py --folder "example" --file "1.txt"
 ```
-Parse the result at `./results/{folder}/{file}` and generate the graph at `./graphs/{folder}/{file}.pdf`
+Input: takes the results from `./results/{folder}/{file}`. Output: list best solutions at `./analysis/{folder}/{file}.txt` and generate the learning curve at `./graphs/{folder}/{file}.pdf`
 
 ### Arguments
 folder, file: parse the file at `./results/{folder}/{file}`
@@ -170,20 +162,4 @@ no_eval_seq: produce learning curve only (default: False)
 no_graph: reeval all sequences only (default: False)
 ```
 --no_graph
-```
-
-## ./graph.sh
-Runs `python analysis.py` in batch. Graphs are stored in `./graphs/[folder]/` and best sequences found for each metric are stored in `./analysis/[folder]/`
-```
-./graph.sh [result folder] <optional: data file>
-```
-
-## excel.py
-### Example Command
-```
-python excel.py eterna_n50 example_1 example_2
-```
-Compile the results from `./analysis/[folder]` and report the average statistics. Can be used to find the best solution out of multiple runs.
-```
-python excel.py [data file] [result folder 1] <optional: result folder 2, 3, ...>
 ```

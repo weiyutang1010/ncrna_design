@@ -11,13 +11,12 @@ def setgflags():
     flags.DEFINE_string('mode', "ncrna_design", "non-Coding RNA Design")
     flags.DEFINE_string('objective', "prob", "objectives: \"prob\", \"ned\", \"dist\", \"ddg\"", short_name='obj')
     
-    # initialization
+    # initialization (epsilon-targeted by default)
     flags.DEFINE_string('initializations', "targeted", "initializations: uniform / targeted", short_name='init')
     flags.DEFINE_float('eps', 0.75, "eps * uniform + (1 - eps) * targeted")
 
-    # parameterization
+    # parameterization (softmax with adam optimizer by default)
     flags.DEFINE_boolean('projection', False, "use projection instead of softmax parameterization")
-    # adam mode would require softmax to be on
     flags.DEFINE_boolean('no_adam', False, "turn off adam optimizer")
     flags.DEFINE_boolean('nesterov', False, "use nesterov's accelerated gradient descent")
     flags.DEFINE_float('beta_1', 0.9, "Adam's first moment decay rate", short_name='b1')
@@ -26,7 +25,7 @@ def setgflags():
     # learning rate
     flags.DEFINE_float('initial_lr', 0.01, "set learning rate", short_name='lr')
     
-    # learning rate decay
+    # learning rate decay (off by default)
     flags.DEFINE_boolean('lr_decay', False, "use learning rate decay")
     flags.DEFINE_float('lr_decay_rate', 0.5, "decay rate")
     flags.DEFINE_boolean('adaptive_lr', False, "use adaptive learning rate decay")
@@ -35,17 +34,17 @@ def setgflags():
     
     # number of steps
     flags.DEFINE_integer('num_steps', 2000, "set the max number of steps", short_name='step')
-    flags.DEFINE_boolean('adaptive_step', True, "turn on adaptive step")
-    flags.DEFINE_integer('k_ma', 50, "stop when objective function hasn't improved for k steps")
+    flags.DEFINE_boolean('adaptive_step', True, "turn on adaptive step (i.e. early stopping)")
+    flags.DEFINE_integer('k_ma', 50, "stop when the objective function hasn't improved for k steps")
     
-    # used in linearpartition and linearfold
+    # parameters used for linearpartition and linearfold
     flags.DEFINE_integer('beamsize', 250, "set beam size", short_name='b')
     flags.DEFINE_boolean('sharpturn', False, "set sharpturn")
     flags.DEFINE_boolean('is_lazy', False, "use lazy outside for LinearPartition BPP")
 
-    # sampling
+    # sampling parameters
     flags.DEFINE_integer('sample_size', 2500, "number of samples", short_name='k')
-    flags.DEFINE_integer('best_k', 1, "print out best k samples each step")
+    flags.DEFINE_integer('best_k', 1, "print out best k unique samples at each step")
 
     # ablation studies
     flags.DEFINE_boolean('no_mismatch', False, "ablate 4 x 4 coupled mismatch")
