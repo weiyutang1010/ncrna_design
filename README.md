@@ -16,7 +16,7 @@ make
 
 
 ## Python Dependencies
-`python` (v 3.12.1), `numpy` (v 1.26), `matplotlib` (v 3.8.2), `viennarna` (v 2.6.4)
+`python` (3.12.1), `numpy` (1.26), `matplotlib` (3.8.2), `viennarna` (2.6.4)
 
 ## Example Script
 Run SamplingDesign for the shortest five structures (up to 30 nucleotides) in Eterna100 with 200 steps (takes ~30 seconds).
