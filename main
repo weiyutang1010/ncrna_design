@@ -18,9 +18,9 @@ def setgflags():
     # parameterization (softmax with adam optimizer by default)
     flags.DEFINE_boolean('projection', False, "use projection instead of softmax parameterization")
     flags.DEFINE_boolean('no_adam', False, "turn off adam optimizer")
-    flags.DEFINE_boolean('nesterov', False, "use nesterov's accelerated gradient descent")
     flags.DEFINE_float('beta_1', 0.9, "Adam's first moment decay rate", short_name='b1')
     flags.DEFINE_float('beta_2', 0.999, "Adam's second moment decay rate", short_name='b2')
+    flags.DEFINE_boolean('nesterov', False, "use nesterov's accelerated gradient descent")
     
     # learning rate
     flags.DEFINE_float('initial_lr', 0.01, "set learning rate", short_name='lr')

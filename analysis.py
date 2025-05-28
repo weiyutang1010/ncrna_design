@@ -309,7 +309,7 @@ def process_result_file(rna_id, result_file, args):
         else:
             graph(rna_id, objective, lines, obj, integral_obj, sampled_obj, boxplot, entropy, lr_idx, args)
 
-    # use vienna to reevaluate all sequences
+    # use viennaRNA to reevaluate all sequences
     if not args.no_eval_seq:
         seqs_stats = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:
@@ -321,7 +321,8 @@ def process_result_file(rna_id, result_file, args):
                 seqs_stats.append(result)
 
         print("Total steps: ", len(obj))
-        print("Number of unique sequence: ", len(seqs_stats))
+        print("Number of unique sequences evaluated: ", len(seqs_stats))
+        print()
 
         best_pyx_solution = max(seqs_stats, key=lambda x: x[1])
         best_ned_solution = min(seqs_stats, key=lambda x: x[2])
@@ -330,19 +331,21 @@ def process_result_file(rna_id, result_file, args):
         best_dist_solution = min(seqs_stats, key=lambda x: x[5])
         best_ddg_solution = min(seqs_stats, key=lambda x: x[6])
 
-        mfe_solution = "" if len(mfe_solutions) == 0 else mfe_solutions[0]
-        umfe_solution = "" if len(umfe_solutions) == 0 else umfe_solutions[0]
+        mfe_solution = "" if len(mfe_solutions) == 0 else mfe_solutions[-1]
+        umfe_solution = "" if len(umfe_solutions) == 0 else umfe_solutions[-1]
         mfe_step = "" if len(mfe_solutions) == 0 else seq_step[mfe_solution]
         umfe_step = "" if len(umfe_solutions) == 0 else seq_step[umfe_solution]
 
-        print("Format: <sequence> <value> <earliest step found>")
-        print("Best p(y*|x) solution: ", best_pyx_solution[0], best_pyx_solution[1], seq_step[best_pyx_solution[0]])
-        print("Best NED(x, y*) solution: ", best_ned_solution[0], best_ned_solution[2], seq_step[best_ned_solution[0]])
-        print("Best d(MFE(x), y) solution: ", best_dist_solution[0], best_dist_solution[5], seq_step[best_dist_solution[0]])
-        print("Best DeltaDeltaG(x, y*) solution: ", best_ddg_solution[0], best_ddg_solution[6], seq_step[best_ddg_solution[0]])
-        print("MFE/uMFE Format: <number of mfe solutions> [solution 1] [earliest step found]")
-        print("MFE solution: ", len(mfe_solutions), mfe_solution, mfe_step) # only print 1 mfe solution as example
-        print("UMFE solution: ", len(umfe_solutions), umfe_solution, umfe_step)
+        print("Format: <objective value> <sequence>")
+        print("Best Boltzmann probability solution      : ", best_pyx_solution[1], best_pyx_solution[0])
+        print("Best normalized ensemble defect solution : ", best_ned_solution[2], best_ned_solution[0])
+        print("Best structural distance solution        : ", best_dist_solution[5], best_dist_solution[0])
+        print("Best free energy gap solution            : ", best_ddg_solution[6], best_ddg_solution[0])
+        print()
+        
+        print("Format: <number of mfe solutions> [sequence]")
+        print("MFE solution: ", len(mfe_solutions), mfe_solution)
+        print("UMFE solution: ", len(umfe_solutions), umfe_solution)
 
     print(f"id {rna_id} done", file=sys.stderr)
 

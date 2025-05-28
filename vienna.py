@@ -120,22 +120,10 @@ def e_diff(seq, ss, ss_mfe=""):
     return abs(energy(seq, ss_mfe) - energy(seq, ss))
 
 if __name__ == '__main__':
-    # with open('input.txt', 'r') as f:
-    #     lines = f.read().split('\n')
-    #     n = len(lines)
+    while True:
+        seq = input("sequence   : ")
+        struct = input("structure  : ")
 
-    # seqs    = lines[:n//2]
-    # structs = lines[n//2:]
-
-    # seq =    "GGGAAACCAGGGAAACCAGCGAAAGCACCUACGGG" # good design on fig 1.
-    seq =    "GCUGCGGCAGCUACGGCAGGGCAACCAGGGGAACC" # bad design on fig 1.
-
-    struct = "((....)).((....)).((....)).((....))" # target
-
-    seqs = [seq]
-    structs = [struct]
-
-    for seq, struct in zip(seqs, structs):
         if seq == "" or struct == "":
             exit(0)
 
@@ -155,16 +143,17 @@ if __name__ == '__main__':
         dist = structural_dist(seq, struct)
         delta_delta_G = e_diff(seq, struct, ss_mfe)
 
-        print(f"seq        : {seq}")
-        print(f"structure  : {struct}")
-        # print(f"mfe(seq) : {mfe_structs}")
+        # print(f"seq        : {seq}")
+        # print(f"structure  : {struct}")
+        
+        print(f"mfe_struct : {ss_mfe}")
         print(f"delta G    : {free_energy}") # free energy (kcal / mol)
+        print(f"p(y* | x)  : {pyx}") # Boltzmann probability
+        print(f"ned        : {ned}") # Normalized ensemble defect
+        print(f"distance   : {dist}") # structural distance
+        print(f"energy gap : {delta_delta_G}") # free energy gap
         print(f"is_mfe     : {is_mfe}") # MFE criteria
         print(f"is_umfe    : {is_umfe}") # uMFE criteria
-        print(f"dist       : {dist}") # structural distance
-        print(f"ediff      : {delta_delta_G}") # free energy gap
-        print(f"p(y | x)   : {pyx}") # Boltzmann probability
-        print(f"ned        : {ned}") # Normalized ensemble defect
-        # print(f"pos defect : {pos_def}")
-        print(f"mfe_struct : {ss_mfe}")
+
+        # print(f"pos defect : {pos_def}") # positional defect
         print()

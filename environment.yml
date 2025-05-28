@@ -1,4 +1,4 @@
-name: reu
+name: ncrna_design
 channels:
   - anaconda
   - conda-forge

@@ -52,11 +52,11 @@ while IFS= read -r line; do
     # Split line by space
     puzzles=($line)
 
-    # example 1: softmax mode optimizing for p(y* | x) (max 500 steps)
-    echo "${puzzles[1]}" | ./main --step 100 --boxplot > results/$1/${puzzles[0]}.txt
+    # example 1: softmax mode optimizing for p(y* | x) with boxplot (~30 seconds)
+    echo "${puzzles[1]}" | ./main --step 200 --boxplot --num_thread 4 > results/$1/${puzzles[0]}.txt
 
-    # example 2: softmax mode optimizing for NED with boxplot (max 500 steps)
-    # echo "${puzzles[1]}" | ./main --step 100 --obj ned --boxplot > results/$1/${puzzles[0]}.txt
+    # example 2: softmax mode optimizing for NED with boxplot 
+    # echo "${puzzles[1]}" | ./main --step 200 --obj ned --is_lazy --boxplot --num_thread 4 > results/$1/${puzzles[0]}.txt
     
     python analysis.py --folder "$1" --file ${puzzles[0]}.txt > ./analysis/$1/${puzzles[0]}.txt
 
