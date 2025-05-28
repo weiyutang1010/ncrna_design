@@ -33,18 +33,18 @@ if [ ! -d "./graphs" ]; then
 fi
 
 if [ ! -d "./results/$1" ]; then
-    echo "Directory ./results/$1 created."
     mkdir results/$1
+    echo "Directory ./results/$1 created."
 fi
 
 if [ ! -d "./analysis/$1" ]; then
-    echo "Directory ./analysis/$1 created."
     mkdir analysis/$1
+    echo "Directory ./analysis/$1 created."
 fi
 
 if [ ! -d "./graphs/$1" ]; then
+    mkdir graphs/$1
     echo "Directory ./graphs/$1 created."
-    mkdir graph/$1
 fi
 
 # Read file line by line

@@ -15,12 +15,8 @@ make
 ```
 
 
-## Conda Environment
-Python 3.12.1
-```
-conda env create --name ncrna_design --file=environment.yml
-```
-(could take up to ~10 mins to install)
+## Python Dependencies
+`python` (v 3.12.1), `numpy` (v 1.26), `matplotlib` (v 3.8.2), `viennarna` (v 2.6.4)
 
 ## Example Script
 Run SamplingDesign for the shortest five structures (up to 30 nucleotides) in Eterna100 with 200 steps (takes ~30 seconds).
