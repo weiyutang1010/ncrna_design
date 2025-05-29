@@ -190,10 +190,11 @@ no_graph: re-evaluate all sequences only (default: False)
 --no_graph
 ``` -->
 
-## Reproduction Instructions
+## Run all Eterna100 structures
 Reproduce the results in the paper (both uniform and $\epsilon$-targeted initializations). Note: On our server with 28 cores, the $\epsilon$-targeted initialization took approximately 10 days to complete.
 
 ### Command
 ```
 ./run_all.sh ./data/eterna100.txt
+python merge.py eterna100 eterna100_uniform eterna100_targeted
 ```
