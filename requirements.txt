@@ -1,0 +1,4 @@
+# Use Python 3.8.20
+numpy==1.24.4
+matplotlib==3.7.5
+viennarna==2.6.4

@@ -25,13 +25,11 @@ void GradientDescent::resample() {
     }
 
     set<string> seen;
-    
-    // draw samples from distribution and compute objective in parallel
-    #pragma omp parallel for shared(samples_cache)
+
+    // draw samples from distribution and compute the probability from seq. distribution
     for (int k = 0; k < sample_size; k++) {
         string seq = string(rna_struct.size(), 'A');
-        
-        // draw sample and compute sample probability
+
         double sample_prob = 1.;
         for(const vector<int>& pos: unpaired_pos) {
             const vector<double>& probs = dist[pos];
@@ -56,6 +54,15 @@ void GradientDescent::resample() {
 
             sample_prob *= probs[idx];
         }
+
+        samples[k] = {seq, sample_prob, 0., 0.};
+    }
+    
+    // compute objective value for each sample in parallel
+    #pragma omp parallel for shared(samples_cache)
+    for (int k = 0; k < sample_size; k++) {
+        string seq = samples[k].seq;
+        double sample_prob = samples[k].sample_prob;
 
         // Compute per sample objective in parallel and save to a cache
         bool found = false;

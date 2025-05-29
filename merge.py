@@ -1,12 +1,13 @@
 import os, sys
 import numpy as np
-from scipy.stats import gmean
-import matplotlib.pyplot as plt
 
 from vienna import *
 
+def geo_mean_overflow(iterable):
+    return np.exp(np.log(iterable).mean())
+
 lines = []
-with open(f'./data/eterna/{sys.argv[1]}.txt', 'r') as file:
+with open(f'./data/{sys.argv[1]}.txt', 'r') as file:
     lines = file.read().split('\n')
     lines = [(line.split(' ')[0], line.split(' ')[1]) for line in lines if len(line) > 0]
 
@@ -14,10 +15,12 @@ def main():
     results = {line[0]: [] for line in lines}
     no_file_found = True
 
+    # for every puzzle id
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
         file_path_list = [f'./analysis/{sys.argv[i]}/{rna_id}.txt' for i in range(2, len(sys.argv))]
 
+        # iterate through all given folders in ./analysis/ and parse the best solutions
         for file_path in file_path_list:
             if not os.path.exists(file_path):
                 print(f"{file_path} does not exist", file=sys.stderr)
@@ -33,20 +36,20 @@ def main():
                 no_file_found = False
 
                 total_steps = int(r_lines[0].split(': ')[1].split(' ')[1])
-                best_pyx_seq, best_pyx, best_pyx_step = r_lines[3].split(': ')[1].split(' ')[1], float(r_lines[3].split(': ')[1].split(' ')[2]), int(r_lines[3].split(': ')[1].split(' ')[3]) 
-                best_ned_seq, best_ned, best_ned_step = r_lines[4].split(': ')[1].split(' ')[1], float(r_lines[4].split(': ')[1].split(' ')[2]), int(r_lines[4].split(': ')[1].split(' ')[3]) 
-                best_dist_seq, best_dist, best_dist_step = r_lines[5].split(': ')[1].split(' ')[1], float(r_lines[5].split(': ')[1].split(' ')[2]), int(r_lines[5].split(': ')[1].split(' ')[3]) 
-                best_ddg_seq, best_ddg, best_ddg_step = r_lines[6].split(': ')[1].split(' ')[1], float(r_lines[6].split(': ')[1].split(' ')[2]), int(r_lines[6].split(': ')[1].split(' ')[3]) 
+                best_pyx, best_pyx_seq   = float(r_lines[4].split(': ')[1].split(' ')[1]), r_lines[4].split(': ')[1].split(' ')[2]
+                best_ned, best_ned_seq   = float(r_lines[5].split(': ')[1].split(' ')[1]), r_lines[5].split(': ')[1].split(' ')[2]
+                best_dist, best_dist_seq =   int(r_lines[6].split(': ')[1].split(' ')[1]), r_lines[6].split(': ')[1].split(' ')[2]
+                best_ddg, best_ddg_seq   = float(r_lines[7].split(': ')[1].split(' ')[1]), r_lines[7].split(': ')[1].split(' ')[2]
 
                 mfe_seq = ""
-                num_mfe = int(r_lines[8].split(': ')[1].split(' ')[1])
+                num_mfe = int(r_lines[10].split(': ')[1].split(' ')[1])
                 if num_mfe > 0:
-                    mfe_seq = r_lines[8].split(': ')[1].split(' ')[2]
+                    mfe_seq = r_lines[10].split(': ')[1].split(' ')[2]
 
                 umfe_seq = ""
-                num_umfe = int(r_lines[8].split(': ')[1].split(' ')[1])
+                num_umfe = int(r_lines[11].split(': ')[1].split(' ')[1])
                 if num_umfe > 0:
-                    umfe_seq = r_lines[8].split(': ')[1].split(' ')[2]
+                    umfe_seq = r_lines[11].split(': ')[1].split(' ')[2]
 
                 results[rna_id].append((best_pyx, best_pyx_seq, best_ned, best_ned_seq, best_dist, best_dist_seq, best_ddg, best_ddg_seq, mfe_seq, umfe_seq, file_path, total_steps))
 
@@ -62,13 +65,15 @@ def main():
     umfe_count = 0
     avg_dist = []
     avg_ddg = []
-    print("id,length,p(y | x),p(y | x) seq,ned,ned seq,dist,dist seq,ddg,ddg seq,is_mfe,mfe seq,is_umfe,umfe seq")
+    # print("id,length,p(y | x),p(y | x) seq,ned,ned seq,dist,dist seq,ddg,ddg seq,is_mfe,mfe seq,is_umfe,umfe seq")
+    print("id,length,p(y | x),ned,dist,ddg,is_mfe,is_umfe")
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
 
         if len(results[rna_id]) == 0:
             continue
 
+        # take the best solution out of all folders
         result = max(results[rna_id], key=lambda x: x[0])
         pyx = result[0]
         pyx_seq = result[1]
@@ -90,34 +95,35 @@ def main():
             mfe_seq = result[8] if (result[8] != '') else ''
             umfe_seq = result[9] if (result[9] != '') else ''
 
-        print(f"{int(rna_id)}", end=",")
-        print(f"{len(rna_struct)}", end=",")
+        print(f"{int(rna_id):2d}", end=",")
+        print(f"{len(rna_struct):3d}", end=", ")
 
-        print(f"{pyx:.3f}", end=",")
-        print(f"{pyx_seq}", end=",")
+        print(f"{pyx:.3f}", end=", ")
+        # print(f"{pyx_seq}", end=",")
 
         print(f"{ned:.3f}", end=",")
-        print(f"{ned_seq}", end=",")
+        # print(f"{ned_seq}", end=",")
 
-        print(f"{dist}", end=",")
-        print(f"{dist_seq}", end=",")
+        print(f"{dist:3d}", end=", ")
+        # print(f"{dist_seq}", end=",")
 
         print(f"{ddg:.2f}", end=",")
-        print(f"{ddg_seq}", end=",")
+        # print(f"{ddg_seq}", end=",")
 
         if mfe_seq != "":
             print("is_mfe", end=",")
-            print(mfe_seq, end=",")
+            # print(mfe_seq, end=",")
             mfe_count += 1
         else:
-            print(f",", end=",")
+            print(f",", end="")
 
         if umfe_seq != "":
             print("is_umfe", end=",")
-            print(umfe_seq)
+            # print(umfe_seq)
             umfe_count += 1
         else:
-            print(f",")
+            print(f",", end="")
+        print()
         
         avg_pyx.append(pyx)
         avg_ned.append(ned)
@@ -128,13 +134,13 @@ def main():
     pyx_no_undesignable = [pyx for pyx, line in zip(avg_pyx, lines) if int(line[0]) not in undesignable_ids]
 
     print("")
-    print(f"arith. mean pyx: {np.mean(avg_pyx):.3f}", file=sys.stderr)
-    print(f"geom. mean pyx (w/o undesignable): {gmean(pyx_no_undesignable):.5f}", file=sys.stderr)
-    print(f"average ned: {np.mean(avg_ned):.4f}", file=sys.stderr)
-    print(f"average dist: {np.mean(avg_dist):.4f}", file=sys.stderr)
-    print(f"average ddg: {np.mean(avg_ddg):.4f}", file=sys.stderr)
-    print(f"mfe count: {mfe_count}", file=sys.stderr)
-    print(f"umfe count: {umfe_count}", file=sys.stderr)
+    print(f"arith. mean prob: {np.mean(avg_pyx):.3f}", file=sys.stderr) # arithmetic mean of Boltzmann probability
+    print(f"geom. mean prob (w/o undesignable): {geo_mean_overflow(pyx_no_undesignable):.5f}", file=sys.stderr) # geometric mean of Boltzmann probability (excluding undesignable puzzles)
+    print(f"average ned: {np.mean(avg_ned):.4f}", file=sys.stderr) # average normalized ensemble defect
+    print(f"average dist: {np.mean(avg_dist):.4f}", file=sys.stderr) # average structural distance
+    print(f"average ddg: {np.mean(avg_ddg):.4f}", file=sys.stderr) # average free energy gap (Delta Delta G)
+    print(f"mfe count: {mfe_count}", file=sys.stderr) # number of puzzles with at least one MFE solution found
+    print(f"umfe count: {umfe_count}", file=sys.stderr) # number of puzzles with at least one uMFE solution found
 
 if __name__ == '__main__':
     main()
