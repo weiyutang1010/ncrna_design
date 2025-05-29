@@ -191,6 +191,8 @@ no_graph: re-evaluate all sequences only (default: False)
 ``` -->
 
 ## Reproduction Instructions
+Reproduce the results in the paper (uniform and $\epsilon$-targeted initializations). Note that it can take longer than 2 weeks to run the entire script.
+
 ### Command
 ```
 ./run_all.sh ./data/eterna100.txt

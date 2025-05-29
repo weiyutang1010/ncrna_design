@@ -32,34 +32,34 @@ if [ ! -d "./graphs" ]; then
     echo "Directory ./graphs created."
 fi
 
-if [ ! -d "./results/eterna_50s_uniform" ]; then
-    mkdir results/eterna_50s_uniform
-    echo "Directory ./results/eterna_50s_uniform created."
+if [ ! -d "./results/eterna100_uniform" ]; then
+    mkdir results/eterna100_uniform
+    echo "Directory ./results/eterna100_uniform created."
 fi
 
-if [ ! -d "./analysis/eterna_50s_uniform" ]; then
-    mkdir analysis/eterna_50s_uniform
-    echo "Directory ./analysis/eterna_50s_uniform created."
+if [ ! -d "./analysis/eterna100_uniform" ]; then
+    mkdir analysis/eterna100_uniform
+    echo "Directory ./analysis/eterna100_uniform created."
 fi
 
-if [ ! -d "./graphs/eterna_50s_uniform" ]; then
-    mkdir graphs/eterna_50s_uniform
-    echo "Directory ./graphs/eterna_50s_uniform created."
+if [ ! -d "./graphs/eterna100_uniform" ]; then
+    mkdir graphs/eterna100_uniform
+    echo "Directory ./graphs/eterna100_uniform created."
 fi
 
-if [ ! -d "./results/eterna_50s_targeted" ]; then
-    mkdir results/eterna_50s_targeted
-    echo "Directory ./results/eterna_50s_targeted created."
+if [ ! -d "./results/eterna100_targeted" ]; then
+    mkdir results/eterna100_targeted
+    echo "Directory ./results/eterna100_targeted created."
 fi
 
-if [ ! -d "./analysis/eterna_50s_targeted" ]; then
-    mkdir analysis/eterna_50s_targeted
-    echo "Directory ./analysis/eterna_50s_targeted created."
+if [ ! -d "./analysis/eterna100_targeted" ]; then
+    mkdir analysis/eterna100_targeted
+    echo "Directory ./analysis/eterna100_targeted created."
 fi
 
-if [ ! -d "./graphs/eterna_50s_targeted" ]; then
-    mkdir graphs/eterna_50s_targeted
-    echo "Directory ./graphs/eterna_50s_targeted created."
+if [ ! -d "./graphs/eterna100_targeted" ]; then
+    mkdir graphs/eterna100_targeted
+    echo "Directory ./graphs/eterna100_targeted created."
 fi
 
 # reset the built-in timer
@@ -71,12 +71,12 @@ while IFS= read -r line; do
     puzzles=($line)
 
     # uniform intialization
-    echo "${puzzles[1]}" | ./main --init uniform --boxplot --num_thread 8 > results/eterna_50s_uniform/${puzzles[0]}.txt
-    python analysis.py --folder "eterna_50s_uniform" --file ${puzzles[0]}.txt > ./analysis/eterna_50s_uniform/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init uniform --boxplot > results/eterna100_uniform/${puzzles[0]}.txt
+    python analysis.py --folder "eterna100_uniform" --file ${puzzles[0]}.txt > ./analysis/eterna100_uniform/${puzzles[0]}.txt
 
     # epsilon-targeted (eps = 0.75) intialization
-    echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot --num_thread 8 > results/eterna_50s_targeted/${puzzles[0]}.txt
-    python analysis.py --folder "eterna_50s_targeted" --file ${puzzles[0]}.txt > ./analysis/eterna_50s_targeted/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot > results/eterna100_targeted/${puzzles[0]}.txt
+    python analysis.py --folder "eterna100_targeted" --file ${puzzles[0]}.txt > ./analysis/eterna100_targeted/${puzzles[0]}.txt
 done < "$1"
 
 # write the total runtime to a file
