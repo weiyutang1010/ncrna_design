@@ -191,7 +191,7 @@ no_graph: re-evaluate all sequences only (default: False)
 ``` -->
 
 ## Reproduction Instructions
-Reproduce the results in the paper (uniform and $\epsilon$-targeted initializations). Note that it can take longer than 2 weeks to run the entire script.
+Reproduce the results in the paper (both uniform and $\epsilon$-targeted initializations). Note: On our server with 28 cores, the $\epsilon$-targeted initialization took approximately 10 days to complete.
 
 ### Command
 ```

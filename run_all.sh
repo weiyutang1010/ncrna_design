@@ -71,11 +71,11 @@ while IFS= read -r line; do
     puzzles=($line)
 
     # uniform intialization
-    echo "${puzzles[1]}" | ./main --init uniform --boxplot > results/eterna100_uniform/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init uniform --boxplot --seed 10 > results/eterna100_uniform/${puzzles[0]}.txt
     python analysis.py --folder "eterna100_uniform" --file ${puzzles[0]}.txt > ./analysis/eterna100_uniform/${puzzles[0]}.txt
 
     # epsilon-targeted (eps = 0.75) intialization
-    echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot > results/eterna100_targeted/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot --seed 10 > results/eterna100_targeted/${puzzles[0]}.txt
     python analysis.py --folder "eterna100_targeted" --file ${puzzles[0]}.txt > ./analysis/eterna100_targeted/${puzzles[0]}.txt
 done < "$1"
 

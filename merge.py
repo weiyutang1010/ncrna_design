@@ -92,8 +92,10 @@ def main():
         
         mfe_seq, umfe_seq = '', ''
         for result in results[rna_id]:
-            mfe_seq = result[8] if (result[8] != '') else ''
-            umfe_seq = result[9] if (result[9] != '') else ''
+            mfe_seq = result[8] if (result[8] != '') else mfe_seq
+
+        for result in results[rna_id]:
+            umfe_seq = result[9] if (result[9] != '') else umfe_seq
 
         print(f"{int(rna_id):2d}", end=",")
         print(f"{len(rna_struct):3d}", end=", ")
