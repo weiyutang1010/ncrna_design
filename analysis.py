@@ -3,15 +3,10 @@ import numpy as np
 import argparse
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 import concurrent.futures
 from collections import defaultdict
 
 import RNA
-
-# for boldsymbol
-plt.rc('text', usetex=True)
-plt.rc('text.latex', preamble=r'\usepackage{amsmath} \usepackage{amssymb}')
 
 def prob(seq, ss, scale=True):
     """viennaRNA boltzmann probability"""
@@ -112,7 +107,7 @@ def eval_seq(seq, ss, scale=True):
     return seq, pr, ed, is_mfe, is_umfe, dist, energy_diff
 
 def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxplot, entropy, lr_idx, args, fontsize=18):
-    plt.rcParams["figure.figsize"] = [10.50, 6.50]
+    plt.rcParams["figure.figsize"] = [11.50, 6.50]
     plt.rcParams["figure.autolayout"] = True
 
     fig, (ax1, ax2) = plt.subplots(2, 1,  gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
@@ -121,7 +116,7 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
     ticklabelpad = mpl.rcParams['xtick.major.pad']
     ax1.annotate('Step', xy=(1,0), xytext=(5, -ticklabelpad), ha='left', va='top',
             xycoords='axes fraction', textcoords='offset points', fontsize=fontsize+2)
-    ax1.set_ylabel('$p(\\boldsymbol{y}^\\star \\mid \\boldsymbol{x})$', fontsize=fontsize+2)
+    ax1.set_ylabel('Boltzmann probability', fontsize=fontsize+2)
 
     n, rna_struct = len(lines[0]), lines[0]
     init = lines[1].split(', ')[1].split(': ')[1]
@@ -136,7 +131,9 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
     
     # box plot
     num_steps = len(avg_pyx)
-    x_values = [x for x in range(0, num_steps, (num_steps + 9) // 10)]
+    x_values = np.linspace(0, num_steps-1, num=10)
+    x_values = [int(val) for val in x_values]
+    
     if len(boxplot) > 0:
         boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
         marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
@@ -149,16 +146,16 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
     ax1.plot(sampled_pyx, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3)
     ax1.plot(integral_pyx, color='orange', alpha=0.9, label=r'max-probability solution')
     ax1.plot(avg_pyx, color='red', alpha=0.8, label=r'arith. mean')
-    ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'geom. mean $(e^{-\mathcal{J}})$')
+    ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'geom. mean')
 
     # entropy subplot
     entropy = [data for idx, data in enumerate(entropy) if idx in x_values]
     ax2.bar(x_values, entropy, width=num_steps / 20)
     ax2.set_ylim(0, max(entropy) *1.1)
     ax2.invert_yaxis()
-    ax2.set_ylabel("Entropy of $p_{\\boldsymbol{y}^\\star} (\\cdot; \\mathbf{\\Theta})$", fontsize=fontsize+2)
+    ax2.set_ylabel("entropy of seq.\ndistribution", fontsize=fontsize+2)
 
-    plt.margins(x=0.05, y=0.2)
+    plt.margins(x=0.02, y=0.2)
     ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=fontsize+2)
     ax2.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
 
@@ -172,7 +169,7 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
     print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)
 
 def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, entropy, lr_idx, args, fontsize=18):
-    plt.rcParams["figure.figsize"] = [10.50, 6.50]
+    plt.rcParams["figure.figsize"] = [11.50, 6.50]
     plt.rcParams["figure.autolayout"] = True
 
     fig, (ax1, ax2) = plt.subplots(2, 1,  gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
@@ -181,11 +178,11 @@ def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, entropy
     ax1.annotate('Step', xy=(1,0), xytext=(5, -ticklabelpad), ha='left', va='top',
             xycoords='axes fraction', textcoords='offset points', fontsize=fontsize+2)
     if objective == 'ned':
-        ax1.set_ylabel('NED$(\\boldsymbol{x},\\boldsymbol{y}^\\star)$', fontsize=fontsize+2)
+        ax1.set_ylabel('normalized\nensemble defect', fontsize=fontsize+2)
     elif objective == 'dist':
-        ax1.set_ylabel('$d(\\text{MFE}(\\boldsymbol{x}),\\boldsymbol{y}^\\star)$', fontsize=fontsize+2)
+        ax1.set_ylabel('structural distance', fontsize=fontsize+2)
     elif objective == 'ddg':
-        ax1.set_ylabel('$\\Delta \\Delta G^{\\circ}(\\boldsymbol{x},\\boldsymbol{y}^\\star)$ (kcal/mol)', fontsize=fontsize+2)
+        ax1.set_ylabel('free energy gap (kcal/mol)', fontsize=fontsize+2)
     else:
         ax1.set_ylabel(objective, fontsize=fontsize+2)
 
@@ -202,7 +199,9 @@ def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, entropy
     
     # box plot
     num_steps = len(avg_obj)
-    x_values = [x for x in range(0, num_steps, (num_steps + 9) // 10)]
+    x_values = np.linspace(0, num_steps-1, num=10)
+    x_values = [int(val) for val in x_values]
+
     if len(boxplot) > 0:
         boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
         marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
@@ -219,9 +218,9 @@ def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, entropy
     ax2.bar(x_values, entropy, width=num_steps / 20)
     ax2.set_ylim(0, max(entropy) *1.1)
     ax2.invert_yaxis()
-    ax2.set_ylabel("Entropy of $p_{\\boldsymbol{y}^\\star} (\\cdot; \\mathbf{\\Theta})$", fontsize=fontsize+2)
+    ax2.set_ylabel("entropy of seq.\ndistribution", fontsize=fontsize+2)
 
-    plt.margins(x=0.05, y=0.2)
+    plt.margins(x=0.02, y=0.2)
     ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=fontsize+2)
     ax2.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
 
