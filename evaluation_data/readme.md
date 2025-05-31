@@ -2,11 +2,11 @@
 
 Designed sequences used for evaluation in ''Sampling-based Continuous Optimization for RNA Design''
 
-- pyx_projection.csv: This Work (projection) optimizing for $p(y^\star \mid x)$ (Boltzmann probability)
-- pyx_softmax.csv: This Work (softmax) optimizing for $p(y^\star \mid x)$ (Boltzmann probability)
-- ned_softmax.csv: This Work (softmax) optimizing for $\mathrm{NED}(x, y^\star)$ (normalized ensemble defect)
-- dist_softmax.csv: This Work (softmax) optimizing for $d(\mathrm{MFE}(x), y^\star)$ (structural distance)
-- ddg_softmax.csv: This Work (softmax) optimizing for $\Delta \Delta G^{\circ}(x, y^\star)$ (free energy gap)
+- pyx_softmax.csv: SamplingDesign (softmax) optimizing for $p(y^\star \mid x)$ (Boltzmann probability)
+- ned_softmax.csv: SamplingDesign (softmax) optimizing for $\mathrm{NED}(x, y^\star)$ (normalized ensemble defect)
+- dist_softmax.csv: SamplingDesign (softmax) optimizing for $d(\mathrm{MFE}(x), y^\star)$ (structural distance)
+- ddg_softmax.csv: SamplingDesign (softmax) optimizing for $\Delta \Delta G^{\circ}(x, y^\star)$ (free energy gap)
+- pyx_projection.csv: SamplingDesign (projection) optimizing for $p(y^\star \mid x)$ (Boltzmann probability)
 
 ### CSV Columns
 - ID: Eterna puzzle ID

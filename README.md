@@ -198,3 +198,4 @@ Reproduce the results in the paper (both uniform and $\epsilon$-targeted initial
 ./run_all.sh ./data/eterna100.txt
 python merge.py eterna100 eterna100_uniform eterna100_targeted
 ```
+The sequences used in the paper are available in `./evaluation_data/`
