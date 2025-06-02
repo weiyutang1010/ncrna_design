@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # weiyu: should be run from the root directory
+folder_1=eterna100_uniform
+folder_2=eterna100_targeted
 
 # Check if file argument is provided
 if [ $# -lt 1 ]; then
@@ -32,34 +34,34 @@ if [ ! -d "./graphs" ]; then
     echo "Directory ./graphs created."
 fi
 
-if [ ! -d "./results/eterna100_uniform" ]; then
-    mkdir results/eterna100_uniform
-    echo "Directory ./results/eterna100_uniform created."
+if [ ! -d "./results/$folder_1" ]; then
+    mkdir results/$folder_1
+    echo "Directory ./results/$folder_1 created."
 fi
 
-if [ ! -d "./analysis/eterna100_uniform" ]; then
-    mkdir analysis/eterna100_uniform
-    echo "Directory ./analysis/eterna100_uniform created."
+if [ ! -d "./analysis/$folder_1" ]; then
+    mkdir analysis/$folder_1
+    echo "Directory ./analysis/$folder_1 created."
 fi
 
-if [ ! -d "./graphs/eterna100_uniform" ]; then
-    mkdir graphs/eterna100_uniform
-    echo "Directory ./graphs/eterna100_uniform created."
+if [ ! -d "./graphs/$folder_1" ]; then
+    mkdir graphs/$folder_1
+    echo "Directory ./graphs/$folder_1 created."
 fi
 
-if [ ! -d "./results/eterna100_targeted" ]; then
-    mkdir results/eterna100_targeted
-    echo "Directory ./results/eterna100_targeted created."
+if [ ! -d "./results/$folder_2" ]; then
+    mkdir results/$folder_2
+    echo "Directory ./results/$folder_2 created."
 fi
 
-if [ ! -d "./analysis/eterna100_targeted" ]; then
-    mkdir analysis/eterna100_targeted
-    echo "Directory ./analysis/eterna100_targeted created."
+if [ ! -d "./analysis/$folder_2" ]; then
+    mkdir analysis/$folder_2
+    echo "Directory ./analysis/$folder_2 created."
 fi
 
-if [ ! -d "./graphs/eterna100_targeted" ]; then
-    mkdir graphs/eterna100_targeted
-    echo "Directory ./graphs/eterna100_targeted created."
+if [ ! -d "./graphs/$folder_2" ]; then
+    mkdir graphs/$folder_2
+    echo "Directory ./graphs/$folder_2 created."
 fi
 
 # reset the built-in timer
@@ -71,12 +73,12 @@ while IFS= read -r line; do
     puzzles=($line)
 
     # uniform intialization
-    echo "${puzzles[1]}" | ./main --init uniform --boxplot --seed 10 > results/eterna100_uniform/${puzzles[0]}.txt
-    python analysis.py --folder "eterna100_uniform" --file ${puzzles[0]}.txt > ./analysis/eterna100_uniform/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init uniform --boxplot --seed 10 > results/$folder_1/${puzzles[0]}.txt
+    python analysis.py --folder "$folder_1" --file ${puzzles[0]}.txt > ./analysis/$folder_1/${puzzles[0]}.txt
 
     # epsilon-targeted (eps = 0.75) intialization
-    echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot --seed 10 > results/eterna100_targeted/${puzzles[0]}.txt
-    python analysis.py --folder "eterna100_targeted" --file ${puzzles[0]}.txt > ./analysis/eterna100_targeted/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot --seed 10 > results/$folder_2/${puzzles[0]}.txt
+    python analysis.py --folder "$folder_2" --file ${puzzles[0]}.txt > ./analysis/$folder_2/${puzzles[0]}.txt
 done < "$1"
 
 # write the total runtime to a file

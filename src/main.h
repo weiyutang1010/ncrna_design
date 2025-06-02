@@ -182,6 +182,7 @@ public:
     bool is_lazy;
 
     int sample_size, best_k = 1;
+    bool importance;
 
     bool mismatch;
     bool trimismatch;
@@ -190,7 +191,7 @@ public:
     bool is_verbose, boxplot;
 
 
-    map<vector<int>, vector<double>> old_dist; // used in nesterov, save previous distribution
+    map<vector<int>, vector<double>> old_dist; // save distribution from the previous iteration
     map<vector<int>, vector<double>> dist;
 
     map<vector<int>, vector<double>> logits;
@@ -230,6 +231,7 @@ public:
                     bool is_lazy,
                     int sample_size,
                     int best_k,
+                    bool importance,
                     bool mismatch,
                     bool trimismatch,
                     int seed,
@@ -245,7 +247,7 @@ public:
     void initialize_dist_no_mismatch();
 
     void gradient_descent();
-    string get_integral_solution();
+    string get_max_probability_solution();
     
     double distribution_entropy();
 
@@ -288,12 +290,14 @@ private:
 
     struct Sample {
         string seq;
+        double old_sample_prob; // p(x; \theta)
         double sample_prob; // p(x; \theta)
         double obj;
         double boltz_prob;
     };
 
-    void resample();
+    void sample();
+    void recompute_prob();
 
     vector<Sample> samples;
     priority_queue<pair<double, string>> best_samples;

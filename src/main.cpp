@@ -59,6 +59,7 @@ GradientDescent::GradientDescent(string rna_struct,
                                 bool is_lazy,
                                 int sample_size,
                                 int best_k,
+                                bool importance,
                                 bool mismatch,
                                 bool trimismatch,
                                 int seed,
@@ -90,6 +91,7 @@ GradientDescent::GradientDescent(string rna_struct,
       mismatch(mismatch),
       trimismatch(trimismatch),
       best_k(best_k),
+      importance(importance),
       seed(seed),
       is_verbose(verbose),
       num_threads(num_threads),
@@ -225,10 +227,10 @@ void GradientDescent::nesterov_update() {
     // compute next nesterov sequence
     nesterov_seq.first = nesterov_seq.second;
     nesterov_seq.second = (1 + sqrt(4 * nesterov_seq.first * nesterov_seq.first + 1)) / 2;
-    old_dist = temp;
+    // old_dist = temp;
 }
 
-string GradientDescent::get_integral_solution() {
+string GradientDescent::get_max_probability_solution() {
     // get max-probability solution from the distribution
     string nucs = "ACGU";
     string seq = string(rna_struct.size(), 'A');
@@ -652,12 +654,14 @@ void GradientDescent::gradient_descent() {
     print_mode();
     initialize_dist();
 
-    if (nesterov) old_dist = dist;
     if (softmax) {
         logits_to_dist();
         print_dist("Initial Logits", logits);
     }
     print_dist("Initial Distribution", dist);
+    
+    // save 
+    old_dist = dist;
 
     // adaptive step and lr
     double moving_avg = 0., moving_avg_lr = 0.;
@@ -665,7 +669,6 @@ void GradientDescent::gradient_descent() {
     pair<double, int> last_best_avg = {1000000, 1}, last_best_avg_lr = {1000000, 1};
 
     for (int step = 0; step < num_steps && adaptive_step; step++) {
-        
         gettimeofday(&parse_starttime, NULL);
 
         double entropy = distribution_entropy();
@@ -684,7 +687,7 @@ void GradientDescent::gradient_descent() {
         }
 
         // get max-probability solution x* and evaluate its objective value
-        string integral_seq = get_integral_solution();
+        string integral_seq = get_max_probability_solution();
         double integral_obj;
         if (objective == "prob") {
             integral_obj = boltzmann_prob(integral_seq, rna_struct);
@@ -699,8 +702,13 @@ void GradientDescent::gradient_descent() {
         // approximate E[p(y | x)] from samples
         double mean_prob = 0.;
         if (sample_size > 0 && objective == "prob") {
-            for (int k = 0; k < sample_size; k++)
-                mean_prob += samples[k].boltz_prob;
+            for (const Sample& sample: samples) {
+                if (importance) {
+                    mean_prob += sample.boltz_prob * (sample.sample_prob / sample.old_sample_prob);
+                } else {
+                    mean_prob += sample.boltz_prob;
+                }
+            }
             mean_prob /= sample_size;
         }
 
@@ -812,6 +820,7 @@ void GradientDescent::gradient_descent() {
         }
 
         // update and projection step
+        old_dist = dist;
         if (adam && softmax) {
             adam_update(obj, step);
         } else {
@@ -869,6 +878,7 @@ int main(int argc, char** argv){
     // used for sampling method
     int sample_size = 2500;
     int best_k = 1;
+    bool importance = false;
 
     bool mismatch = true;
     bool trimismatch = true;
@@ -908,14 +918,15 @@ int main(int argc, char** argv){
 
         sample_size = atoi(argv[22]);
         best_k = atoi(argv[23]);
+        importance = atoi(argv[24]);
 
-        mismatch = atoi(argv[24]) == 1;
-        trimismatch = atoi(argv[25]) == 1;
+        mismatch = atoi(argv[25]) == 1;
+        trimismatch = atoi(argv[26]) == 1;
 
-        seed = atoi(argv[26]);
-        verbose = atoi(argv[27]) == 1;
-        num_threads = atoi(argv[28]);
-        boxplot = atoi(argv[29]) == 1;
+        seed = atoi(argv[27]);
+        verbose = atoi(argv[28]) == 1;
+        num_threads = atoi(argv[29]);
+        boxplot = atoi(argv[30]) == 1;
     }
 
     if (mode == "eval") {
@@ -931,7 +942,7 @@ int main(int argc, char** argv){
 
                 try {
                     is_valid_target_structure(rna_struct);
-                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
+                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     
                     string mfe_struct = parser.get_mfe_struct(rna_seq);
                     double prob = parser.boltzmann_prob(rna_seq, rna_struct);
@@ -958,7 +969,7 @@ int main(int argc, char** argv){
             if (rna_struct.size() > 0) {
                 try {
                     is_valid_target_structure(rna_struct); // throws error if target structure is not valid
-                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
+                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;

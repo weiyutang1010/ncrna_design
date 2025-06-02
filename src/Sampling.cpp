@@ -17,14 +17,12 @@ int GradientDescent::selectRandomIndex(const std::vector<double>& weights) {
     return dist(gen);
 }
 
-void GradientDescent::resample() {
+void GradientDescent::sample() {
     string nucs = "ACGU";
 
     if (samples.size() < sample_size){
         samples.resize(sample_size);
     }
-
-    set<string> seen;
 
     // draw samples from distribution and compute the probability from seq. distribution
     for (int k = 0; k < sample_size; k++) {
@@ -55,7 +53,7 @@ void GradientDescent::resample() {
             sample_prob *= probs[idx];
         }
 
-        samples[k] = {seq, sample_prob, 0., 0.};
+        samples[k] = {seq, sample_prob, sample_prob, 0., 0.};
     }
     
     // compute objective value for each sample in parallel
@@ -80,16 +78,16 @@ void GradientDescent::resample() {
             // sample[k] = {sequence, probability in seq. distribution, objective}
             if (objective == "prob") {
                 double log_boltz_prob = log_boltzmann_prob(seq, rna_struct); // log p(y | x)
-                samples[k] = {seq, sample_prob, -log_boltz_prob, exp(log_boltz_prob)};
+                samples[k] = {seq, sample_prob, sample_prob, -log_boltz_prob, exp(log_boltz_prob)};
             } else if (objective == "ned") {
                 double ned = normalized_ensemble_defect(seq, rna_struct);
-                samples[k] = {seq, sample_prob, ned, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, ned, 0.};
             } else if (objective == "dist") {
                 double distance = structural_dist_mfe(seq, rna_struct);
-                samples[k] = {seq, sample_prob, distance, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, distance, 0.};
             } else if (objective == "ddg") {
                 double diff = energy_diff(seq, rna_struct);
-                samples[k] = {seq, sample_prob, diff, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, diff, 0.};
             }
 
             #pragma omp critical
@@ -102,13 +100,60 @@ void GradientDescent::resample() {
     }
 }
 
+void GradientDescent::recompute_prob() {
+    string nucs = "ACGU";
+
+    // recompute the probability from seq. distribution
+    for (int k = 0; k < sample_size; k++) {
+        string seq = samples[k].seq;
+        double old_sample_prob = samples[k].sample_prob;
+
+        double sample_prob = 1.;
+        for(const vector<int>& pos: unpaired_pos) {
+            const vector<double>& probs = dist[pos];
+
+            string nucij = "";
+            for (int x = 0; x < pos.size(); x++) {
+                nucij += seq[pos[x]];
+            }
+            int idx = nucs_to_idx[nucij];
+            sample_prob *= probs[idx];
+        }
+
+        for(const vector<int>& pos: base_pairs_pos) {
+            const vector<double>& probs = dist[pos];
+            string nucij = "";
+            for (int x = 0; x < pos.size(); x++) {
+                nucij += seq[pos[x]];
+            }
+            int idx = pairs_to_idx[nucij];
+            sample_prob *= probs[idx];
+        }
+
+        samples[k].old_sample_prob = old_sample_prob;
+        samples[k].sample_prob = sample_prob;
+    }
+}
+
 Objective GradientDescent::sampling_approx(int step) {
-    resample();
+    if (importance) {
+        if (step % 2 == 1) {
+            recompute_prob();
+        } else {
+            sample();
+        }
+    } else {
+        sample();
+    }
 
     // Approximate expected objective value with Monte-Carlo
     double obj_val = 0.;
     for (const Sample& sample: samples) {
-        obj_val += sample.obj;
+        if (importance) {
+            obj_val += sample.obj * (sample.sample_prob / sample.old_sample_prob);
+        } else {
+            obj_val += sample.obj;
+        }
     }
     obj_val /= sample_size;
 
@@ -120,21 +165,30 @@ Objective GradientDescent::sampling_approx(int step) {
 
     // Approximate gradient
     {
-        for (int k = 0; k < sample_size; k++) {
+        for (const Sample& sample: samples) {
             for (const vector<int>& pos: unpaired_pos) {
                 string nucij = "";
                 for (const int& x: pos) {
-                    nucij += samples[k].seq[x];
+                    nucij += sample.seq[x];
                 }
-                gradient[pos][nucs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][nucs_to_idx[nucij]]);
+
+                if (importance) {
+                    gradient[pos][nucs_to_idx[nucij]] += sample.obj * (1 / dist[pos][nucs_to_idx[nucij]]) * (sample.sample_prob / sample.old_sample_prob);
+                } else {
+                    gradient[pos][nucs_to_idx[nucij]] += sample.obj * (1 / dist[pos][nucs_to_idx[nucij]]);
+                }
             }
 
             for (const vector<int>& pos: base_pairs_pos) {
                 string nucij = "";
                 for (const int& x: pos) {
-                    nucij += samples[k].seq[x];
+                    nucij += sample.seq[x];
                 }
-                gradient[pos][pairs_to_idx[nucij]] += samples[k].obj * (1 / dist[pos][pairs_to_idx[nucij]]);
+                if (importance) {
+                    gradient[pos][pairs_to_idx[nucij]] += sample.obj * (1 / dist[pos][pairs_to_idx[nucij]]) * (sample.sample_prob / sample.old_sample_prob);
+                } else {
+                    gradient[pos][pairs_to_idx[nucij]] += sample.obj * (1 / dist[pos][pairs_to_idx[nucij]]);
+                }
             }
         }
 

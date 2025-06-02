@@ -45,6 +45,7 @@ def setgflags():
     # sampling parameters
     flags.DEFINE_integer('sample_size', 2500, "number of samples", short_name='k')
     flags.DEFINE_integer('best_k', 1, "print out best k unique samples at each step")
+    flags.DEFINE_boolean('importance', False, "use importance sampling")
 
     # ablation studies
     flags.DEFINE_boolean('no_mismatch', False, "ablate 4 x 4 coupled mismatch")
@@ -87,6 +88,7 @@ def main():
 
     sample_size = str(FLAGS.k)
     best_k = str(FLAGS.best_k)
+    importance = '1' if FLAGS.importance else '0'
 
     mismatch = '0' if FLAGS.no_mismatch else '1'
     trimismatch = '0' if FLAGS.no_trimismatch else '1'
@@ -99,7 +101,7 @@ def main():
     exe_file = 'bin/main'
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot]
+    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':
