@@ -51,7 +51,7 @@ def setgflags():
     flags.DEFINE_boolean('no_trimismatch', False, "ablate 4 x 4 x 4 coupled trimismatch for 1 x 2, 1 x 3, 1 x n internal loops")
 
     flags.DEFINE_boolean('verbose', False, "print out distribution and gradient at each step")
-    flags.DEFINE_integer('seed', 42, "random seed")
+    flags.DEFINE_integer('seed', 0, "random seed")
     flags.DEFINE_integer('num_threads', 0, "number of threads used in openmp (0 for default)")
     flags.DEFINE_boolean('boxplot', False, "print out the objective of all samples")
 
@@ -99,7 +99,7 @@ def main():
     exe_file = 'bin/main'
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, verbose, seed, num_threads, boxplot]
+    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, mismatch, trimismatch, seed, verbose, num_threads, boxplot]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':
