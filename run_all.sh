@@ -73,11 +73,11 @@ while IFS= read -r line; do
     puzzles=($line)
 
     # uniform intialization
-    echo "${puzzles[1]}" | ./main --init uniform --boxplot --seed 10 > results/$folder_1/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init uniform --boxplot > results/$folder_1/${puzzles[0]}.txt
     python analysis.py --folder "$folder_1" --file ${puzzles[0]}.txt > ./analysis/$folder_1/${puzzles[0]}.txt
 
     # epsilon-targeted (eps = 0.75) intialization
-    echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot --seed 10 > results/$folder_2/${puzzles[0]}.txt
+    echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot > results/$folder_2/${puzzles[0]}.txt
     python analysis.py --folder "$folder_2" --file ${puzzles[0]}.txt > ./analysis/$folder_2/${puzzles[0]}.txt
 done < "$1"
 
