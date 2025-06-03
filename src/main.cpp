@@ -517,7 +517,7 @@ void GradientDescent::print_mode() {
     cout << "beamsize: " << beamsize << ", sharpturn: " << !nosharpturn
          << ", LazyOutside: " << is_lazy << "\n";
 
-    cout << "sample size: " << sample_size << ", best k samples listed: " << best_k << "\n";
+    cout << "sample size: " << sample_size << ", best k samples listed: " << best_k << ", importance" << importance << "\n";
     
     cout << "mismatch: " << mismatch << ", trimismatch: " << trimismatch << "\n";
 
