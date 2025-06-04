@@ -69,7 +69,7 @@ def main():
     avg_dist = []
     avg_ddg = []
     # print("id,length,p(y | x),p(y | x) seq,ned,ned seq,dist,dist seq,ddg,ddg seq,is_mfe,mfe seq,is_umfe,umfe seq")
-    print("id,length,p(y | x),ned,dist,ddg,is_mfe,is_umfe")
+    print("id,length,p(y|x),ned,dist,ddg,is_mfe,is_umfe")
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
 
@@ -142,14 +142,15 @@ def main():
     pyx_no_undesignable = [pyx for pyx, line in zip(avg_pyx, lines) if int(line[0]) not in undesignable_ids]
 
     print("")
-    print(f"arith. mean prob: {np.mean(avg_pyx):.3f}", file=sys.stderr) # arithmetic mean of Boltzmann probability
-    print(f"geom. mean prob (w/o undesignable): {geo_mean_overflow(pyx_no_undesignable):.5f}", file=sys.stderr) # geometric mean of Boltzmann probability (excluding undesignable puzzles)
-    print(f"average ned: {np.mean(avg_ned):.4f}", file=sys.stderr) # average normalized ensemble defect
-    print(f"average dist: {np.mean(avg_dist):.4f}", file=sys.stderr) # average structural distance
-    print(f"average ddg: {np.mean(avg_ddg):.4f}", file=sys.stderr) # average free energy gap (Delta Delta G)
-    print(f"mfe count: {mfe_count}", file=sys.stderr) # number of puzzles with at least one MFE solution found
-    print(f"umfe count: {umfe_count}", file=sys.stderr) # number of puzzles with at least one uMFE solution found
-    print(f"total time (s): {total_time:.2f}", file=sys.stderr) # total time taken
+    print("Summary")
+    print(f"arith. mean Boltzmann prob.  : {np.mean(avg_pyx):.3f}") # arithmetic mean of Boltzmann probability
+    print(f"geom.  mean Boltzmann prob. (w/o undesignable): {geo_mean_overflow(pyx_no_undesignable):.5f}") # geometric mean of Boltzmann probability (excluding undesignable puzzles)
+    print(f"average norm. ensemble defect: {np.mean(avg_ned):.4f}") # average normalized ensemble defect
+    print(f"average struct. distance     : {np.mean(avg_dist):.4f}") # average structural distance
+    print(f"average free energy gap      : {np.mean(avg_ddg):.4f}") # average free energy gap (Delta Delta G)
+    print(f"mfe  count: {mfe_count}") # number of puzzles with at least one MFE solution found
+    print(f"umfe count: {umfe_count}") # number of puzzles with at least one uMFE solution found
+    print(f"total time (s): {total_time:.2f}") # total time taken
 
 if __name__ == '__main__':
     main()

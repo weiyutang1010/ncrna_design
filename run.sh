@@ -47,6 +47,9 @@ if [ ! -d "./graphs/$1" ]; then
     echo "Directory ./graphs/$1 created."
 fi
 
+# compile
+make
+
 # Read file line by line
 while IFS= read -r line; do
     # Split line by space

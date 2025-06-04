@@ -64,8 +64,8 @@ if [ ! -d "./graphs/$folder_2" ]; then
     echo "Directory ./graphs/$folder_2 created."
 fi
 
-# reset the built-in timer
-SECONDS=0
+# Compile
+make
 
 # Read file line by line
 while IFS= read -r line; do
@@ -80,6 +80,3 @@ while IFS= read -r line; do
     echo "${puzzles[1]}" | ./main --init targeted --eps 0.75 --boxplot > results/$folder_2/${puzzles[0]}.txt
     python analysis.py --folder "$folder_2" --file ${puzzles[0]}.txt > ./analysis/$folder_2/${puzzles[0]}.txt
 done < "$1"
-
-# write the total runtime to a file
-echo "Total runtime: ${SECONDS} seconds" > runtime.log
