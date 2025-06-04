@@ -614,6 +614,40 @@ double GradientDescent::distribution_entropy() {
     return -entropy;
 }
 
+double GradientDescent::kl_divergence() {
+    // KL divergence between distributions from step i and step i - 1
+    double kl_div = 0.0;
+
+    // print_dist("dist", dist);
+    // print_dist("old_dist", old_dist);
+
+    for (const vector<int>& pos: unpaired_pos) {
+        auto& probs = dist[pos];
+        auto& probs_2 = old_dist[pos];
+
+        for (int i = 0; i < probs.size(); i++) {
+            if (probs[i] == 0. or probs_2[i] == 0.)
+                continue;
+            // cerr << probs[i] << " " << probs_2[i]  << endl;
+            kl_div += probs[i] * (log2(probs[i]) - log2(probs_2[i]));
+        }
+    }
+    
+    for (const vector<int>& pos: base_pairs_pos) {
+        auto& probs = dist[pos];
+        auto& probs_2 = old_dist[pos];
+        
+        for (int i = 0; i < probs.size(); i++) {
+            if (probs[i] == 0. or probs_2[i] == 0.)
+                continue;
+            // cerr << probs[i] << " " << probs_2[i]  << endl;
+            kl_div += probs[i] * (log2(probs[i]) - log2(probs_2[i]));
+        }
+    }
+
+    return kl_div;
+}
+
 void is_valid_target_structure(const string& structure) {
     stack<char> s;
     string validChars = "().";
@@ -672,6 +706,7 @@ void GradientDescent::gradient_descent() {
         gettimeofday(&parse_starttime, NULL);
 
         double entropy = distribution_entropy();
+        double kl_div = kl_divergence();
 
         if (nesterov) {
             nesterov_update();
@@ -679,9 +714,8 @@ void GradientDescent::gradient_descent() {
 
         Objective obj;
         if (softmax) {
-            logits_to_dist();
-            obj = objective_function(step);
-            obj = logits_grad(obj);
+            obj = objective_function(step); // approximate objective and estimate gradient
+            obj = logits_grad(obj); // compute gradient w/ respect to logits
         } else {
             obj = objective_function(step);
         }
@@ -704,9 +738,9 @@ void GradientDescent::gradient_descent() {
         if (sample_size > 0 && objective == "prob") {
             for (const Sample& sample: samples) {
                 if (importance) {
-                    mean_prob += sample.boltz_prob * (sample.sample_prob / sample.old_sample_prob);
+                    mean_prob += exp(-sample.obj * (sample.sample_prob / sample.old_sample_prob));
                 } else {
-                    mean_prob += sample.boltz_prob;
+                    mean_prob += exp(-sample.obj);
                 }
             }
             mean_prob /= sample_size;
@@ -717,6 +751,7 @@ void GradientDescent::gradient_descent() {
         cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", learning rate: " << lr << ", time: " << parse_elapsed_time << "\n";
         cout << "max-probability solution: " << integral_seq << " " << integral_obj << "\n";
         cout << "distribution entropy: " << entropy << "\n";
+        cout << "KL divergence: " << kl_div << "\n";
 
 
         // sort samples by their objective values
@@ -735,7 +770,7 @@ void GradientDescent::gradient_descent() {
             cout << "boxplot: " << std::scientific << std::setprecision(3);
             for (const Sample& sample: samples) {
                 if (objective == "prob")
-                    cout << sample.boltz_prob << " ";
+                    cout << exp(-sample.obj) << " ";
                 else
                     cout << sample.obj << " ";
             }
@@ -750,7 +785,7 @@ void GradientDescent::gradient_descent() {
             if (samples[i].seq != last_sample) {
                 cout << samples[i].seq << " ";
                 if (objective == "prob")
-                    cout << samples[i].boltz_prob << "\n";
+                    cout << exp(-samples[i].obj) << "\n";
                 else
                     cout << samples[i].obj << "\n";
 
@@ -827,11 +862,13 @@ void GradientDescent::gradient_descent() {
             update(obj);
         }
 
-        if (!softmax)
+        if (softmax) {
+            logits_to_dist();
+        } else {
             projection();
-        
-        cout << endl;
+        }
 
+        cout << endl;
         gettimeofday(&parse_endtime, NULL);
         parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
         cerr << "seed: " << seed << ", n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;

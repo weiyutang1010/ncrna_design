@@ -250,6 +250,7 @@ public:
     string get_max_probability_solution();
     
     double distribution_entropy();
+    double kl_divergence();
 
     // sampling
     Objective sampling_approx(int step);
@@ -293,7 +294,6 @@ private:
         double old_sample_prob; // p(x; \theta)
         double sample_prob; // p(x; \theta)
         double obj;
-        double boltz_prob;
     };
 
     void sample();

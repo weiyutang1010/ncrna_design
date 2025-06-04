@@ -51,12 +51,15 @@ def main():
                 if num_umfe > 0:
                     umfe_seq = r_lines[11].split(': ')[1].split(' ')[2]
 
-                results[rna_id].append((best_pyx, best_pyx_seq, best_ned, best_ned_seq, best_dist, best_dist_seq, best_ddg, best_ddg_seq, mfe_seq, umfe_seq, file_path, total_steps))
+                time = float(r_lines[13].split(': ')[1].split(' ')[1])
+
+                results[rna_id].append((best_pyx, best_pyx_seq, best_ned, best_ned_seq, best_dist, best_dist_seq, best_ddg, best_ddg_seq, mfe_seq, umfe_seq, file_path, total_steps, time))
 
     if no_file_found:
         print("No file found", file=sys.stderr)
         exit(0)
 
+    total_time = 0.0
     total_steps = []
     steps = []
     avg_pyx = []
@@ -132,6 +135,9 @@ def main():
         avg_dist.append(dist)
         avg_ddg.append(ddg)
 
+        for result in results[rna_id]:
+            total_time += result[12]
+
     undesignable_ids = [50, 52, 57, 60, 61, 67, 72, 78, 80, 81, 86, 87, 88, 90, 91, 92, 96, 99]
     pyx_no_undesignable = [pyx for pyx, line in zip(avg_pyx, lines) if int(line[0]) not in undesignable_ids]
 
@@ -143,6 +149,7 @@ def main():
     print(f"average ddg: {np.mean(avg_ddg):.4f}", file=sys.stderr) # average free energy gap (Delta Delta G)
     print(f"mfe count: {mfe_count}", file=sys.stderr) # number of puzzles with at least one MFE solution found
     print(f"umfe count: {umfe_count}", file=sys.stderr) # number of puzzles with at least one uMFE solution found
+    print(f"total time (s): {total_time:.2f}", file=sys.stderr) # total time taken
 
 if __name__ == '__main__':
     main()

@@ -53,7 +53,7 @@ void GradientDescent::sample() {
             sample_prob *= probs[idx];
         }
 
-        samples[k] = {seq, sample_prob, sample_prob, 0., 0.};
+        samples[k] = {seq, sample_prob, sample_prob, 0.};
     }
     
     // compute objective value for each sample in parallel
@@ -78,16 +78,16 @@ void GradientDescent::sample() {
             // sample[k] = {sequence, probability in seq. distribution, objective}
             if (objective == "prob") {
                 double log_boltz_prob = log_boltzmann_prob(seq, rna_struct); // log p(y | x)
-                samples[k] = {seq, sample_prob, sample_prob, -log_boltz_prob, exp(log_boltz_prob)};
+                samples[k] = {seq, sample_prob, sample_prob, -log_boltz_prob};
             } else if (objective == "ned") {
                 double ned = normalized_ensemble_defect(seq, rna_struct);
-                samples[k] = {seq, sample_prob, sample_prob, ned, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, ned};
             } else if (objective == "dist") {
                 double distance = structural_dist_mfe(seq, rna_struct);
-                samples[k] = {seq, sample_prob, sample_prob, distance, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, distance};
             } else if (objective == "ddg") {
                 double diff = energy_diff(seq, rna_struct);
-                samples[k] = {seq, sample_prob, sample_prob, diff, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, diff};
             }
 
             #pragma omp critical
