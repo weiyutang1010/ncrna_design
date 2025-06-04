@@ -14,7 +14,6 @@ Compiler version: g++ (Spack GCC) 8.3.0
 make
 ```
 
-
 ## Python Dependencies
 `python` (3.8.20), `numpy` (1.24.4), `matplotlib` (3.7.5), `viennarna` (2.6.4)
 ```
@@ -28,6 +27,20 @@ Run SamplingDesign for the shortest five structures (up to 30 nucleotides) in Et
 ```
 
 The results will be saved in `./results/example/`. The script then parses the result file to generate learning curves in `./graphs/example/` and output the best solution (based on each metric) into `./analysis/example/`.
+
+## Run all Eterna100 structures
+Reproduce the results in the paper (both uniform and $\epsilon$-targeted initializations). Note: On our server with 28 cores, the $\epsilon$-targeted initialization took approximately 10 days to complete.
+
+### Command
+```
+./run_all.sh ./data/eterna100.txt
+python merge.py eterna100 eterna100_uniform eterna100_targeted # summarize results
+```
+The sequences used in the paper are available in `./evaluation_data/`.
+
+Replace `./data/eterna100.txt` with
+ - `./data/eterna_50n.txt` to run the 18 shortest structures (up to 50 nts).
+ - `./data/eterna_104n.txt` to run the 51 shortest structures (up to 104 nts).
 
 ## To run SamplingDesign
 ### Command
@@ -190,12 +203,13 @@ no_graph: re-evaluate all sequences only (default: False)
 --no_graph
 ``` -->
 
-## Run all Eterna100 structures
-Reproduce the results in the paper (both uniform and $\epsilon$-targeted initializations). Note: On our server with 28 cores, the $\epsilon$-targeted initialization took approximately 10 days to complete.
-
-### Command
+## merge.py
+`merge.py` combines multiple results folder from `./analysis/` and summarize them.
 ```
-./run_all.sh ./data/eterna100.txt
+python merge.py <data file> <folder 1> [folder 2] ... [folder n]
+```
+Note that `merge.py` takes only the file name as arguments. E.g.,
+```
 python merge.py eterna100 eterna100_uniform eterna100_targeted
 ```
-The sequences used in the paper are available in `./evaluation_data/`
+after running `./run_all.sh ./data/eterna100.txt`

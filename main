@@ -52,7 +52,7 @@ def setgflags():
     flags.DEFINE_boolean('no_trimismatch', False, "ablate 4 x 4 x 4 coupled trimismatch for 1 x 2, 1 x 3, 1 x n internal loops")
 
     flags.DEFINE_boolean('verbose', False, "print out distribution and gradient at each step")
-    flags.DEFINE_integer('seed', 0, "random seed")
+    flags.DEFINE_integer('seed', 1, "random seed")
     flags.DEFINE_integer('num_threads', 0, "number of threads used in openmp (0 for default)")
     flags.DEFINE_boolean('boxplot', False, "print out the objective of all samples")
 

@@ -249,6 +249,7 @@ def process_result_file(rna_id, result_file, args):
     lr_idx = [] # track when does lr changes
     seqs = set()
     seq_step = {}
+    total_time = 0.0
 
     # File reading
     for idx, line in enumerate(lines):
@@ -296,6 +297,9 @@ def process_result_file(rna_id, result_file, args):
             sampled_obj.append(seq_obj)
             if seq not in seq_step:
                 seq_step[seq] = step
+
+        if line.startswith('Total Time:'):
+            total_time = float(line.split(': ')[1])
 
 
     if len(avg_pyx) < 1:
@@ -345,6 +349,9 @@ def process_result_file(rna_id, result_file, args):
         print("Format: <number of mfe solutions> [sequence]")
         print("MFE solution: ", len(mfe_solutions), mfe_solution)
         print("UMFE solution: ", len(umfe_solutions), umfe_solution)
+        print()
+
+        print("Total time (s): ", total_time)
 
     print(f"id {rna_id} done", file=sys.stderr)
 
