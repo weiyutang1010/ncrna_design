@@ -175,7 +175,7 @@ public:
     int k_ma_lr, lr_decay_step;
 
     int num_steps, k_ma;
-    bool adaptive_step;
+    bool early_stop;
 
     int beamsize;
     bool nosharpturn;
@@ -250,9 +250,10 @@ public:
     string get_max_probability_solution();
     
     double distribution_entropy();
+    double kl_divergence();
 
     // sampling
-    Objective sampling_approx(int step);
+    Objective sampling_approx(int step, double kl_div);
 
     // softmax conversion
     void softmax_func(const vector<vector<int>>& positions); //softmax function
@@ -260,7 +261,7 @@ public:
     Objective logits_grad(const Objective& grad); // compute gradient for softmax logits
 
     // objective functions
-    Objective objective_function(int step);
+    Objective objective_function(int step, double kl_div);
     double linear_partition(string& rna_seq); // Q(x)
     double boltzmann_prob(string& rna_seq, string& rna_struct); // p(y* | x)
     double log_boltzmann_prob(string& rna_seq, string& rna_struct); // log p(y* | x)
@@ -293,7 +294,6 @@ private:
         double old_sample_prob; // p(x; \theta)
         double sample_prob; // p(x; \theta)
         double obj;
-        double boltz_prob;
     };
 
     void sample();

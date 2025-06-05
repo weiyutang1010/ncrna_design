@@ -34,7 +34,7 @@ def setgflags():
     
     # number of steps
     flags.DEFINE_integer('num_steps', 2000, "set the max number of steps", short_name='step')
-    flags.DEFINE_boolean('adaptive_step', True, "turn on adaptive step (i.e. early stopping)")
+    flags.DEFINE_boolean('no_early_stop', False, "turn off early stopping")
     flags.DEFINE_integer('k_ma', 50, "stop when the objective function hasn't improved for k steps")
     
     # parameters used for linearpartition and linearfold
@@ -79,7 +79,7 @@ def main():
     lr_decay_step = str(FLAGS.lr_decay_step)
 
     num_steps = str(FLAGS.step)
-    adaptive_step= '1' if FLAGS.adaptive_step else '0'
+    early_stop= '0' if FLAGS.no_early_stop else '1'
     k_ma = str(FLAGS.k_ma)
 
     beamsize = str(FLAGS.b)
@@ -101,7 +101,7 @@ def main():
     exe_file = 'bin/main'
 
     path = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot]
+    cmd = ["%s/%s" % (path, exe_file), mode, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, early_stop, k_ma, beamsize, sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot]
     subprocess.call(cmd, stdin=sys.stdin)
     
 if __name__ == '__main__':

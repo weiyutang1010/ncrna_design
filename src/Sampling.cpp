@@ -53,7 +53,7 @@ void GradientDescent::sample() {
             sample_prob *= probs[idx];
         }
 
-        samples[k] = {seq, sample_prob, sample_prob, 0., 0.};
+        samples[k] = {seq, sample_prob, sample_prob, 0.};
     }
     
     // compute objective value for each sample in parallel
@@ -78,16 +78,16 @@ void GradientDescent::sample() {
             // sample[k] = {sequence, probability in seq. distribution, objective}
             if (objective == "prob") {
                 double log_boltz_prob = log_boltzmann_prob(seq, rna_struct); // log p(y | x)
-                samples[k] = {seq, sample_prob, sample_prob, -log_boltz_prob, exp(log_boltz_prob)};
+                samples[k] = {seq, sample_prob, sample_prob, -log_boltz_prob};
             } else if (objective == "ned") {
                 double ned = normalized_ensemble_defect(seq, rna_struct);
-                samples[k] = {seq, sample_prob, sample_prob, ned, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, ned};
             } else if (objective == "dist") {
                 double distance = structural_dist_mfe(seq, rna_struct);
-                samples[k] = {seq, sample_prob, sample_prob, distance, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, distance};
             } else if (objective == "ddg") {
                 double diff = energy_diff(seq, rna_struct);
-                samples[k] = {seq, sample_prob, sample_prob, diff, 0.};
+                samples[k] = {seq, sample_prob, sample_prob, diff};
             }
 
             #pragma omp critical
@@ -135,10 +135,12 @@ void GradientDescent::recompute_prob() {
     }
 }
 
-Objective GradientDescent::sampling_approx(int step) {
+Objective GradientDescent::sampling_approx(int step, double kl_div) {
     if (importance) {
+        // if (step > 0 && kl_div < 0.0002) {
+        // if (step > 222) {
         if (step % 2 == 1) {
-            recompute_prob();
+            recompute_prob(); // no resampling, just recompute probability of the sample under the current distribution
         } else {
             sample();
         }

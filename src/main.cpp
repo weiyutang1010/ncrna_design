@@ -52,7 +52,7 @@ GradientDescent::GradientDescent(string rna_struct,
                                 int k_ma_lr,
                                 int lr_decay_step,
                                 int num_steps,
-                                bool adaptive_step,
+                                bool early_stop,
                                 int k_ma,
                                 int beamsize,
                                 bool nosharpturn,
@@ -82,7 +82,7 @@ GradientDescent::GradientDescent(string rna_struct,
       k_ma_lr(k_ma_lr),
       lr_decay_step(lr_decay_step),
       num_steps(num_steps),
-      adaptive_step(adaptive_step),
+      early_stop(early_stop),
       k_ma(k_ma),
       beamsize(beamsize),
       nosharpturn(nosharpturn),
@@ -512,12 +512,12 @@ void GradientDescent::print_mode() {
          << ", lr_decay_step: " << lr_decay_step << "\n";
 
     cout << "max number of steps: " << num_steps
-         << ", adaptive step: " << adaptive_step << ", k moving avg: " << k_ma << "\n";
+         << ", early stop: " << early_stop << ", k moving avg: " << k_ma << "\n";
 
     cout << "beamsize: " << beamsize << ", sharpturn: " << !nosharpturn
          << ", LazyOutside: " << is_lazy << "\n";
 
-    cout << "sample size: " << sample_size << ", best k samples listed: " << best_k << ", importance" << importance << "\n";
+    cout << "sample size: " << sample_size << ", best k samples listed: " << best_k << ", importance: " << importance << "\n";
     
     cout << "mismatch: " << mismatch << ", trimismatch: " << trimismatch << "\n";
 
@@ -527,9 +527,9 @@ void GradientDescent::print_mode() {
     cout << endl;
 }
 
-Objective GradientDescent::objective_function(int step) {
+Objective GradientDescent::objective_function(int step, double kl_div) {
     if (objective == "prob" || objective == "ned" || objective == "dist" || objective == "ddg") {
-        Objective obj = sampling_approx(step);
+        Objective obj = sampling_approx(step, kl_div);
         return obj;
     } else {
         throw std::runtime_error("Objective not implemented!");
@@ -614,6 +614,40 @@ double GradientDescent::distribution_entropy() {
     return -entropy;
 }
 
+double GradientDescent::kl_divergence() {
+    // KL divergence between distributions at step i and step i - 1
+    double kl_div = 0.0;
+
+    // print_dist("dist", dist);
+    // print_dist("old_dist", old_dist);
+
+    for (const vector<int>& pos: unpaired_pos) {
+        auto& probs = dist[pos];
+        auto& probs_2 = old_dist[pos];
+
+        for (int i = 0; i < probs.size(); i++) {
+            if (probs[i] == 0. or probs_2[i] == 0.)
+                continue;
+            // cerr << probs[i] << " " << probs_2[i]  << endl;
+            kl_div += probs[i] * (log2(probs[i]) - log2(probs_2[i]));
+        }
+    }
+    
+    for (const vector<int>& pos: base_pairs_pos) {
+        auto& probs = dist[pos];
+        auto& probs_2 = old_dist[pos];
+        
+        for (int i = 0; i < probs.size(); i++) {
+            if (probs[i] == 0. or probs_2[i] == 0.)
+                continue;
+            // cerr << probs[i] << " " << probs_2[i]  << endl;
+            kl_div += probs[i] * (log2(probs[i]) - log2(probs_2[i]));
+        }
+    }
+
+    return kl_div;
+}
+
 void is_valid_target_structure(const string& structure) {
     stack<char> s;
     string validChars = "().";
@@ -645,6 +679,8 @@ void GradientDescent::gradient_descent() {
     struct timeval parse_starttime, parse_endtime;
     struct timeval total_starttime, total_endtime;
 
+    bool running = true;
+
     gettimeofday(&total_starttime, NULL);
 
     double best_obj = 1e9; 
@@ -663,27 +699,28 @@ void GradientDescent::gradient_descent() {
     // save 
     old_dist = dist;
 
-    // adaptive step and lr
+    // early stopping and adaptive lr
     double moving_avg = 0., moving_avg_lr = 0.;
     queue<double> last_k_obj, last_k_obj_lr;
     pair<double, int> last_best_avg = {1000000, 1}, last_best_avg_lr = {1000000, 1};
 
-    for (int step = 0; step < num_steps && adaptive_step; step++) {
+    for (int step = 0; step < num_steps && running; step++) {
         gettimeofday(&parse_starttime, NULL);
 
         double entropy = distribution_entropy();
+        double kl_div = kl_divergence();
 
         if (nesterov) {
             nesterov_update();
         }
 
+        // approximate objective and gradient using Monte-Carlo sampling
         Objective obj;
+        obj = objective_function(step, kl_div); 
+        
         if (softmax) {
-            logits_to_dist();
-            obj = objective_function(step);
+            // compute gradient w/ respect to logits
             obj = logits_grad(obj);
-        } else {
-            obj = objective_function(step);
         }
 
         // get max-probability solution x* and evaluate its objective value
@@ -704,9 +741,9 @@ void GradientDescent::gradient_descent() {
         if (sample_size > 0 && objective == "prob") {
             for (const Sample& sample: samples) {
                 if (importance) {
-                    mean_prob += sample.boltz_prob * (sample.sample_prob / sample.old_sample_prob);
+                    mean_prob += exp(-sample.obj * (sample.sample_prob / sample.old_sample_prob));
                 } else {
-                    mean_prob += sample.boltz_prob;
+                    mean_prob += exp(-sample.obj);
                 }
             }
             mean_prob /= sample_size;
@@ -717,6 +754,7 @@ void GradientDescent::gradient_descent() {
         cout << "step: " << step << ", objective value: " << obj.score << ", E[p(y|x)] approx: " << mean_prob << ", learning rate: " << lr << ", time: " << parse_elapsed_time << "\n";
         cout << "max-probability solution: " << integral_seq << " " << integral_obj << "\n";
         cout << "distribution entropy: " << entropy << "\n";
+        cout << "KL divergence: " << kl_div << "\n";
 
 
         // sort samples by their objective values
@@ -730,19 +768,19 @@ void GradientDescent::gradient_descent() {
             best_design = samples[0].seq;
         }
 
-        // print out the objective values of the sample for boxplot
+        // print out the objective values of each sample for boxplot
         if (boxplot) {
             cout << "boxplot: " << std::scientific << std::setprecision(3);
             for (const Sample& sample: samples) {
                 if (objective == "prob")
-                    cout << sample.boltz_prob << " ";
+                    cout << exp(-sample.obj) << " ";
                 else
                     cout << sample.obj << " ";
             }
             cout << "\n" << defaultfloat;
         }
 
-        // print best k unique sample
+        // print out the best k unique sample
         cout << "best samples" << "\n";
         int i = 0, count = 0;
         string last_sample = "";
@@ -750,7 +788,7 @@ void GradientDescent::gradient_descent() {
             if (samples[i].seq != last_sample) {
                 cout << samples[i].seq << " ";
                 if (objective == "prob")
-                    cout << samples[i].boltz_prob << "\n";
+                    cout << exp(-samples[i].obj) << "\n";
                 else
                     cout << samples[i].obj << "\n";
 
@@ -763,22 +801,28 @@ void GradientDescent::gradient_descent() {
 
         // early stopping
         // calculate average of the objective function from last k steps
-        moving_avg += obj.score;
-        last_k_obj.push(obj.score);
-        if (last_k_obj.size() > k_ma) {
-            moving_avg -= last_k_obj.front(); 
-            last_k_obj.pop();
+        
+        if (importance) {
+            double alpha = 0.5;
+            moving_avg = alpha * obj.score + (1 - alpha) * moving_avg;
+        } else {   
+            moving_avg += obj.score / k_ma;
+            last_k_obj.push(obj.score);
+            if (last_k_obj.size() > k_ma) {
+                moving_avg -= last_k_obj.front() / k_ma; 
+                last_k_obj.pop();
+            }
         }
 
-        if (adaptive_step){
-            // adaptive step condition: if k moving avg hasn't improved since last k steps then stop
-            if (step >= k_ma && moving_avg / k_ma < last_best_avg.first) {
+        if (early_stop){
+            // early stop condition: if k moving avg hasn't improved since last k steps then stop
+            if (step >= k_ma && moving_avg < last_best_avg.first) {
                 // update step of best moving avg
-                last_best_avg = {moving_avg / k_ma, step};
+                last_best_avg = {moving_avg, step};
             }
 
             if (step >= last_best_avg.second + k_ma) {
-                adaptive_step = false;
+                running = false;
             }
         }
 
@@ -827,11 +871,13 @@ void GradientDescent::gradient_descent() {
             update(obj);
         }
 
-        if (!softmax)
+        if (softmax) {
+            logits_to_dist();
+        } else {
             projection();
-        
-        cout << endl;
+        }
 
+        cout << endl;
         gettimeofday(&parse_endtime, NULL);
         parse_elapsed_time = parse_endtime.tv_sec - parse_starttime.tv_sec + (parse_endtime.tv_usec-parse_starttime.tv_usec)/1000000.0;
         cerr << "seed: " << seed << ", n: " << rna_struct.size() << ", step: " << step << ", time: " << parse_elapsed_time << endl;
@@ -868,7 +914,7 @@ int main(int argc, char** argv){
     int k_ma_lr = 10, lr_decay_step = 50;
 
     int num_steps = -1;
-    bool adaptive_step = false;
+    bool early_stop = false;
     int k_ma = 50;
 
     int beamsize = 100;
@@ -909,7 +955,7 @@ int main(int argc, char** argv){
         lr_decay_step = atoi(argv[15]);
 
         num_steps = atoi(argv[16]);
-        adaptive_step = atoi(argv[17]) == 1;
+        early_stop = atoi(argv[17]) == 1;
         k_ma = atoi(argv[18]);
 
         beamsize = atoi(argv[19]);
@@ -942,7 +988,7 @@ int main(int argc, char** argv){
 
                 try {
                     is_valid_target_structure(rna_struct);
-                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
+                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, early_stop, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     
                     string mfe_struct = parser.get_mfe_struct(rna_seq);
                     double prob = parser.boltzmann_prob(rna_seq, rna_struct);
@@ -969,7 +1015,7 @@ int main(int argc, char** argv){
             if (rna_struct.size() > 0) {
                 try {
                     is_valid_target_structure(rna_struct); // throws error if target structure is not valid
-                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, adaptive_step, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
+                    GradientDescent parser(rna_struct, objective, init, eps, softmax, adam, nesterov, beta_1, beta_2, initial_lr, lr_decay, lr_decay_rate, adaptive_lr, k_ma_lr, lr_decay_step, num_steps, early_stop, k_ma, beamsize, !sharpturn, is_lazy, sample_size, best_k, importance, mismatch, trimismatch, seed, verbose, num_threads, boxplot);
                     parser.gradient_descent();
                 } catch (const std::exception& e) {
                     std::cerr << "Exception caught: " << e.what() << std::endl;
