@@ -135,10 +135,12 @@ void GradientDescent::recompute_prob() {
     }
 }
 
-Objective GradientDescent::sampling_approx(int step) {
+Objective GradientDescent::sampling_approx(int step, double kl_div) {
     if (importance) {
+        // if (step > 0 && kl_div < 0.0002) {
+        // if (step > 222) {
         if (step % 2 == 1) {
-            recompute_prob();
+            recompute_prob(); // no resampling, just recompute probability of the sample under the current distribution
         } else {
             sample();
         }

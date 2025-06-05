@@ -106,6 +106,73 @@ def eval_seq(seq, ss, scale=True):
 
     return seq, pr, ed, is_mfe, is_umfe, dist, energy_diff
 
+# def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxplot, entropy, lr_idx, args, fontsize=18):
+#     plt.rcParams["figure.figsize"] = [11.50, 6.50]
+#     plt.rcParams["figure.autolayout"] = True
+
+#     fig, (ax1, ax2) = plt.subplots(2, 1,  gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
+
+#     # avg_obj = avg_obj[:587]
+#     # avg_pyx = avg_pyx[:587]
+#     # integral_pyx = integral_pyx[:587]
+#     # sampled_pyx = sampled_pyx[:587]
+    
+#     # axis labels
+#     ticklabelpad = mpl.rcParams['xtick.major.pad']
+#     ax1.annotate('Step', xy=(1,0), xytext=(5, -ticklabelpad), ha='left', va='top',
+#             xycoords='axes fraction', textcoords='offset points', fontsize=fontsize+2)
+#     ax1.set_ylabel('Boltzmann probability', fontsize=fontsize+2)
+
+#     n, rna_struct = len(lines[0]), lines[0]
+#     init = lines[1].split(', ')[1].split(': ')[1]
+#     learning_rate = lines[3].split(', ')[0].split(': ')[1]
+#     sample_size = lines[6].split(', ')[0].split(': ')[1]
+
+#     # lr change
+#     if len(lr_idx) > 0:
+#         ax1.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr decay')
+#         for idx in lr_idx[1:]:
+#             ax1.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
+    
+#     # box plot
+#     num_steps = len(avg_pyx)
+#     x_values = np.linspace(0, num_steps-1, num=10)
+#     x_values = [int(val) for val in x_values]
+    
+#     if len(boxplot) > 0:
+#         boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
+#         marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
+#         ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
+
+#     # learning curves
+#     objs_exp = np.exp(-1 * np.array(avg_obj))
+    
+#     ax1.plot([], linestyle='', marker='o', ms=10, markerfacecolor='None', color='green', alpha=0.7, label=r'best sample')
+#     ax1.plot(sampled_pyx, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3)
+#     ax1.plot(integral_pyx, color='orange', alpha=0.9, label=r'max-probability solution')
+#     ax1.plot(avg_pyx, color='red', alpha=0.8, label=r'arith. mean')
+#     ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'geom. mean')
+
+#     # entropy subplot
+#     entropy = [data for idx, data in enumerate(entropy) if idx in x_values]
+#     ax2.bar(x_values, entropy, width=num_steps / 20)
+#     ax2.set_ylim(0, max(entropy) *1.1)
+#     ax2.invert_yaxis()
+#     ax2.set_ylabel("entropy of seq.\ndistribution", fontsize=fontsize+2)
+
+#     plt.margins(x=0.02, y=0.2)
+#     ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=fontsize+2)
+#     ax2.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
+
+#     ax1.legend(fontsize=fontsize)
+
+#     if not os.path.exists(f"graphs/{args.folder}"):
+#         os.makedirs(f"graphs/{args.folder}")
+
+#     save_path = f'graphs/{args.folder}/{rna_id}.pdf'
+#     plt.savefig(save_path, bbox_inches="tight")
+#     print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)
+
 def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxplot, entropy, kl_div, lr_idx, args, fontsize=18):
     plt.rcParams["figure.figsize"] = [11.50, 9.50]
     plt.rcParams["figure.autolayout"] = True
@@ -155,6 +222,7 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
     ax2.invert_yaxis()
     ax2.set_ylabel("entropy of seq.\ndistribution", fontsize=fontsize+2)
 
+    # kl divergence between distributions at step i and i - 1
     kl_div = kl_div[1:]
     ax3.plot(np.arange(1, len(avg_obj)), kl_div, color='orange')
     ax3.set_ylim(0, max(kl_div) *1.1)
@@ -397,66 +465,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxplot, entropy, lr_idx, args, fontsize=18):
-#     plt.rcParams["figure.figsize"] = [11.50, 6.50]
-#     plt.rcParams["figure.autolayout"] = True
-
-#     fig, (ax1, ax2) = plt.subplots(2, 1,  gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
-
-#     # axis labels
-#     ticklabelpad = mpl.rcParams['xtick.major.pad']
-#     ax1.annotate('Step', xy=(1,0), xytext=(5, -ticklabelpad), ha='left', va='top',
-#             xycoords='axes fraction', textcoords='offset points', fontsize=fontsize+2)
-#     ax1.set_ylabel('Boltzmann probability', fontsize=fontsize+2)
-
-#     n, rna_struct = len(lines[0]), lines[0]
-#     init = lines[1].split(', ')[1].split(': ')[1]
-#     learning_rate = lines[3].split(', ')[0].split(': ')[1]
-#     sample_size = lines[6].split(', ')[0].split(': ')[1]
-
-#     # lr change
-#     if len(lr_idx) > 0:
-#         ax1.axvline(x=lr_idx[0], color='black', linestyle='--', alpha=0.25, label='lr decay')
-#         for idx in lr_idx[1:]:
-#             ax1.axvline(x=idx, color='black', linestyle='--', alpha=0.25)
-    
-#     # box plot
-#     num_steps = len(avg_pyx)
-#     x_values = np.linspace(0, num_steps-1, num=10)
-#     x_values = [int(val) for val in x_values]
-    
-#     if len(boxplot) > 0:
-#         boxplot = [data for idx, data in enumerate(boxplot) if idx in x_values]
-#         marker_props = dict(marker='.', markerfacecolor='black', markersize=2, linestyle='none')
-#         ax1.boxplot(boxplot, widths=num_steps//20, positions=x_values, flierprops=marker_props)
-
-#     # learning curves
-#     objs_exp = np.exp(-1 * np.array(avg_obj))
-    
-#     ax1.plot([], linestyle='', marker='o', ms=10, markerfacecolor='None', color='green', alpha=0.7, label=r'best sample')
-#     ax1.plot(sampled_pyx, linestyle='', marker='o', markerfacecolor='None', color='green', alpha=0.3)
-#     ax1.plot(integral_pyx, color='orange', alpha=0.9, label=r'max-probability solution')
-#     ax1.plot(avg_pyx, color='red', alpha=0.8, label=r'arith. mean')
-#     ax1.plot(objs_exp, color='blue', alpha=0.8, label=r'geom. mean')
-
-#     # entropy subplot
-#     entropy = [data for idx, data in enumerate(entropy) if idx in x_values]
-#     ax2.bar(x_values, entropy, width=num_steps / 20)
-#     ax2.set_ylim(0, max(entropy) *1.1)
-#     ax2.invert_yaxis()
-#     ax2.set_ylabel("entropy of seq.\ndistribution", fontsize=fontsize+2)
-
-#     plt.margins(x=0.02, y=0.2)
-#     ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=fontsize+2)
-#     ax2.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
-
-#     ax1.legend(fontsize=fontsize)
-
-#     if not os.path.exists(f"graphs/{args.folder}"):
-#         os.makedirs(f"graphs/{args.folder}")
-
-#     save_path = f'graphs/{args.folder}/{rna_id}.pdf'
-#     plt.savefig(save_path, bbox_inches="tight")
-#     print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)

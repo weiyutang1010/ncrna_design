@@ -109,17 +109,17 @@ num_steps: set max number of steps (default: 2000)
 --num_steps [value]
 ```
 
-adaptive_step: use early stopping condition (default: true, 50)
+no_early_stop: turn off early stopping (default: false)
 ```
---adaptive_step
+--no_early_stop
 ```
 
-k_ma: k moving average
+k_ma: k moving average parameter used for early stopping (default: 50)
 ```
 --k_ma [value]
 ```
 
-beamsize: set beamsize and sharpturn (default: 250, False)
+beamsize: set beamsize and sharpturn (default: 250)
 ```
 --beamsize [value]
 ```
