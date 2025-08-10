@@ -107,10 +107,12 @@ def eval_seq(seq, ss, scale=True):
     return seq, pr, ed, is_mfe, is_umfe, dist, energy_diff
 
 def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxplot, entropy, kl_div, lr_idx, args, fontsize=18):
-    plt.rcParams["figure.figsize"] = [11.50, 9.50]
+    plt.rcParams["figure.figsize"] = [12, 6.5]
+    # plt.rcParams["figure.figsize"] = [11.50, 9.50]
     plt.rcParams["figure.autolayout"] = True
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1,  gridspec_kw={'height_ratios': [2, 1, 1]}, sharex=True)
+    fig, (ax1, ax2) = plt.subplots(2, 1,  gridspec_kw={'height_ratios': [2, 1]}, sharex=True)
+    # fig, (ax1, ax2, ax3) = plt.subplots(3, 1,  gridspec_kw={'height_ratios': [2, 1, 1]}, sharex=True)
 
     # axis labels
     ticklabelpad = mpl.rcParams['xtick.major.pad']
@@ -155,17 +157,17 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
     ax2.invert_yaxis()
     ax2.set_ylabel("entropy of seq.\ndistribution", fontsize=fontsize+2)
 
-    # kl divergence between distributions at step i and i - 1
-    kl_div = kl_div[1:]
-    ax3.plot(np.arange(1, len(avg_obj)), kl_div, color='orange')
-    ax3.set_ylim(0, max(kl_div) *1.1)
-    ax3.invert_yaxis()
-    ax3.set_ylabel("KL divergence", fontsize=fontsize+2)
+    # # kl divergence between distributions at step i and i - 1
+    # kl_div = kl_div[1:]
+    # ax3.plot(np.arange(1, len(avg_obj)), kl_div, color='orange')
+    # ax3.set_ylim(0, max(kl_div) *1.1)
+    # ax3.invert_yaxis()
+    # ax3.set_ylabel("KL divergence", fontsize=fontsize+2)
 
     plt.margins(x=0.01, y=0.2)
     ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=fontsize+2)
     ax2.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
-    ax3.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
+    # ax3.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
 
     ax1.legend(fontsize=fontsize)
 
@@ -177,10 +179,11 @@ def graph_prob(rna_id, lines, avg_obj, avg_pyx, integral_pyx, sampled_pyx, boxpl
     print(f"Puzzle {rna_id} saved to {save_path}", file=sys.stderr)
 
 def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, entropy, kl_div, lr_idx, args, fontsize=18):
-    plt.rcParams["figure.figsize"] = [11.50, 9.50]
+    plt.rcParams["figure.figsize"] = [12, 8.50]
     plt.rcParams["figure.autolayout"] = True
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1,  gridspec_kw={'height_ratios': [2, 1, 1]}, sharex=True)
+    fig, (ax1, ax2) = plt.subplots(2, 1,  gridspec_kw={'height_ratios': [2, 1, 1]}, sharex=True)
+    # fig, (ax1, ax2, ax3) = plt.subplots(3, 1,  gridspec_kw={'height_ratios': [2, 1, 1]}, sharex=True)
 
     ticklabelpad = mpl.rcParams['xtick.major.pad']
     ax1.annotate('Step', xy=(1,0), xytext=(5, -ticklabelpad), ha='left', va='top',
@@ -230,16 +233,16 @@ def graph(rna_id, objective, lines, avg_obj, integral, sampled, boxplot, entropy
     ax2.invert_yaxis()
     ax2.set_ylabel("entropy of seq.\ndistribution", fontsize=fontsize+2)
 
-    kl_div = kl_div[1:]
-    ax3.plot(np.arange(1, len(avg_obj)), kl_div, color='orange')
-    ax3.set_ylim(0, max(kl_div) *1.1)
-    ax3.invert_yaxis()
-    ax3.set_ylabel("KL divergence", fontsize=fontsize+2)
+    # kl_div = kl_div[1:]
+    # ax3.plot(np.arange(1, len(avg_obj)), kl_div, color='orange')
+    # ax3.set_ylim(0, max(kl_div) *1.1)
+    # ax3.invert_yaxis()
+    # ax3.set_ylabel("KL divergence", fontsize=fontsize+2)
 
     plt.margins(x=0.02, y=0.2)
     ax1.tick_params(labelbottom=True, axis='both', which='major', labelsize=fontsize+2)
     ax2.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
-    ax3.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
+    # ax3.tick_params(labelbottom=False, axis='both', which='major', labelsize=fontsize+2)
 
     if not os.path.exists(f"graphs/{args.folder}"):
         os.makedirs(f"graphs/{args.folder}")

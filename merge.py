@@ -68,8 +68,8 @@ def main():
     umfe_count = 0
     avg_dist = []
     avg_ddg = []
-    # print("id,length,p(y | x),p(y | x) seq,ned,ned seq,dist,dist seq,ddg,ddg seq,is_mfe,mfe seq,is_umfe,umfe seq")
-    print("id,length,p(y|x),ned,dist,ddg,is_mfe,is_umfe")
+    print("id,length,p(y | x),p(y | x) seq,ned,ned seq,dist,dist seq,ddg,ddg seq,is_mfe,mfe seq,is_umfe,umfe seq")
+    # print("id,length,p(y|x),ned,dist,ddg,is_mfe,is_umfe")
     for line in lines:
         rna_id, rna_struct = line[0], line[1]
 
@@ -80,6 +80,7 @@ def main():
         result = max(results[rna_id], key=lambda x: x[0])
         pyx = result[0]
         pyx_seq = result[1]
+        # print(result[10]) # print best p(y* | x) file
 
         result = min(results[rna_id], key=lambda x: x[2])
         ned = result[2]
@@ -100,35 +101,37 @@ def main():
         for result in results[rna_id]:
             umfe_seq = result[9] if (result[9] != '') else umfe_seq
 
-        print(f"{int(rna_id):2d}", end=",")
-        print(f"{len(rna_struct):3d}", end=", ")
+        print(f"{int(rna_id)}", end=",")
+        print(f"{len(rna_struct)}", end=",")
+        print(f"{rna_struct}", end=",")
 
-        print(f"{pyx:.3f}", end=", ")
-        # print(f"{pyx_seq}", end=",")
+        print(f"{pyx}", end=",")
+        print(f"{pyx_seq}", end=",")
 
-        print(f"{ned:.3f}", end=",")
-        # print(f"{ned_seq}", end=",")
+        print(f"{ned}", end=",")
+        print(f"{ned_seq}", end=",")
 
-        print(f"{dist:3d}", end=", ")
-        # print(f"{dist_seq}", end=",")
+        print(f"{dist}", end=",")
+        print(f"{dist_seq}", end=",")
 
         print(f"{ddg:.2f}", end=",")
-        # print(f"{ddg_seq}", end=",")
+        print(f"{ddg_seq}", end=",")
 
         if mfe_seq != "":
             print("is_mfe", end=",")
-            # print(mfe_seq, end=",")
+            print(mfe_seq, end=",")
             mfe_count += 1
         else:
             print(f",", end="")
 
         if umfe_seq != "":
             print("is_umfe", end=",")
-            # print(umfe_seq)
+            print(umfe_seq, end=",")
             umfe_count += 1
         else:
             print(f",", end="")
         print()
+        
         
         avg_pyx.append(pyx)
         avg_ned.append(ned)
@@ -144,7 +147,8 @@ def main():
     print("")
     print("Summary")
     print(f"arith. mean Boltzmann prob.  : {np.mean(avg_pyx):.3f}") # arithmetic mean of Boltzmann probability
-    print(f"geom.  mean Boltzmann prob. (w/o undesignable): {geo_mean_overflow(pyx_no_undesignable):.5f}") # geometric mean of Boltzmann probability (excluding undesignable puzzles)
+    print(f"geom.  mean Boltzmann prob.  : {geo_mean_overflow(avg_pyx):.5f}") # geometric mean of Boltzmann probability
+    # print(f"geom.  mean Boltzmann prob. (w/o undesignable): {geo_mean_overflow(pyx_no_undesignable):.5f}") # geometric mean of Boltzmann probability (excluding undesignable puzzles)
     print(f"average norm. ensemble defect: {np.mean(avg_ned):.4f}") # average normalized ensemble defect
     print(f"average struct. distance     : {np.mean(avg_dist):.4f}") # average structural distance
     print(f"average free energy gap      : {np.mean(avg_ddg):.4f}") # average free energy gap (Delta Delta G)
