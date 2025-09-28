@@ -1,6 +1,6 @@
 # SamplingDesign: RNA Design via Continuous Optimization with Coupled Variables and Monte-Carlo Sampling
 
-This repository contains the source code for the SamplingDesign project.
+This repository contains the source code for the SamplingDesign project. The Python code for generating the figures in the paper is available in `./figures/`
 
 Wei Yu Tang, Ning Dai, Tianshuo Zhou, David H. Mathews, and Liang Huang*
 
@@ -28,19 +28,19 @@ Run SamplingDesign for the shortest five structures (up to 30 nucleotides) in Et
 
 The results will be saved in `./results/example/`. The script then parses the result file to generate learning curves in `./graphs/example/` and output the best solution (based on each metric) into `./analysis/example/`.
 
-## Run all Eterna100 structures
-Reproduce the results in the paper (both uniform and $\epsilon$-targeted initializations). Note: On our server with 28 cores, the $\epsilon$-targeted initialization took approximately 10 days to complete.
+## Run all structures in a dataset
+Reproduce the results in the paper (run both uniform and $\epsilon$-targeted initializations). Note: On our server with 64 cores, the Eterna100 dataset took approximately 10 days to complete.
 
 ### Command
 ```
-./run_all.sh ./data/eterna100.txt
-python merge.py eterna100 eterna100_uniform eterna100_targeted # summarize results
+./run_all.sh ./data/eterna100_v1.txt
+python merge.py eterna100_v1 eterna100_uniform eterna100_targeted # summarize results
 ```
-The sequences used in the paper are available in `./evaluation_data/`.
 
 Replace `./data/eterna100.txt` with
- - `./data/eterna_50n.txt` to run the 18 shortest structures (up to 50 nts).
- - `./data/eterna_104n.txt` to run the 51 shortest structures (up to 104 nts).
+ - `./data/eterna100_v2.txt` to run all the modified 19 structures in Eterna100-v2.
+ - `./data/rfam27.txt` to run all the Rfam-Taneda-27 structures.
+ - `./data/rnasolo.txt` to run all the RNAsolo-764 structures.
 
 ## To run SamplingDesign
 ### Command
