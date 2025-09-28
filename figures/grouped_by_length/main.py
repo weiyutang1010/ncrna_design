@@ -176,21 +176,25 @@ def plot(samplingdesign, samfeo, obj="arith"):
     ax.set_xlabel('Puzzle Length', fontsize=20)
 
     if obj == "arith" or obj == "geom":
-        ax.set_ylabel('$p(\\boldsymbol{y}^\\star \\mid \\boldsymbol{x})$', fontsize=20) # arith and geom
+        # ax.set_ylabel('$p(\\boldsymbol{y}^\\star \\mid \\boldsymbol{x})$', fontsize=20) # arith and geom
+        ax.set_ylabel('$p(\\boldsymbol{y} \\mid \\boldsymbol{x})$', fontsize=20) # arith and geom
         ax.set_ylim([0.0, 1.0]) # arith
         if obj == "geom":
             ax.set_ylim([-0.08, 1.0]) # geom
 
     if obj == "ned":
-        ax.set_ylabel('NED$(\\boldsymbol{x},\\boldsymbol{y}^\\star)$', fontsize=20)
+        # ax.set_ylabel('NED$(\\boldsymbol{x},\\boldsymbol{y}^\\star)$', fontsize=20)
+        ax.set_ylabel('NED$(\\boldsymbol{x},\\boldsymbol{y})$', fontsize=20)
         ax.set_ylim([0.00, 0.09])
 
     if obj == "dist":
-        ax.set_ylabel('$d(\\text{MFE}(\\boldsymbol{x}),\\boldsymbol{y}^\\star)$', fontsize=20)
+        # ax.set_ylabel('$d(\\text{MFE}(\\boldsymbol{x}),\\boldsymbol{y}^\\star)$', fontsize=20)
+        ax.set_ylabel('$d(\\text{MFE}(\\boldsymbol{x}),\\boldsymbol{y})$', fontsize=20)
         ax.set_ylim([-1.5, 25.0])
 
     if obj == "ddg":
-        ax.set_ylabel('$\\Delta \\Delta G^{\\circ}(\\boldsymbol{x},\\boldsymbol{y}^\\star)$ (kcal/mol)', fontsize=20)
+        # ax.set_ylabel('$\\Delta \\Delta G^{\\circ}(\\boldsymbol{x},\\boldsymbol{y}^\\star)$ (kcal/mol)', fontsize=20)
+        ax.set_ylabel('$\\Delta \\Delta G^{\\circ}(\\boldsymbol{x},\\boldsymbol{y})$ (kcal/mol)', fontsize=20)
         ax.set_ylim([-0.9, 14.0])
 
     ax.set_xlim([-5, 415])
@@ -205,8 +209,8 @@ def plot(samplingdesign, samfeo, obj="arith"):
     plt.savefig(f"./plots/{obj}.pdf", bbox_inches="tight") # change
     print(f"Figure saved to ./plots/{obj}.pdf")
 
-# plot(samplingdesign, samfeo, "arith")
-# plot(samplingdesign, samfeo, "geom")
+plot(samplingdesign, samfeo, "arith")
+plot(samplingdesign, samfeo, "geom")
 plot(samplingdesign, samfeo, "ned")
-# plot(samplingdesign, samfeo, "dist")
-# plot(samplingdesign, samfeo, "ddg")
+plot(samplingdesign, samfeo, "dist")
+plot(samplingdesign, samfeo, "ddg")

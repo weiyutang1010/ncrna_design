@@ -200,10 +200,12 @@ def plot(samplingdesign, samfeo, obj):
     ax.tick_params(labelsize=20)
 
     if obj == "prob":
-        ax.set_ylabel('$p(\\boldsymbol{y}^\\star \\mid \\boldsymbol{x})$', fontsize=20)
+        ax.set_ylabel('$p(\\boldsymbol{y} \\mid \\boldsymbol{x})$', fontsize=20)
+        # ax.set_ylabel('$p(\\boldsymbol{y}^\\star \\mid \\boldsymbol{x})$', fontsize=20)
         pass
     elif obj == "prob_log":
-        ax.set_ylabel('$p(\\boldsymbol{y}^\\star \\mid \\boldsymbol{x})$', fontsize=20)
+        ax.set_ylabel('$p(\\boldsymbol{y} \\mid \\boldsymbol{x})$', fontsize=20)
+        # ax.set_ylabel('$p(\\boldsymbol{y}^\\star \\mid \\boldsymbol{x})$', fontsize=20)
         plt.legend(loc='lower right', bbox_to_anchor=(0.8, 0.1))
         ax.set_xlim([280, 405])
         plt.yscale('log')
@@ -214,7 +216,8 @@ def plot(samplingdesign, samfeo, obj):
         legend.get_texts()[4].set_color((0.5,0.5,0.5))
     elif obj == "ned":
         ax.set_yticks([0.00, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35])
-        ax.set_ylabel('NED$(\\boldsymbol{x}, \\boldsymbol{y}^\\star)$', fontsize=19)
+        ax.set_ylabel('NED$(\\boldsymbol{x}, \\boldsymbol{y})$', fontsize=19)
+        # ax.set_ylabel('NED$(\\boldsymbol{x}, \\boldsymbol{y}^\\star)$', fontsize=19)
         legend = plt.legend(fontsize=19)
 
         legend.get_texts()[3].set_color((0.71,0.4,0.11))

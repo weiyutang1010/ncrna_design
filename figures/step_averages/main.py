@@ -80,7 +80,7 @@ def plot(steps, arith, geom, neds, ddgs, entropy):
     ax3.set_ylim([0, 10])
 
     ax4.plot(steps, entropy, color='dimgrey')
-    ax4.set_ylabel("Entropy of $p_{\\boldsymbol{y}^\\star}(\\cdot;\\Theta)$",fontsize=fontsize)
+    ax4.set_ylabel("Entropy of $p_{\\boldsymbol{y}^\\star}(\\cdot;\\boldsymbol{\\Theta})$",fontsize=fontsize)
     ax4.axhline(42.9, ls="--", lw=1.6, color='dimgrey', alpha=0.8, zorder=0)
     ax4.set_ylim([0, 190])
 
